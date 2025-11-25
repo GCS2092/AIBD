@@ -8,7 +8,9 @@ import {
   IsEnum,
   IsInt,
   Min,
+  ValidateIf,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { RideType } from '../../entities/ride.entity';
 
 export class CreateRideDto {
@@ -27,7 +29,15 @@ export class CreateRideDto {
   })
   clientPhone: string;
 
-  @IsEmail()
+  @Transform(({ value }) => {
+    // Transformer les chaînes vides en undefined
+    if (value === '' || value === null) {
+      return undefined;
+    }
+    return value;
+  })
+  @ValidateIf((o) => o.clientEmail !== undefined && o.clientEmail !== null && o.clientEmail !== '')
+  @IsEmail({}, { message: 'L\'email doit être valide' })
   @IsOptional()
   clientEmail?: string;
 

@@ -6,6 +6,7 @@ import { driverService } from '../services/driverService';
 import type { DriverProfile, Ride } from '../services/driverService';
 import { authService } from '../services/authService';
 import { notificationService } from '../services/notificationService';
+import NavigationBar from '../components/NavigationBar';
 import Pagination from '../components/Pagination';
 import './DriverDashboard.css';
 
@@ -114,8 +115,8 @@ function DriverDashboard() {
     navigate('/login');
   };
 
-  const pendingRides = rides.filter(r => r.status === 'pending');
-  const activeRides = rides.filter(r => r.status === 'accepted' || r.status === 'in_progress');
+  const pendingRides = rides.filter(r => r.status === 'pending' || r.status === 'assigned');
+  const activeRides = rides.filter(r => r.status === 'accepted' || r.status === 'in_progress' || r.status === 'driver_on_way' || r.status === 'picked_up');
   const completedRides = rides.filter(r => r.status === 'completed');
 
   return (

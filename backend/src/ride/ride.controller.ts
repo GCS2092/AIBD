@@ -21,10 +21,11 @@ export class RideController {
     @Query('email') email?: string,
     @Query('firstName') firstName?: string,
     @Query('lastName') lastName?: string,
+    @Query('accessCode') accessCode?: string,
   ) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 10;
-    return this.rideService.getClientRides(pageNum, limitNum, phone, email, firstName, lastName);
+    return this.rideService.getClientRides(pageNum, limitNum, phone, email, firstName, lastName, accessCode);
   }
 
   @Get(':id/status')

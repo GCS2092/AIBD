@@ -67,8 +67,9 @@ export class DriverController {
   async refuseRide(
     @CurrentUser() user: any,
     @Param('id') rideId: string,
+    @Body('reason') reason?: string,
   ) {
-    return this.driverService.refuseRide(user.id, rideId);
+    return this.driverService.refuseRide(user.id, rideId, reason);
   }
 
   @Post('rides/:id/start')

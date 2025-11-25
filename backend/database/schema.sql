@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS rides (
     "dropoffLocation" JSONB,
     rating INTEGER CHECK (rating >= 1 AND rating <= 5),
     review TEXT,
+    "accessCode" VARCHAR(8) UNIQUE NOT NULL,
     "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

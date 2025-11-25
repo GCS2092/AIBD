@@ -5,7 +5,7 @@ export interface CreateRideDto {
   clientFirstName: string;
   clientLastName: string;
   clientPhone: string;
-  clientEmail: string;
+  clientEmail?: string; // Email optionnel
   pickupAddress: string;
   dropoffAddress: string;
   scheduledAt: string;
@@ -21,7 +21,7 @@ export interface Ride {
   clientFirstName: string;
   clientLastName: string;
   clientPhone: string;
-  clientEmail: string;
+  clientEmail?: string; // Email optionnel
   pickupAddress: string;
   dropoffAddress: string;
   scheduledAt: string;
@@ -36,6 +36,7 @@ export interface Ride {
   acceptedAt?: string;
   startedAt?: string;
   completedAt?: string;
+  accessCode?: string; // Code d'accès unique
   driverLocation?: {
     lat: number;
     lng: number;
@@ -86,13 +87,15 @@ export const rideService = {
     phone?: string,
     email?: string,
     firstName?: string,
-    lastName?: string
+    lastName?: string,
+    accessCode?: string
   ): Promise<PaginatedResponse<Ride>> => {
     const params: any = { page, limit };
     if (phone) params.phone = phone;
     if (email) params.email = email;
     if (firstName) params.firstName = firstName;
     if (lastName) params.lastName = lastName;
+    if (accessCode) params.accessCode = accessCode;
     
     const response = await apiClient.get(API_ENDPOINTS.USER_RIDES, { params });
     return response.data;

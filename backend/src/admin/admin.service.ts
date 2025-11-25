@@ -435,15 +435,78 @@ export class AdminService {
 
     // S'assurer que le service d'encryption est injecté pour déchiffrer
     ride.setEncryptionService(this.encryptionService);
-    if (ride.driver?.user) {
-      ride.driver.user.setEncryptionService(this.encryptionService);
-      const _ = ride.driver.user.email;
-      const __ = ride.driver.user.phone;
+    
+    // Déchiffrer les données de la course (client)
+    if (ride.clientEmail && ride.clientEmail.includes(':')) {
+      try {
+        ride.clientEmail = this.encryptionService.decrypt(ride.clientEmail);
+      } catch (e) {
+        // Ignorer si échec
+      }
     }
+    if (ride.clientPhone && ride.clientPhone.includes(':')) {
+      try {
+        ride.clientPhone = this.encryptionService.decrypt(ride.clientPhone);
+      } catch (e) {
+        // Ignorer si échec
+      }
+    }
+    if (ride.clientFirstName && ride.clientFirstName.includes(':')) {
+      try {
+        ride.clientFirstName = this.encryptionService.decrypt(ride.clientFirstName);
+      } catch (e) {
+        // Ignorer si échec
+      }
+    }
+    if (ride.clientLastName && ride.clientLastName.includes(':')) {
+      try {
+        ride.clientLastName = this.encryptionService.decrypt(ride.clientLastName);
+      } catch (e) {
+        // Ignorer si échec
+      }
+    }
+    
+    // Déchiffrer les données du chauffeur si présent
     if (ride.driver) {
       ride.driver.setEncryptionService(this.encryptionService);
+      
+      // Déchiffrer le numéro de permis - vérifier d'abord si c'est chiffré
       if (ride.driver.licenseNumber) {
-        const _ = ride.driver.licenseNumber;
+        // Vérifier si c'est chiffré (contient ':' qui est le séparateur)
+        if (typeof ride.driver.licenseNumber === 'string' && ride.driver.licenseNumber.includes(':')) {
+          try {
+            ride.driver.licenseNumber = this.encryptionService.decrypt(ride.driver.licenseNumber);
+          } catch (e) {
+            console.error('Erreur déchiffrement licenseNumber:', e);
+          }
+        }
+      }
+      
+      // Déchiffrer les données de l'utilisateur (chauffeur)
+      if (ride.driver.user) {
+        ride.driver.user.setEncryptionService(this.encryptionService);
+        
+        // Déchiffrer l'email
+        if (ride.driver.user.email) {
+          if (typeof ride.driver.user.email === 'string' && ride.driver.user.email.includes(':')) {
+            try {
+              ride.driver.user.email = this.encryptionService.decrypt(ride.driver.user.email);
+            } catch (e) {
+              console.error('Erreur déchiffrement email chauffeur:', e);
+            }
+          }
+        }
+        
+        // Déchiffrer le téléphone
+        if (ride.driver.user.phone) {
+          if (typeof ride.driver.user.phone === 'string' && ride.driver.user.phone.includes(':')) {
+            try {
+              ride.driver.user.phone = this.encryptionService.decrypt(ride.driver.user.phone);
+            } catch (e) {
+              console.error('Erreur déchiffrement téléphone chauffeur:', e);
+            }
+          }
+        }
       }
     }
 

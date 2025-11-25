@@ -75,6 +75,10 @@ export class ConfigSystemService {
       { key: 'cancellation_refund_hours_24', value: '24', description: 'Heures avant course pour remboursement 100%' },
       { key: 'cancellation_refund_hours_2', value: '2', description: 'Heures avant course pour remboursement 50%' },
       { key: 'max_consecutive_refusals', value: '3', description: 'Nombre maximum de refus consécutifs avant alerte' },
+      { key: 'simultaneous_offer_count', value: '3', description: 'Nombre de chauffeurs à proposer simultanément (3-5 recommandé)' },
+      { key: 'multiple_offer_timeout', value: '90', description: 'Timeout en secondes pour les propositions multiples (90 secondes)' },
+      { key: 'max_assignment_attempts', value: '7', description: 'Nombre maximum de tentatives d\'assignation avant passage en attente manuelle' },
+      { key: 'max_assignment_distance', value: '50', description: 'Distance maximale en km pour l\'assignation (géolocalisation)' },
     ];
 
     for (const defaultConfig of defaults) {

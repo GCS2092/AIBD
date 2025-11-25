@@ -5,6 +5,7 @@ import { Driver, DriverStatus } from '../entities/driver.entity';
 import { Ride, RideStatus } from '../entities/ride.entity';
 import { Vehicle } from '../entities/vehicle.entity';
 import { User } from '../entities/user.entity';
+import { RideAssignment } from '../entities/ride-assignment.entity';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { ConfigSystemService } from '../config-system/config-system.service';
 import { InternalNotificationsService } from '../notifications/internal-notifications.service';
@@ -28,6 +29,8 @@ export class DriverService {
     private vehicleRepository: Repository<Vehicle>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(RideAssignment)
+    private rideAssignmentRepository: Repository<RideAssignment>,
     private configSystemService: ConfigSystemService,
     private internalNotificationsService: InternalNotificationsService,
     private encryptionService: EncryptionService,
@@ -220,6 +223,22 @@ export class DriverService {
       throw new NotFoundException('Course non trouvée ou non disponible');
     }
 
+    // Vérifier s'il y a une proposition (RideAssignment) pour ce chauffeur
+    const RideAssignmentStatus = {
+      OFFERED: 'offered',
+      ACCEPTED: 'accepted',
+      REFUSED: 'refused',
+      TIMEOUT: 'timeout',
+    };
+    
+    const assignment = await this.rideAssignmentRepository.findOne({
+      where: {
+        rideId: ride.id,
+        driverId: driver.id,
+        status: RideAssignmentStatus.OFFERED as any,
+      },
+    });
+
     // Si la course n'est pas encore assignée, l'assigner au chauffeur
     if (!ride.driverId) {
       ride.driverId = driver.id;
@@ -230,6 +249,13 @@ export class DriverService {
     // Vérifier que la course est en statut ASSIGNED ou PENDING
     if (ride.status !== RideStatus.ASSIGNED && ride.status !== RideStatus.PENDING) {
       throw new BadRequestException('Cette course n\'est pas en attente d\'acceptation');
+    }
+
+    // Marquer l'assignation comme acceptée si elle existe
+    if (assignment) {
+      assignment.status = RideAssignmentStatus.ACCEPTED as any;
+      assignment.respondedAt = new Date();
+      await this.rideAssignmentRepository.save(assignment);
     }
 
     // Accepter la course
@@ -307,7 +333,7 @@ export class DriverService {
     return ride;
   }
 
-  async refuseRide(userId: string, rideId: string) {
+  async refuseRide(userId: string, rideId: string, reason?: string) {
     const driver = await this.driverRepository.findOne({
       where: { userId },
     });
@@ -324,8 +350,31 @@ export class DriverService {
       throw new NotFoundException('Course non trouvée');
     }
 
-    if (ride.status !== RideStatus.ASSIGNED) {
+    if (ride.status !== RideStatus.ASSIGNED && ride.status !== RideStatus.PENDING) {
       throw new BadRequestException('Cette course ne peut pas être refusée');
+    }
+
+    // Marquer l'assignation comme refusée si elle existe
+    const RideAssignmentStatus = {
+      OFFERED: 'offered',
+      ACCEPTED: 'accepted',
+      REFUSED: 'refused',
+      TIMEOUT: 'timeout',
+    };
+    
+    const assignment = await this.rideAssignmentRepository.findOne({
+      where: {
+        rideId: ride.id,
+        driverId: driver.id,
+        status: RideAssignmentStatus.OFFERED as any,
+      },
+    });
+
+    if (assignment) {
+      assignment.status = RideAssignmentStatus.REFUSED as any;
+      assignment.respondedAt = new Date();
+      assignment.refusalReason = reason || null;
+      await this.rideAssignmentRepository.save(assignment);
     }
 
     // Retirer l'attribution

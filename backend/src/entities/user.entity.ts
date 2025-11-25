@@ -97,12 +97,22 @@ export class User {
   decryptSensitiveData() {
     if (!this.encryptionService) return;
 
-    // Déchiffrer email et téléphone
-    if (this.email) {
-      this.email = this.encryptionService.decrypt(this.email);
+    // Déchiffrer email et téléphone seulement s'ils sont chiffrés (contiennent ':')
+    if (this.email && typeof this.email === 'string' && this.email.includes(':')) {
+      try {
+        this.email = this.encryptionService.decrypt(this.email);
+      } catch (e) {
+        // Si le déchiffrement échoue, garder la valeur originale
+        console.warn('Erreur déchiffrement email dans User entity:', e);
+      }
     }
-    if (this.phone) {
-      this.phone = this.encryptionService.decrypt(this.phone);
+    if (this.phone && typeof this.phone === 'string' && this.phone.includes(':')) {
+      try {
+        this.phone = this.encryptionService.decrypt(this.phone);
+      } catch (e) {
+        // Si le déchiffrement échoue, garder la valeur originale
+        console.warn('Erreur déchiffrement phone dans User entity:', e);
+      }
     }
   }
 }

@@ -143,6 +143,15 @@ export class Ride {
   @Column({ type: 'text', nullable: true })
   review: string; // Commentaire du client
 
+  @Column({ type: 'varchar', length: 8, unique: true })
+  accessCode: string; // Code d'accès unique pour consulter la course
+
+  @Column({ type: 'int', default: 0 })
+  assignmentAttempts: number; // Nombre de tentatives d'assignation
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastAssignmentAttempt: Date; // Dernière tentative d'assignation
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -197,29 +206,62 @@ export class Ride {
   decryptSensitiveData() {
     if (!this.encryptionService) return;
 
-    if (this.clientFirstName) {
-      this.clientFirstName = this.encryptionService.decrypt(this.clientFirstName);
+    // Déchiffrer seulement si les données sont chiffrées (contiennent ':')
+    if (this.clientFirstName && typeof this.clientFirstName === 'string' && this.clientFirstName.includes(':')) {
+      try {
+        this.clientFirstName = this.encryptionService.decrypt(this.clientFirstName);
+      } catch (e) {
+        console.warn('Erreur déchiffrement clientFirstName:', e);
+      }
     }
-    if (this.clientLastName) {
-      this.clientLastName = this.encryptionService.decrypt(this.clientLastName);
+    if (this.clientLastName && typeof this.clientLastName === 'string' && this.clientLastName.includes(':')) {
+      try {
+        this.clientLastName = this.encryptionService.decrypt(this.clientLastName);
+      } catch (e) {
+        console.warn('Erreur déchiffrement clientLastName:', e);
+      }
     }
-    if (this.clientPhone) {
-      this.clientPhone = this.encryptionService.decrypt(this.clientPhone);
+    if (this.clientPhone && typeof this.clientPhone === 'string' && this.clientPhone.includes(':')) {
+      try {
+        this.clientPhone = this.encryptionService.decrypt(this.clientPhone);
+      } catch (e) {
+        console.warn('Erreur déchiffrement clientPhone:', e);
+      }
     }
-    if (this.clientEmail) {
-      this.clientEmail = this.encryptionService.decrypt(this.clientEmail);
+    if (this.clientEmail && typeof this.clientEmail === 'string' && this.clientEmail.includes(':')) {
+      try {
+        this.clientEmail = this.encryptionService.decrypt(this.clientEmail);
+      } catch (e) {
+        console.warn('Erreur déchiffrement clientEmail:', e);
+      }
     }
-    if (this.pickupAddress) {
-      this.pickupAddress = this.encryptionService.decrypt(this.pickupAddress);
+    if (this.pickupAddress && typeof this.pickupAddress === 'string' && this.pickupAddress.includes(':')) {
+      try {
+        this.pickupAddress = this.encryptionService.decrypt(this.pickupAddress);
+      } catch (e) {
+        console.warn('Erreur déchiffrement pickupAddress:', e);
+      }
     }
-    if (this.dropoffAddress) {
-      this.dropoffAddress = this.encryptionService.decrypt(this.dropoffAddress);
+    if (this.dropoffAddress && typeof this.dropoffAddress === 'string' && this.dropoffAddress.includes(':')) {
+      try {
+        this.dropoffAddress = this.encryptionService.decrypt(this.dropoffAddress);
+      } catch (e) {
+        console.warn('Erreur déchiffrement dropoffAddress:', e);
+      }
     }
-    if (this.flightNumber) {
-      this.flightNumber = this.encryptionService.decrypt(this.flightNumber);
+    if (this.flightNumber && typeof this.flightNumber === 'string' && this.flightNumber.includes(':')) {
+      try {
+        this.flightNumber = this.encryptionService.decrypt(this.flightNumber);
+      } catch (e) {
+        console.warn('Erreur déchiffrement flightNumber:', e);
+      }
     }
-    if (this.cancellationReason) {
-      this.cancellationReason = this.encryptionService.decrypt(this.cancellationReason);
+    if (this.cancellationReason && typeof this.cancellationReason === 'string' && this.cancellationReason.includes(':')) {
+      try {
+        this.cancellationReason = this.encryptionService.decrypt(this.cancellationReason);
+      } catch (e) {
+        console.warn('Erreur déchiffrement cancellationReason:', e);
+      }
     }
   }
 }

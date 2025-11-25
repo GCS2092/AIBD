@@ -8,17 +8,19 @@ import { Repository } from 'typeorm';
 import { Ride, RideStatus, RideType } from '../entities/ride.entity';
 import { Driver, DriverStatus } from '../entities/driver.entity';
 import { Pricing, PricingType } from '../entities/pricing.entity';
+import { RideAssignment, RideAssignmentStatus } from '../entities/ride-assignment.entity';
 import { CreateRideDto } from './dto/create-ride.dto';
 import { NotificationService } from '../notifications/notification.service';
 import { InternalNotificationsService } from '../notifications/internal-notifications.service';
 import { ConfigSystemService } from '../config-system/config-system.service';
 import { EncryptionService } from '../encryption/encryption.service';
 import { User, UserRole } from '../entities/user.entity';
-import { LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import { LessThanOrEqual, MoreThanOrEqual, In, Not } from 'typeorm';
 import { PaginatedResponse } from '../common/interfaces/paginated-response.interface';
 import { InternalNotificationType } from '../entities/internal-notification.entity';
 import { WebSocketGateway } from '../websocket/websocket.gateway';
 import { Inject, forwardRef } from '@nestjs/common';
+import { RideAssignmentService } from './ride-assignment.service';
 
 @Injectable()
 export class RideService {
@@ -31,15 +33,21 @@ export class RideService {
     private pricingRepository: Repository<Pricing>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(RideAssignment)
+    private rideAssignmentRepository: Repository<RideAssignment>,
     private notificationService: NotificationService,
     private internalNotificationsService: InternalNotificationsService,
     private configSystemService: ConfigSystemService,
     private encryptionService: EncryptionService,
     @Inject(forwardRef(() => WebSocketGateway))
     private websocketGateway: WebSocketGateway,
+    private assignmentService: RideAssignmentService,
   ) {}
 
   async createRide(createDto: CreateRideDto) {
+    // Générer un code d'accès unique (8 caractères alphanumériques)
+    const accessCode = await this.generateAccessCode();
+    
     // Trouver le tarif approprié
     const scheduledDate = new Date(createDto.scheduledAt);
     const hour = scheduledDate.getHours();
@@ -82,6 +90,7 @@ export class RideService {
         price: parseFloat(standardPricing.price.toString()),
         pricingId: standardPricing.id,
         status: RideStatus.PENDING,
+        accessCode: accessCode,
       });
 
       const savedRide = await this.rideRepository.save(ride);
@@ -98,6 +107,7 @@ export class RideService {
       price: parseFloat(pricing.price.toString()),
       pricingId: pricing.id,
       status: RideStatus.PENDING,
+      accessCode: accessCode,
     });
 
     const savedRide = await this.rideRepository.save(ride);
@@ -140,76 +150,14 @@ export class RideService {
       return; // Déjà assigné
     }
 
-    // Trouver un chauffeur disponible
-    const driver = await this.driverRepository.findOne({
-      where: {
-        status: DriverStatus.AVAILABLE,
-        isVerified: true,
-      },
-      relations: ['user'],
-      order: {
-        totalRides: 'ASC', // Priorité aux chauffeurs avec moins de courses
-      },
-    });
-
-    if (!driver) {
-      // Pas de chauffeur disponible, la course reste en attente
-      return;
+    // Utiliser le service d'assignation injecté
+    // Phase 1: Proposition multiple (3-5 chauffeurs simultanément)
+    const offered = await this.assignmentService.offerRideToMultipleDrivers(rideId);
+    
+    if (!offered) {
+      // Si la proposition multiple n'a pas fonctionné, passer à l'assignation séquentielle
+      await this.assignmentService.assignDriverSequentially(rideId);
     }
-
-    // Assigner le chauffeur
-    ride.driverId = driver.id;
-    ride.status = RideStatus.ASSIGNED;
-    ride.assignedAt = new Date();
-
-    await this.rideRepository.save(ride);
-
-    // Émettre mise à jour via WebSocket
-    ride.setEncryptionService(this.encryptionService);
-    this.websocketGateway.emitRideUpdate(ride.id, {
-      id: ride.id,
-      status: ride.status,
-      driverId: ride.driverId,
-      assignedAt: ride.assignedAt,
-    });
-    this.websocketGateway.emitToDriver(driver.user?.id || '', 'ride:assigned', {
-      rideId: ride.id,
-      status: ride.status,
-    });
-
-    // Envoyer notification au chauffeur (WhatsApp/SMS)
-    if (driver.user) {
-      // Déchiffrer le ride pour les notifications
-      ride.setEncryptionService(this.encryptionService);
-      
-      await this.notificationService.notifyDriverNewRide(
-        driver.user.phone,
-        ride,
-      );
-
-      // Envoyer notification interne au chauffeur
-      try {
-        await this.internalNotificationsService.notifyDriverNewRide(
-          driver.id,
-          ride,
-        );
-      } catch (error) {
-        console.error('Erreur notification interne chauffeur:', error);
-      }
-    }
-
-    // Timeout configurable pour l'acceptation (défaut: 2 minutes)
-    const timeoutSeconds = (await this.configSystemService.getConfigAsNumber('driver_response_timeout')) || 120;
-    setTimeout(async () => {
-      const updatedRide = await this.rideRepository.findOne({
-        where: { id: rideId },
-      });
-
-      if (updatedRide && updatedRide.status === RideStatus.ASSIGNED) {
-        // Le chauffeur n'a pas accepté, chercher un autre
-        await this.reassignDriver(rideId);
-      }
-    }, timeoutSeconds * 1000);
   }
 
   async reassignDriver(rideId: string) {
@@ -299,10 +247,16 @@ export class RideService {
     phone?: string,
     email?: string,
     firstName?: string,
-    lastName?: string
+    lastName?: string,
+    accessCode?: string
   ): Promise<PaginatedResponse<Ride>> {
     const skip = (page - 1) * limit;
     
+    // Le code d'accès est maintenant obligatoire pour la sécurité
+    if (!accessCode) {
+      throw new BadRequestException('Code d\'accès requis pour consulter vos trajets');
+    }
+
     if (!phone && !email && !firstName && !lastName) {
       throw new BadRequestException('Téléphone, email, nom ou prénom requis');
     }
@@ -329,6 +283,11 @@ export class RideService {
 
     // Filtrer selon les critères (après déchiffrement)
     const filteredRides = rides.filter(ride => {
+      // Vérifier d'abord le code d'accès
+      if (ride.accessCode !== accessCode) {
+        return false;
+      }
+
       let matches = true;
 
       if (phone) {
@@ -386,6 +345,37 @@ export class RideService {
   private hashForSearch(value: string): string {
     const crypto = require('crypto');
     return crypto.createHash('sha256').update(value.toLowerCase().trim()).digest('hex');
+  }
+
+  private async generateAccessCode(): Promise<string> {
+    // Générer un code de 8 caractères (chiffres et lettres majuscules)
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    while (attempts < maxAttempts) {
+      let code = '';
+      for (let i = 0; i < 8; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      
+      // Vérifier l'unicité
+      const existingRide = await this.rideRepository.findOne({
+        where: { accessCode: code },
+      });
+      
+      if (!existingRide) {
+        return code;
+      }
+      
+      attempts++;
+    }
+    
+    // Si on n'a pas trouvé de code unique après plusieurs tentatives, utiliser un timestamp
+    const timestamp = Date.now().toString(36).toUpperCase().slice(-6);
+    const randomChars = chars.charAt(Math.floor(Math.random() * chars.length)) + 
+                       chars.charAt(Math.floor(Math.random() * chars.length));
+    return (timestamp + randomChars).slice(0, 8);
   }
 
   async cancelRide(rideId: string, reason: string, cancelledBy: string) {

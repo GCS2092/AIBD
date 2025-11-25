@@ -106,8 +106,14 @@ export class Driver {
   decryptSensitiveData() {
     if (!this.encryptionService) return;
 
-    if (this.licenseNumber) {
-      this.licenseNumber = this.encryptionService.decrypt(this.licenseNumber);
+    // Déchiffrer le numéro de permis seulement s'il est chiffré (contient ':')
+    if (this.licenseNumber && typeof this.licenseNumber === 'string' && this.licenseNumber.includes(':')) {
+      try {
+        this.licenseNumber = this.encryptionService.decrypt(this.licenseNumber);
+      } catch (e) {
+        // Si le déchiffrement échoue, garder la valeur originale
+        console.warn('Erreur déchiffrement licenseNumber dans Driver entity:', e);
+      }
     }
   }
 }
