@@ -1,0 +1,240 @@
+Parfait ! On va structurer tout ton projet de manière claire et complète, en tenant compte des informations que tu viens de me donner et de la PWA que tu veux créer. Je vais te présenter :
+
+1. **Workflow global**
+2. **Types d’utilisateurs et informations nécessaires**
+3. **Gestion des courses et disponibilité des chauffeurs**
+4. **Architecture technique et choix des technologies**
+
+---
+
+## 1️⃣ Workflow global
+
+Voici un workflow typique pour ton application PWA :
+
+### **Pour le client :**
+
+1. Le client ouvre la PWA → page d'accueil.
+2. Il choisit **le trajet** (Dakar → Aéroport ou Aéroport → Dakar).
+3. Consulte les **tarifs affichés clairement** avant de réserver.
+4. Il entre les **informations nécessaires** pour le transport et pour son identification (ex : nom, prénom, téléphone, email ou numéro de vol si nécessaire) avec validation en temps réel.
+5. Le client confirme la réservation → reçoit un **récapitulatif de la course** (notification push + WhatsApp).
+6. Le système **attribue un chauffeur disponible** et notifie le client du chauffeur et du véhicule (push + WhatsApp).
+7. Le client peut **suivre le chauffeur en temps réel** sur la carte avec géolocalisation.
+8. Reçoit des notifications à chaque étape (chauffeur assigné, en route, arrivé, terminé).
+9. Peut **annuler la réservation** selon les conditions définies.
+10. Peut consulter l'**historique** de ses trajets et **évaluer le service**.
+
+### **Pour le chauffeur :**
+
+1. Le chauffeur reçoit un **lien unique** envoyé par l'administrateur.
+2. Il s'inscrit **une seule fois** via ce lien : renseigne ses informations personnelles et celles de son véhicule.
+3. Une fois validé par le système/admin : le chauffeur peut :
+
+   * Accepter une course si elle lui est attribuée (notification push + WhatsApp).
+   * Changer son **statut de disponibilité** (Disponible / Indisponible / En course).
+   * Consulter ses zones de service et horaires de travail.
+4. **Système de réponse avec timeout** : 2 minutes pour accepter/refuser une course (configurable).
+5. Lorsque le chauffeur accepte une course, son statut devient automatiquement **"En course"**.
+6. Après la course, son statut redevient **Disponible** automatiquement.
+7. **Pause automatique** après X courses consécutives (configurable par admin).
+8. Peut **annuler une course** avec motif (soumis à validation admin).
+9. Si refus fréquent → alerte admin pour suivi.
+
+### **Pour l'administrateur :**
+
+* Peut générer et envoyer les **liens d'inscription** pour les chauffeurs.
+* Peut **valider ou modifier les infos** des chauffeurs.
+* Peut consulter l'ensemble des courses et statuts des chauffeurs en temps réel.
+* **Dashboard avec analytics** : courses/jour, revenus, chauffeurs actifs, taux d'acceptation, temps de réponse.
+* **Gestion des tarifs** : configuration des prix par trajet, tarifs spéciaux (heures de pointe, nuit).
+* **Export de rapports** : PDF/Excel pour analyses et comptabilité.
+* **Gestion des annulations** : suivi des annulations, remboursements.
+* **Configuration système** : timeout de réponse, pause automatique, zones de service, horaires.
+* **Monitoring** : logs, métriques de performance, alertes.
+
+---
+
+## 2️⃣ Types d’utilisateurs et informations nécessaires
+
+| Utilisateur        | Informations nécessaires                                                                                                                                  | Notes                                                                                                          |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Client**         | Nom, Prénom, Téléphone, Email (optionnel), Adresse de départ, Adresse d'arrivée, Date & Heure de la course, Numéro de vol (optionnel)                     | Pas de création de compte nécessaire. Peut suivre course en temps réel, annuler, consulter historique, évaluer. Notifications push + WhatsApp + SMS. |
+| **Chauffeur**      | Nom, Prénom, Téléphone, Email, Infos véhicule (marque, modèle, immatriculation), Photo véhicule (optionnel), Statut (disponible, en course, indisponible), Zone de service, Horaires de travail | Inscription via **lien unique** envoyé par admin, modification des infos possible uniquement avec accord admin. Notifications push + WhatsApp. |
+| **Administrateur** | Nom, Prénom, Email, Mot de passe                                                                                                                          | Gestion complète : chauffeurs, courses, tarifs, analytics, rapports, configuration système, monitoring. |
+
+---
+
+## 3️⃣ Gestion des courses et disponibilité des chauffeurs
+
+### **Statuts des chauffeurs**
+
+* **Chauffeur disponible** : peut recevoir des courses (vérification zone de service, horaires, disponibilité manuelle).
+* **Chauffeur en course** : a accepté ou s'est vu attribuer une course → statut "En cours".
+* **Chauffeur indisponible** : ne peut pas recevoir de course.
+* **Pause automatique** : après X courses consécutives (configurable par admin).
+
+### **Tarification**
+
+* **Prix fixes** mais configurables par l'admin :
+  * Tarif Dakar → Aéroport (standard)
+  * Tarif Aéroport → Dakar (standard)
+  * Tarifs spéciaux (heures de pointe, nuit, bagages supplémentaires)
+* Affichage clair des tarifs avant confirmation.
+
+### **Workflow d'une course :**
+
+1. Le client réserve → backend cherche un chauffeur disponible (zone + disponibilité + horaires).
+2. Chauffeur reçoit notification (push + WhatsApp) → peut **accepter ou refuser** la course.
+3. **Timeout de 2 minutes** (configurable) : si pas de réponse → passage au chauffeur suivant.
+4. Si accepté → statut chauffeur = En cours, course attribuée → notification client (push + WhatsApp).
+5. Client peut suivre le chauffeur en temps réel sur la carte.
+6. Après la course → statut chauffeur = Disponible automatiquement.
+7. Si refusé → backend cherche un autre chauffeur disponible dans la file d'attente.
+8. **Limite de refus consécutifs** : alerte admin si dépassée.
+
+### **Gestion des annulations**
+
+* **Annulation client** : possible jusqu'à X heures avant (configurable), remboursement selon conditions.
+* **Annulation chauffeur** : nécessite motif, réattribution automatique, alerte admin si fréquent.
+* **Annulation admin** : possible à tout moment, remboursement automatique si applicable.
+
+### **Notifications multi-canaux**
+
+* **Firebase Cloud Messaging** : notifications push en temps réel.
+* **WhatsApp Business API** : confirmations et notifications importantes (attribution, en route, arrivé, terminé).
+* **SMS** : fallback si push/WhatsApp échouent (optionnel, via Twilio ou API locale).
+
+---
+
+## 4️⃣ Architecture technique et choix des technologies
+
+### **Frontend (PWA)**
+
+* **React**
+* **React Router** pour la navigation
+* **Axios** pour les appels API
+* **Leaflet ou Mapbox** pour affichage cartes / géolocalisation avec **suivi GPS en temps réel**
+* **TanStack Query** pour gestion du cache et des requêtes
+* **Firebase Cloud Messaging (FCM)** pour notifications push
+* **Service Worker** pour mode offline et cache
+* **Validation en temps réel** des formulaires
+* **Affichage des tarifs** avant réservation
+* **Page de suivi** avec statuts visuels (attente, en route, arrivé, terminé)
+* **Historique des trajets** avec évaluation
+* **Interface multilingue** (Français, Wolof, Anglais)
+* **Optimisations** : pagination, lazy loading, compression
+* Déploiement : **Vercel / Netlify**
+
+### **Backend**
+
+* **Node.js + NestJS**
+
+  * Structuré, sécurisé, support WebSocket pour notifications en temps réel
+  * Gestion simple des validations et rôles
+  * **Attribution automatique** avec file d'attente et timeout
+  * **Rate limiting** pour éviter les abus
+  * **Logs et monitoring** (erreurs, performances, métriques)
+  * **Gestion des annulations** avec remboursements
+  * **Géolocalisation** et suivi GPS en temps réel
+  * **Gestion des zones** de service et horaires de travail
+  * **Pause automatique** après X courses
+* **Database : PostgreSQL / Supabase**
+
+  * Supporte relations, géolocalisation avec PostGIS
+  * Tables pour : clients, chauffeurs, véhicules, courses, notifications, tarifs, annulations, évaluations
+  * Indexation optimisée pour performances
+  * Supabase propose un plan gratuit pour débuter
+* **Notifications multi-canaux** :
+  * **Firebase Cloud Messaging** (push)
+  * **WhatsApp Business API** (confirmations)
+  * **SMS** (fallback via Twilio ou API locale)
+* **Cache** : Redis (optionnel, pour améliorer performances)
+* Déploiement backend : **Render / Supabase Functions**
+
+### **Résumé tech stack**
+
+| Couche        | Technologie                                    | Note                                          |
+| ------------- | ---------------------------------------------- | --------------------------------------------- |
+| Frontend      | React + React Router                          | PWA, navigation, mode offline                 |
+| State & Data  | TanStack Query, Axios                         | Gestion données, API, cache                   |
+| Cartographie  | Leaflet ou Mapbox                             | Géolocalisation, trajets, suivi GPS temps réel |
+| Notifications | Firebase Messaging, WhatsApp API, SMS (Twilio) | Push notifications, WhatsApp, SMS (fallback)   |
+| Backend       | Node.js + NestJS                               | APIs REST/GraphQL, WebSocket, rate limiting   |
+| Database      | PostgreSQL / Supabase                          | Relations, géolocalisation (PostGIS)           |
+| Cache         | Redis (optionnel)                              | Amélioration performances                      |
+| Monitoring    | Sentry ou similaire                           | Suivi erreurs et performance                  |
+| Déploiement   | Vercel / Netlify / Render                      | Gratuit / facile                               |
+
+---
+
+## 5️⃣ Fonctionnalités avancées
+
+### **Dashboard Administrateur**
+
+* **Analytics en temps réel** :
+  * Nombre de courses par jour/semaine/mois
+  * Revenus totaux et par période
+  * Nombre de chauffeurs actifs
+  * Taux d'acceptation/refus des courses
+  * Temps moyen de réponse des chauffeurs
+  * Taux d'annulation
+  * Satisfaction client (notes moyennes)
+* **Gestion des tarifs** :
+  * Configuration des tarifs par trajet
+  * Tarifs spéciaux (heures de pointe, nuit)
+  * Historique des modifications de tarifs
+* **Rapports exportables** :
+  * Export PDF/Excel des courses
+  * Rapports financiers
+  * Statistiques des chauffeurs
+  * Analyses de performance
+
+### **Expérience Client**
+
+* **Suivi en temps réel** :
+  * Carte interactive avec position du chauffeur
+  * Estimation du temps d'arrivée
+  * Statuts visuels (attente, en route, arrivé)
+* **Historique et évaluation** :
+  * Liste de toutes les courses passées
+  * Système d'évaluation (1-5 étoiles + commentaire)
+  * Favoris (chauffeurs préférés)
+* **Notifications personnalisées** :
+  * Préférences de canal (push, WhatsApp, SMS)
+  * Rappels avant la course
+  * Confirmations automatiques
+
+### **Sécurité renforcée**
+
+* Validation renforcée (téléphone format Sénégal, email, adresses)
+* Rate limiting sur endpoints critiques
+* Authentification JWT sécurisée
+* Logs d'audit pour actions sensibles
+* Protection CSRF et XSS
+* Chiffrement des données sensibles
+* HTTPS obligatoire
+
+### **Optimisations et Performance**
+
+* Cache intelligent (trajets fréquents, données chauffeurs)
+* Pagination pour toutes les listes
+* Lazy loading des images
+* Compression des assets
+* Service Worker pour mode offline
+* Architecture scalable
+
+### **Support multilingue**
+
+* **Langues supportées** : Français (par défaut), Wolof, Anglais
+* Interface traduite, notifications localisées, format monétaire (FCFA)
+
+### **Tests et Qualité**
+
+* Tests unitaires pour fonctions critiques
+* Tests d'intégration pour workflows
+* Tests de performance
+* Tests de sécurité
+
+---
+
+

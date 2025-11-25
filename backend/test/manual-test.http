@@ -1,0 +1,18 @@
+### Fichier de test manuel pour VS Code REST Client
+### Installer l'extension "REST Client" pour utiliser ce fichier
+
+@baseUrl = http://localhost:3000
+
+### Test 1: Health Check
+GET {{baseUrl}}/health
+
+### Test 2: Root endpoint
+GET {{baseUrl}}/
+
+### Test 3: Database Connection Test
+GET {{baseUrl}}/test/database
+
+### Test 4: Database Connection Test (avec détails)
+GET {{baseUrl}}/test/database
+Accept: application/json
+

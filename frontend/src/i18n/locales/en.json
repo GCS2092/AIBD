@@ -1,0 +1,34 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "submit": "Submit",
+    "back": "Back"
+  },
+  "booking": {
+    "title": "Book a ride",
+    "from": "From",
+    "to": "To",
+    "date": "Date and time",
+    "passengers": "Passengers",
+    "bags": "Bags",
+    "price": "Price",
+    "book": "Book"
+  },
+  "tracking": {
+    "title": "Ride tracking",
+    "status": {
+      "pending": "Waiting for driver",
+      "assigned": "Driver assigned",
+      "accepted": "Driver accepted",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "eta": "Estimated time of arrival"
+  }
+}
+

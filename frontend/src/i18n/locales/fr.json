@@ -1,0 +1,34 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "submit": "Envoyer",
+    "back": "Retour"
+  },
+  "booking": {
+    "title": "Réserver un trajet",
+    "from": "Départ",
+    "to": "Destination",
+    "date": "Date et heure",
+    "passengers": "Passagers",
+    "bags": "Bagages",
+    "price": "Prix",
+    "book": "Réserver"
+  },
+  "tracking": {
+    "title": "Suivi de course",
+    "status": {
+      "pending": "En attente de chauffeur",
+      "assigned": "Chauffeur assigné",
+      "accepted": "Chauffeur accepté",
+      "in_progress": "En cours",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "eta": "Temps estimé d'arrivée"
+  }
+}
+

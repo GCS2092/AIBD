@@ -1,0 +1,34 @@
+{
+  "common": {
+    "loading": "Yegg...",
+    "error": "Jub",
+    "success": "Mujj",
+    "cancel": "Wàññi",
+    "confirm": "Jëkkal",
+    "submit": "Yónnee",
+    "back": "Génn"
+  },
+  "booking": {
+    "title": "Booke njëkk",
+    "from": "Ci",
+    "to": "Ci",
+    "date": "Bés ak waxtu",
+    "passengers": "Nit",
+    "bags": "Bagaas",
+    "price": "Njar",
+    "book": "Booke"
+  },
+  "tracking": {
+    "title": "Topp njëkk",
+    "status": {
+      "pending": "Nangu choför",
+      "assigned": "Choför jëkkal",
+      "accepted": "Choför jëkkal",
+      "in_progress": "Ci jëkk",
+      "completed": "Génn",
+      "cancelled": "Wàññi"
+    },
+    "eta": "Waxtu jëkk"
+  }
+}
+
