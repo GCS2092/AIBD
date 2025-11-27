@@ -6,6 +6,7 @@ import { MapPin, Calendar, User, Phone, Mail, Users, Luggage, Plane, Clock, Arro
 import { useCreateRide } from '../hooks/useRide';
 import { usePricing } from '../hooks/usePricing';
 import NavigationBar from '../components/NavigationBar';
+import AccessCodeModal from '../components/AccessCodeModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,9 @@ function BookingPage() {
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string>('');
+  const [showAccessCodeModal, setShowAccessCodeModal] = useState(false);
+  const [accessCode, setAccessCode] = useState<string>('');
+  const [rideId, setRideId] = useState<string>('');
 
   // Empêcher le zoom automatique sur mobile
   useEffect(() => {
@@ -187,14 +191,15 @@ function BookingPage() {
 
     createRide(submitData, {
       onSuccess: (ride) => {
-        // Afficher le code d'accès avant de rediriger
+        // Afficher le code d'accès dans une modal
         if (ride.accessCode) {
-          const message = `✅ Réservation confirmée !\n\n🔐 VOTRE CODE D'ACCÈS UNIQUE :\n\n${ride.accessCode}\n\n⚠️ IMPORTANT :\n• Faites une capture d'écran de ce code\n• Enregistrez-le dans un endroit sûr\n• Ne le partagez avec personne\n• Ce code vous permet de consulter et suivre votre trajet\n\nSans ce code, vous ne pourrez pas accéder à vos informations de trajet.`;
-          alert(message);
-          // Sauvegarder le code dans le localStorage
-          localStorage.setItem(`accessCode_${ride.id}`, ride.accessCode);
+          setAccessCode(ride.accessCode);
+          setRideId(ride.id);
+          setShowAccessCodeModal(true);
+        } else {
+          // Si pas de code, rediriger directement
+          navigate(`/track/${ride.id}`);
         }
-        navigate(`/track/${ride.id}`);
       },
       onError: (error: any) => {
         const errorMessage = error?.response?.data?.message || error?.message || 'Erreur lors de la réservation';
@@ -585,6 +590,19 @@ function BookingPage() {
           </Card>
         </motion.div>
       </main>
+
+      {/* Modal du code d'accès */}
+      <AccessCodeModal
+        isOpen={showAccessCodeModal}
+        accessCode={accessCode}
+        rideId={rideId}
+        onClose={() => {
+          setShowAccessCodeModal(false);
+          if (rideId) {
+            navigate(`/track/${rideId}`);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -3,13 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { MapPin, Navigation, Calendar, Clock, RefreshCw, CheckCircle2, XCircle, Plane, ArrowLeft, Radio } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
 import { useRideStatus } from '../hooks/useRide';
 import { useETA } from '../hooks/useGPS';
 import MapComponent from '../components/MapComponent';
 import NavigationBar from '../components/NavigationBar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import './TrackingPage.css';
 
@@ -227,8 +226,8 @@ function TrackingPage() {
           </Card>
         </motion.div>
 
-        {/* Carte */}
-        {ride.driverLocation && (
+        {/* Carte - Afficher toujours si on a au moins pickup ou dropoff, même sans driverLocation */}
+        {(ride.pickupLocation || ride.dropoffLocation || ride.driverLocation) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -241,7 +240,9 @@ function TrackingPage() {
                   <div className="p-1.5 sm:p-2 bg-gray-100 rounded-lg">
                     <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-gray-900" />
                   </div>
-                  <CardTitle className="text-lg sm:text-2xl text-gray-900">Position en temps réel</CardTitle>
+                  <CardTitle className="text-lg sm:text-2xl text-gray-900">
+                    {ride.driverLocation ? 'Position en temps réel' : 'Carte du trajet'}
+                  </CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="px-4 sm:px-6">
@@ -252,13 +253,21 @@ function TrackingPage() {
                     dropoffLocation={ride.dropoffLocation}
                   />
                 </div>
+                {!ride.driverLocation && isActive && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      En attente de la position du chauffeur en temps réel...
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
         )}
 
-        {/* Messages d'état */}
-        {!ride.driverLocation && ride.status !== 'completed' && ride.status !== 'cancelled' && (
+        {/* Message d'état seulement si aucune localisation n'est disponible */}
+        {!ride.driverLocation && !ride.pickupLocation && !ride.dropoffLocation && ride.status !== 'completed' && ride.status !== 'cancelled' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
