@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Driver, DriverStatus } from '../entities/driver.entity';
 import { Ride, RideStatus } from '../entities/ride.entity';
 import { Vehicle } from '../entities/vehicle.entity';
@@ -209,6 +209,26 @@ export class DriverService {
     // Vérifier que le chauffeur est disponible
     if (driver.status !== DriverStatus.AVAILABLE) {
       throw new BadRequestException('Vous devez être disponible pour accepter une course');
+    }
+
+    // Vérifier qu'il n'a pas déjà une course active (non terminée)
+    const activeRide = await this.rideRepository.findOne({
+      where: {
+        driverId: driver.id,
+        status: In([
+          RideStatus.ASSIGNED,
+          RideStatus.ACCEPTED,
+          RideStatus.DRIVER_ON_WAY,
+          RideStatus.PICKED_UP,
+          RideStatus.IN_PROGRESS,
+        ]),
+      },
+    });
+
+    if (activeRide) {
+      throw new BadRequestException(
+        `Vous avez déjà une course active (${activeRide.id.substring(0, 8)}). Veuillez terminer cette course avant d'en accepter une autre.`
+      );
     }
 
     // Chercher la course - peut être soit assignée au chauffeur, soit disponible (PENDING sans driverId)
@@ -435,6 +455,20 @@ export class DriverService {
       throw new BadRequestException('Course non prête à démarrer');
     }
 
+    // Vérifier que la course peut être démarrée (date prévue dans le passé ou aujourd'hui)
+    const now = new Date();
+    const scheduledDate = new Date(ride.scheduledAt);
+    // Permettre de démarrer jusqu'à 2 heures avant la date prévue (pour les courses à l'aéroport)
+    const allowedStartTime = new Date(scheduledDate.getTime() - 2 * 60 * 60 * 1000);
+    
+    if (now < allowedStartTime) {
+      const daysUntilRide = Math.ceil((scheduledDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      throw new BadRequestException(
+        `Cette course est prévue pour le ${scheduledDate.toLocaleDateString('fr-FR')} à ${scheduledDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}. ` +
+        `Vous ne pouvez pas démarrer une course ${daysUntilRide > 1 ? `${daysUntilRide} jours` : 'avant sa date prévue'}.`
+      );
+    }
+
     ride.status = RideStatus.IN_PROGRESS;
     ride.startedAt = new Date();
 
@@ -517,8 +551,13 @@ export class DriverService {
       throw new NotFoundException('Course non trouvée');
     }
 
-    if (ride.status !== RideStatus.IN_PROGRESS) {
+    if (ride.status !== RideStatus.IN_PROGRESS && ride.status !== RideStatus.PICKED_UP) {
       throw new BadRequestException('Course non en cours');
+    }
+
+    // Vérifier que la course a bien été démarrée (startedAt doit exister)
+    if (!ride.startedAt) {
+      throw new BadRequestException('Impossible de terminer une course qui n\'a pas été démarrée');
     }
 
     ride.status = RideStatus.COMPLETED;
@@ -711,6 +750,32 @@ export class DriverService {
     }
 
     return driver.vehicles && driver.vehicles.length > 0 ? driver.vehicles[0] : null;
+  }
+
+  async getRideById(userId: string, rideId: string): Promise<Ride> {
+    const driver = await this.driverRepository.findOne({
+      where: { userId },
+    });
+
+    if (!driver) {
+      throw new NotFoundException('Chauffeur non trouvé');
+    }
+
+    const ride = await this.rideRepository.findOne({
+      where: {
+        id: rideId,
+        driverId: driver.id,
+      },
+    });
+
+    if (!ride) {
+      throw new NotFoundException('Course non trouvée ou non assignée à ce chauffeur');
+    }
+
+    // Injecter le service d'encryption pour déchiffrer
+    ride.setEncryptionService(this.encryptionService);
+
+    return ride;
   }
 }
 

@@ -3,7 +3,25 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminService, Driver } from '../services/adminService';
 import { authService } from '../services/authService';
-import NavigationBar from '../components/NavigationBar';
+import { websocketService } from '../services/websocketService';
+import { notificationService } from '../services/notificationService';
+import { 
+  Clock, 
+  Wifi, 
+  WifiOff, 
+  Bell, 
+  LogOut, 
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  CreditCard,
+  MapPin,
+  Shield,
+  ShieldCheck,
+  Save,
+  X
+} from 'lucide-react';
 import './EditDriverPage.css';
 
 function EditDriverPage() {
@@ -12,6 +30,9 @@ function EditDriverPage() {
   const queryClient = useQueryClient();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string>('');
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -29,6 +50,52 @@ function EditDriverPage() {
       navigate('/login');
     }
   }, [navigate]);
+
+  // Mise à jour de l'horloge
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Vérifier le statut de connexion
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    const checkWebSocketStatus = () => {
+      const wsConnected = websocketService.isConnected();
+      setIsOnline(navigator.onLine && wsConnected);
+    };
+    
+    const wsInterval = setInterval(checkWebSocketStatus, 2000);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      clearInterval(wsInterval);
+    };
+  }, []);
+
+  // Récupérer le nombre de notifications non lues
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const count = await notificationService.getUnreadCount();
+        setUnreadCount(count);
+      } catch (error) {
+        console.error('Erreur récupération notifications:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const { data: driver, isLoading, error } = useQuery({
     refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
@@ -69,6 +136,28 @@ function EditDriverPage() {
       setSubmitError(errorMessage);
     },
   });
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('fr-FR', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('fr-FR', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/login');
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -123,19 +212,20 @@ function EditDriverPage() {
 
   if (isLoading) {
     return (
-      <div className="edit-driver-page">
-        <div className="loading">Chargement...</div>
+      <div className="edit-driver-page-modern">
+        <div className="loading-modern">Chargement...</div>
       </div>
     );
   }
 
   if (error || !driver) {
     return (
-      <div className="edit-driver-page">
-        <div className="error-message">
+      <div className="edit-driver-page-modern">
+        <div className="error-message-modern">
           {error ? 'Erreur lors du chargement du chauffeur' : 'Chauffeur non trouvé'}
         </div>
-        <Link to="/admin/dashboard?tab=drivers" className="btn-back">
+        <Link to="/admin/dashboard?tab=drivers" className="btn-back-modern">
+          <ArrowLeft className="btn-icon" />
           Retour à la liste
         </Link>
       </div>
@@ -143,26 +233,70 @@ function EditDriverPage() {
   }
 
   return (
-    <div className="edit-driver-page">
-      <NavigationBar />
-      <div className="edit-driver-container">
-        <div className="page-header">
-          <Link to="/admin/dashboard" className="btn-back">← Retour au Dashboard</Link>
-          <h1>Modifier le Chauffeur</h1>
+    <div className="edit-driver-page-modern">
+      {/* Header avec horloge et statut */}
+      <header className="dashboard-top-header">
+        <div className="header-clock">
+          <Clock className="clock-icon" />
+          <div className="clock-content">
+            <div className="clock-time">{formatTime(currentTime)}</div>
+            <div className="clock-date">{formatDate(currentTime)}</div>
+          </div>
+        </div>
+        <div className="header-title-section">
+          <h1 className="page-title-header">Modifier le Chauffeur</h1>
+        </div>
+        <div className={`header-status ${isOnline ? 'status-online' : 'status-offline'}`}>
+          {isOnline ? <Wifi className="status-icon" /> : <WifiOff className="status-icon" />}
+          <span className="status-text">{isOnline ? 'En ligne' : 'Hors ligne'}</span>
+        </div>
+      </header>
+
+      {/* Boutons flottants */}
+      <div className="floating-buttons">
+        <button 
+          className="floating-notifications-btn" 
+          onClick={() => navigate('/admin/notifications')}
+          title="Notifications"
+        >
+          <Bell className="floating-btn-icon" />
+          {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+        </button>
+        <button 
+          className="floating-logout-btn" 
+          onClick={handleLogout}
+          title="Déconnexion"
+        >
+          <LogOut className="floating-btn-icon" />
+        </button>
+      </div>
+
+      <div className="edit-driver-container-modern">
+        <div className="page-header-modern">
+          <Link to="/admin/dashboard?tab=drivers" className="btn-back-modern">
+            <ArrowLeft className="btn-icon" />
+            Retour au Dashboard
+          </Link>
         </div>
 
         {submitError && (
-          <div className="error-message" role="alert">
+          <div className="error-message-modern" role="alert">
             {submitError}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="edit-driver-form">
-          <div className="form-section">
-            <h2>Informations Personnelles</h2>
-            <div className="form-row">
-              <div className="form-group">
-                <label>Prénom *</label>
+        <form onSubmit={handleSubmit} className="edit-driver-form-modern">
+          <div className="form-section-modern">
+            <h2 className="form-section-title">
+              <User className="section-icon" />
+              Informations Personnelles
+            </h2>
+            <div className="form-row-modern">
+              <div className="form-group-modern">
+                <label className="form-label-modern">
+                  <User className="label-icon" />
+                  Prénom *
+                </label>
                 <input
                   type="text"
                   value={formData.firstName}
@@ -170,13 +304,16 @@ function EditDriverPage() {
                     setFormData({ ...formData, firstName: e.target.value });
                     if (errors.firstName) setErrors({ ...errors, firstName: '' });
                   }}
-                  className={errors.firstName ? 'error' : ''}
+                  className={`form-input-modern ${errors.firstName ? 'error' : ''}`}
                   required
                 />
-                {errors.firstName && <span className="field-error">{errors.firstName}</span>}
+                {errors.firstName && <span className="field-error-modern">{errors.firstName}</span>}
               </div>
-              <div className="form-group">
-                <label>Nom *</label>
+              <div className="form-group-modern">
+                <label className="form-label-modern">
+                  <User className="label-icon" />
+                  Nom *
+                </label>
                 <input
                   type="text"
                   value={formData.lastName}
@@ -184,16 +321,19 @@ function EditDriverPage() {
                     setFormData({ ...formData, lastName: e.target.value });
                     if (errors.lastName) setErrors({ ...errors, lastName: '' });
                   }}
-                  className={errors.lastName ? 'error' : ''}
+                  className={`form-input-modern ${errors.lastName ? 'error' : ''}`}
                   required
                 />
-                {errors.lastName && <span className="field-error">{errors.lastName}</span>}
+                {errors.lastName && <span className="field-error-modern">{errors.lastName}</span>}
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Email *</label>
+            <div className="form-row-modern">
+              <div className="form-group-modern">
+                <label className="form-label-modern">
+                  <Mail className="label-icon" />
+                  Email *
+                </label>
                 <input
                   type="email"
                   value={formData.email}
@@ -201,13 +341,16 @@ function EditDriverPage() {
                     setFormData({ ...formData, email: e.target.value });
                     if (errors.email) setErrors({ ...errors, email: '' });
                   }}
-                  className={errors.email ? 'error' : ''}
+                  className={`form-input-modern ${errors.email ? 'error' : ''}`}
                   required
                 />
-                {errors.email && <span className="field-error">{errors.email}</span>}
+                {errors.email && <span className="field-error-modern">{errors.email}</span>}
               </div>
-              <div className="form-group">
-                <label>Téléphone *</label>
+              <div className="form-group-modern">
+                <label className="form-label-modern">
+                  <Phone className="label-icon" />
+                  Téléphone *
+                </label>
                 <input
                   type="tel"
                   value={formData.phone}
@@ -216,18 +359,24 @@ function EditDriverPage() {
                     if (errors.phone) setErrors({ ...errors, phone: '' });
                   }}
                   placeholder="+221XXXXXXXXX ou +242XXXXXXXXX"
-                  className={errors.phone ? 'error' : ''}
+                  className={`form-input-modern ${errors.phone ? 'error' : ''}`}
                   required
                 />
-                {errors.phone && <span className="field-error">{errors.phone}</span>}
+                {errors.phone && <span className="field-error-modern">{errors.phone}</span>}
               </div>
             </div>
           </div>
 
-          <div className="form-section">
-            <h2>Informations Professionnelles</h2>
-            <div className="form-group">
-              <label>Numéro de Permis *</label>
+          <div className="form-section-modern">
+            <h2 className="form-section-title">
+              <CreditCard className="section-icon" />
+              Informations Professionnelles
+            </h2>
+            <div className="form-group-modern">
+              <label className="form-label-modern">
+                <CreditCard className="label-icon" />
+                Numéro de Permis *
+              </label>
               <input
                 type="text"
                 value={formData.licenseNumber}
@@ -235,60 +384,76 @@ function EditDriverPage() {
                   setFormData({ ...formData, licenseNumber: e.target.value });
                   if (errors.licenseNumber) setErrors({ ...errors, licenseNumber: '' });
                 }}
-                className={errors.licenseNumber ? 'error' : ''}
+                className={`form-input-modern ${errors.licenseNumber ? 'error' : ''}`}
                 required
               />
-              {errors.licenseNumber && <span className="field-error">{errors.licenseNumber}</span>}
+              {errors.licenseNumber && <span className="field-error-modern">{errors.licenseNumber}</span>}
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Statut</label>
+            <div className="form-row-modern">
+              <div className="form-group-modern">
+                <label className="form-label-modern">
+                  <User className="label-icon" />
+                  Statut
+                </label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                  className="form-input-modern"
                 >
                   <option value="available">Disponible</option>
                   <option value="unavailable">Indisponible</option>
                   <option value="busy">Occupé</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label>Zone de Service</label>
+              <div className="form-group-modern">
+                <label className="form-label-modern">
+                  <MapPin className="label-icon" />
+                  Zone de Service
+                </label>
                 <input
                   type="text"
                   value={formData.serviceZone}
                   onChange={(e) => setFormData({ ...formData, serviceZone: e.target.value })}
                   placeholder="Ex: Dakar, Thies, etc."
+                  className="form-input-modern"
                 />
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="checkbox-label">
+            <div className="form-group-modern">
+              <label className="checkbox-label-modern">
                 <input
                   type="checkbox"
                   checked={formData.isVerified}
                   onChange={(e) => setFormData({ ...formData, isVerified: e.target.checked })}
+                  className="checkbox-input-modern"
                 />
+                {formData.isVerified ? (
+                  <ShieldCheck className="checkbox-icon" />
+                ) : (
+                  <Shield className="checkbox-icon" />
+                )}
                 <span>Chauffeur vérifié</span>
               </label>
             </div>
           </div>
 
-          <div className="form-actions">
+          <div className="form-actions-modern">
             <button
               type="button"
               onClick={() => navigate('/admin/dashboard?tab=drivers')}
-              className="btn-cancel"
+              className="btn-cancel-modern"
             >
+              <X className="btn-icon" />
               Annuler
             </button>
             <button
               type="submit"
-              className="btn-submit"
+              className="btn-submit-modern"
               disabled={updateDriverMutation.isPending}
             >
+              <Save className="btn-icon" />
               {updateDriverMutation.isPending ? 'Enregistrement...' : 'Enregistrer les modifications'}
             </button>
           </div>

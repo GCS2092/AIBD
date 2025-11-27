@@ -55,6 +55,14 @@ export class DriverController {
     return this.driverService.getAvailableRides(user.id);
   }
 
+  @Get('rides/:id')
+  async getRideById(
+    @CurrentUser() user: any,
+    @Param('id') rideId: string,
+  ) {
+    return this.driverService.getRideById(user.id, rideId);
+  }
+
   @Post('rides/:id/accept')
   async acceptRide(
     @CurrentUser() user: any,

@@ -38,9 +38,10 @@ apiClient.interceptors.response.use(
       
       // Afficher un message plus clair
       const errorMessage = `Impossible de se connecter au serveur. Vérifiez que :
-1. Le backend est démarré (http://localhost:3000)
+1. Le backend est démarré (http://localhost:3001)
 2. Vous êtes sur le même réseau WiFi
-3. L'URL de l'API est correcte: ${error.config?.baseURL || 'non définie'}`;
+3. L'URL de l'API est correcte: ${error.config?.baseURL || 'non définie'}
+4. Le firewall Windows autorise les connexions sur le port 3001`;
       
       console.error(errorMessage);
       

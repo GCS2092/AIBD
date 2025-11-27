@@ -6,8 +6,35 @@ import { adminService } from '../services/adminService';
 import { authService } from '../services/authService';
 import { notificationService } from '../services/notificationService';
 import { pricingService, Pricing, CreatePricingDto } from '../services/pricingService';
+import { websocketService } from '../services/websocketService';
 import Pagination from '../components/Pagination';
-import NavigationBar from '../components/NavigationBar';
+import { 
+  LayoutDashboard, 
+  Users, 
+  Car, 
+  DollarSign, 
+  Truck, 
+  Clock, 
+  Wifi, 
+  WifiOff,
+  CheckCircle2,
+  Hourglass,
+  UserCheck,
+  TrendingUp,
+  Star,
+  MapPin,
+  Calendar,
+  Phone,
+  Navigation,
+  User,
+  Mail,
+  CreditCard,
+  Edit,
+  Shield,
+  ShieldCheck,
+  Search,
+  X
+} from 'lucide-react';
 import './AdminDashboard.css';
 
 function PricingManagement() {
@@ -80,40 +107,62 @@ function PricingManagement() {
       </div>
 
       <div className="filters">
-        <div className="filter-group">
-          <label>Type de trajet:</label>
-          <select
-            value={pricingFilter}
-            onChange={(e) => setPricingFilter(e.target.value as any)}
-          >
-            <option value="all">Tous</option>
-            <option value="dakar_to_airport">Dakar → Aéroport</option>
-            <option value="airport_to_dakar">Aéroport → Dakar</option>
-          </select>
-        </div>
-        <div className="filter-group">
-          <label>Type de tarif:</label>
-          <select
-            value={pricingTypeFilter}
-            onChange={(e) => setPricingTypeFilter(e.target.value as any)}
-          >
-            <option value="all">Tous</option>
-            <option value="standard">Standard</option>
-            <option value="peak_hours">Heures de pointe</option>
-            <option value="night">Nuit</option>
-            <option value="special">Spécial</option>
-          </select>
-        </div>
-        <div className="filter-group">
-          <label>
-            <input
-              type="checkbox"
-              checked={showInactivePricing}
-              onChange={(e) => setShowInactivePricing(e.target.checked)}
-            />
-            Afficher les tarifs inactifs
-          </label>
-        </div>
+        <button 
+          className={pricingFilter === 'all' ? 'active' : ''}
+          onClick={() => setPricingFilter('all')}
+        >
+          Tous
+        </button>
+        <button 
+          className={pricingFilter === 'dakar_to_airport' ? 'active' : ''}
+          onClick={() => setPricingFilter('dakar_to_airport')}
+        >
+          Dakar → Aéroport
+        </button>
+        <button 
+          className={pricingFilter === 'airport_to_dakar' ? 'active' : ''}
+          onClick={() => setPricingFilter('airport_to_dakar')}
+        >
+          Aéroport → Dakar
+        </button>
+        <button 
+          className={pricingTypeFilter === 'all' ? 'active' : ''}
+          onClick={() => setPricingTypeFilter('all')}
+        >
+          Tous les types
+        </button>
+        <button 
+          className={pricingTypeFilter === 'standard' ? 'active' : ''}
+          onClick={() => setPricingTypeFilter('standard')}
+        >
+          Standard
+        </button>
+        <button 
+          className={pricingTypeFilter === 'peak_hours' ? 'active' : ''}
+          onClick={() => setPricingTypeFilter('peak_hours')}
+        >
+          Heures de pointe
+        </button>
+        <button 
+          className={pricingTypeFilter === 'night' ? 'active' : ''}
+          onClick={() => setPricingTypeFilter('night')}
+        >
+          Nuit
+        </button>
+        <button 
+          className={pricingTypeFilter === 'special' ? 'active' : ''}
+          onClick={() => setPricingTypeFilter('special')}
+        >
+          Spécial
+        </button>
+        <label className="filter-checkbox">
+          <input
+            type="checkbox"
+            checked={showInactivePricing}
+            onChange={(e) => setShowInactivePricing(e.target.checked)}
+          />
+          Afficher les tarifs inactifs
+        </label>
       </div>
 
       {isLoading ? (
@@ -358,27 +407,55 @@ function PricingModal({
           <div className="form-row">
             <div className="form-group">
               <label>Type de trajet *</label>
-              <select
-                value={formData.rideType}
-                onChange={(e) => setFormData({ ...formData, rideType: e.target.value })}
-                required
-              >
-                <option value="dakar_to_airport">Dakar → Aéroport</option>
-                <option value="airport_to_dakar">Aéroport → Dakar</option>
-              </select>
+              <div className="button-group">
+                <button
+                  type="button"
+                  className={`option-button ${formData.rideType === 'dakar_to_airport' ? 'active' : ''}`}
+                  onClick={() => setFormData({ ...formData, rideType: 'dakar_to_airport' })}
+                >
+                  Dakar → Aéroport
+                </button>
+                <button
+                  type="button"
+                  className={`option-button ${formData.rideType === 'airport_to_dakar' ? 'active' : ''}`}
+                  onClick={() => setFormData({ ...formData, rideType: 'airport_to_dakar' })}
+                >
+                  Aéroport → Dakar
+                </button>
+              </div>
             </div>
             <div className="form-group">
               <label>Type de tarif *</label>
-              <select
-                value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
-                required
-              >
-                <option value="standard">Standard</option>
-                <option value="peak_hours">Heures de pointe</option>
-                <option value="night">Nuit</option>
-                <option value="special">Spécial</option>
-              </select>
+              <div className="button-group">
+                <button
+                  type="button"
+                  className={`option-button ${formData.type === 'standard' ? 'active' : ''}`}
+                  onClick={() => setFormData({ ...formData, type: 'standard' })}
+                >
+                  Standard
+                </button>
+                <button
+                  type="button"
+                  className={`option-button ${formData.type === 'peak_hours' ? 'active' : ''}`}
+                  onClick={() => setFormData({ ...formData, type: 'peak_hours' })}
+                >
+                  Heures de pointe
+                </button>
+                <button
+                  type="button"
+                  className={`option-button ${formData.type === 'night' ? 'active' : ''}`}
+                  onClick={() => setFormData({ ...formData, type: 'night' })}
+                >
+                  Nuit
+                </button>
+                <button
+                  type="button"
+                  className={`option-button ${formData.type === 'special' ? 'active' : ''}`}
+                  onClick={() => setFormData({ ...formData, type: 'special' })}
+                >
+                  Spécial
+                </button>
+              </div>
             </div>
           </div>
 
@@ -490,6 +567,9 @@ function AdminDashboard() {
   const [editingPricing, setEditingPricing] = useState<Pricing | null>(null);
   const [showInactivePricing, setShowInactivePricing] = useState(false);
   const [vehicleDriverFilter, setVehicleDriverFilter] = useState<string>('all');
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [driverSearch, setDriverSearch] = useState<string>('');
   
   // États de pagination
   const [driversPage, setDriversPage] = useState(1);
@@ -552,6 +632,37 @@ function AdminDashboard() {
   // Utiliser WebSocket pour les mises à jour en temps réel
   useWebSocket();
 
+  // Mise à jour de l'horloge
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Vérifier le statut de connexion
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    // Vérifier le statut WebSocket
+    const checkWebSocketStatus = () => {
+      const wsConnected = websocketService.isConnected();
+      setIsOnline(navigator.onLine && wsConnected);
+    };
+    
+    const wsInterval = setInterval(checkWebSocketStatus, 2000);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      clearInterval(wsInterval);
+    };
+  }, []);
+
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
@@ -603,75 +714,96 @@ function AdminDashboard() {
     return <div className="dashboard-loading">Chargement...</div>;
   }
 
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('fr-FR', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('fr-FR', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    });
+  };
+
   return (
     <div className="admin-dashboard">
-      <NavigationBar />
-      <header className="dashboard-header">
-        <h1>Dashboard Administrateur</h1>
-        <div className="header-actions">
-          <button className="btn-notifications" onClick={() => navigate('/admin/notifications')}>
-            🔔 Notifications {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
-          </button>
+      {/* Header avec horloge et statut */}
+      <header className="dashboard-top-header">
+        <div className="header-clock">
+          <Clock className="clock-icon" />
+          <div className="clock-content">
+            <div className="clock-time">{formatTime(currentTime)}</div>
+            <div className="clock-date">{formatDate(currentTime)}</div>
+          </div>
+        </div>
+        <div className={`header-status ${isOnline ? 'status-online' : 'status-offline'}`}>
+          {isOnline ? <Wifi className="status-icon" /> : <WifiOff className="status-icon" />}
+          <span className="status-text">{isOnline ? 'En ligne' : 'Hors ligne'}</span>
         </div>
       </header>
 
-      <div className="dashboard-tabs">
+      {/* Boutons flottants - Notifications et Déconnexion */}
+      <div className="floating-buttons">
         <button 
-          className={selectedTab === 'overview' ? 'active' : ''}
-          onClick={() => setSelectedTab('overview')}
+          className="floating-notifications-btn" 
+          onClick={() => navigate('/admin/notifications')}
+          title="Notifications"
         >
-          Vue d'ensemble
+          🔔 {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
         </button>
         <button 
-          className={selectedTab === 'drivers' ? 'active' : ''}
-          onClick={() => setSelectedTab('drivers')}
+          className="floating-logout-btn" 
+          onClick={handleLogout}
+          title="Déconnexion"
         >
-          Chauffeurs
-        </button>
-        <button 
-          className={selectedTab === 'rides' ? 'active' : ''}
-          onClick={() => setSelectedTab('rides')}
-        >
-          Courses
-        </button>
-        <button 
-          className={selectedTab === 'pricing' ? 'active' : ''}
-          onClick={() => setSelectedTab('pricing')}
-        >
-          Tarifs
-        </button>
-        <button 
-          className={selectedTab === 'vehicles' ? 'active' : ''}
-          onClick={() => setSelectedTab('vehicles')}
-        >
-          Véhicules
+          🚪
         </button>
       </div>
 
       <div className="dashboard-content">
         {selectedTab === 'overview' && (
           <>
-            {/* Statistiques principales */}
+            {/* Statistiques principales - Grille 3x2 */}
             <section className="stats-section">
-              <h2>Statistiques Générales</h2>
-              <div className="stats-grid">
-                <div className="stat-card">
+              <div className="stats-grid-modern">
+                <div className="stat-card-modern">
+                  <div className="stat-icon-wrapper">
+                    <Car className="stat-icon" />
+                  </div>
                   <h3>Total Courses</h3>
                   <p className="stat-value">{stats?.rides.total || 0}</p>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card-modern">
+                  <div className="stat-icon-wrapper">
+                    <CheckCircle2 className="stat-icon" />
+                  </div>
                   <h3>Courses Terminées</h3>
                   <p className="stat-value">{stats?.rides.completed || 0}</p>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card-modern">
+                  <div className="stat-icon-wrapper">
+                    <Hourglass className="stat-icon" />
+                  </div>
                   <h3>Courses en Attente</h3>
                   <p className="stat-value">{stats?.rides.pending || 0}</p>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card-modern">
+                  <div className="stat-icon-wrapper">
+                    <UserCheck className="stat-icon" />
+                  </div>
                   <h3>Chauffeurs Actifs</h3>
                   <p className="stat-value">{stats?.drivers.active || 0} / {stats?.drivers.total || 0}</p>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card-modern">
+                  <div className="stat-icon-wrapper">
+                    <TrendingUp className="stat-icon" />
+                  </div>
                   <h3>Revenus Totaux</h3>
                   <p className="stat-value">
                     {stats?.revenue?.total 
@@ -681,75 +813,74 @@ function AdminDashboard() {
                       : '0'} FCFA
                   </p>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card-modern">
+                  <div className="stat-icon-wrapper">
+                    <Star className="stat-icon" />
+                  </div>
                   <h3>Note Moyenne</h3>
                   <p className="stat-value">
                     {stats?.drivers?.avgRating 
                       ? parseFloat(stats.drivers.avgRating.toString()).toFixed(1)
-                      : '0.0'} ⭐
+                      : '0.0'}
                   </p>
                 </div>
               </div>
             </section>
 
-            {/* Métriques de performance */}
-            <section className="metrics-section">
-              <h2>Métriques de Performance</h2>
-              <div className="metrics-grid">
-                <div className="metric-card">
-                  <h3>Taux d'Acceptation</h3>
-                  <p className="metric-value">{stats?.metrics?.acceptanceRate || 0}%</p>
-                  <p className="metric-detail">
-                    {stats?.rides.accepted || 0} acceptées / {stats?.rides.assigned || 0} assignées
-                  </p>
-                </div>
-                <div className="metric-card">
-                  <h3>Taux d'Annulation</h3>
-                  <p className="metric-value">{stats?.metrics?.cancellationRate || 0}%</p>
-                  <p className="metric-detail">
-                    {stats?.rides.cancelled || 0} annulées / {stats?.rides.total || 0} total
-                  </p>
-                </div>
-                <div className="metric-card">
-                  <h3>Temps de Réponse Moyen</h3>
-                  <p className="metric-value">
-                    {stats?.metrics?.avgResponseTimeMinutes 
-                      ? parseFloat(stats.metrics.avgResponseTimeMinutes.toString()).toFixed(1)
-                      : '0'} min
-                  </p>
-                  <p className="metric-detail">Temps moyen d'acceptation</p>
-                </div>
-              </div>
-            </section>
-
-            {/* Courses récentes */}
-            <section className="rides-section">
-              <h2>Courses Récentes</h2>
-              <div className="rides-list">
-                {rides?.slice(0, 5).map((ride) => (
-                  <div key={ride.id} className="ride-card">
-                    <div className="ride-info">
-                      <h4>{ride.rideType === 'city_to_airport' ? 'Ville → Aéroport' : ride.rideType === 'airport_to_city' ? 'Aéroport → Ville' : 'Ville → Ville'}</h4>
-                      <p><strong>Client:</strong> {ride.clientFirstName} {ride.clientLastName}</p>
-                      <p><strong>Téléphone:</strong> {ride.clientPhone}</p>
-                      <p><strong>Email:</strong> {ride.clientEmail}</p>
-                      <p><strong>Départ:</strong> {ride.pickupAddress}</p>
-                      <p><strong>Arrivée:</strong> {ride.dropoffAddress}</p>
-                      <p><strong>Date:</strong> {new Date(ride.scheduledAt).toLocaleString('fr-FR')}</p>
-                      <p><strong>Prix:</strong> {
-                        ride.price != null 
-                          ? (typeof ride.price === 'number' 
-                              ? ride.price.toLocaleString() 
-                              : parseFloat(ride.price.toString() || '0').toLocaleString())
-                          : '0'
-                      } FCFA</p>
-                    </div>
-                    <div className="ride-status">
-                      <span className={`status-badge status-${ride.status}`}>
+            {/* Courses récentes - Grille 2x2 - Style comme les stats */}
+            <section className="rides-section-modern">
+              <h2 className="section-title-modern">Courses Récentes</h2>
+              <div className="rides-grid-modern">
+                {rides
+                  ?.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+                  .slice(0, 4)
+                  .map((ride) => (
+                  <div key={ride.id} className="ride-card-stat-style">
+                    <div className="ride-card-header-stat">
+                      <span className="ride-type-badge-stat">
+                        {ride.rideType === 'city_to_airport' ? 'Ville → Aéroport' : ride.rideType === 'airport_to_city' ? 'Aéroport → Ville' : 'Ville → Ville'}
+                      </span>
+                      <span className={`status-badge-stat status-${ride.status}`}>
                         {ride.status}
                       </span>
+                    </div>
+                    <div className="ride-card-body-stat">
+                      <div className="ride-client-name-stat">
+                        <strong>{ride.clientFirstName} {ride.clientLastName}</strong>
+                      </div>
+                      <div className="ride-details-stat">
+                        <div className="ride-detail-stat">
+                          <Phone className="ride-detail-icon" />
+                          <span>{ride.clientPhone}</span>
+                        </div>
+                        <div className="ride-detail-stat">
+                          <MapPin className="ride-detail-icon" />
+                          <span>{ride.pickupAddress.substring(0, 25)}...</span>
+                        </div>
+                        <div className="ride-detail-stat">
+                          <Navigation className="ride-detail-icon" />
+                          <span>{ride.dropoffAddress.substring(0, 25)}...</span>
+                        </div>
+                        <div className="ride-detail-stat">
+                          <Calendar className="ride-detail-icon" />
+                          <span>{new Date(ride.scheduledAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      </div>
+                      <div className="ride-price-stat">
+                        <DollarSign className="price-icon" />
+                        <strong>{
+                          ride.price != null 
+                            ? (typeof ride.price === 'number' 
+                                ? ride.price.toLocaleString() 
+                                : parseFloat(ride.price.toString() || '0').toLocaleString())
+                            : '0'
+                        } FCFA</strong>
+                      </div>
                       {ride.driver && (
-                        <p>Chauffeur: {ride.driver.user?.firstName} {ride.driver.user?.lastName}</p>
+                        <div className="ride-driver-stat">
+                          <User className="driver-icon" />
+                          <span>{ride.driver.user?.firstName} {ride.driver.user?.lastName}</span>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -760,105 +891,201 @@ function AdminDashboard() {
         )}
 
         {selectedTab === 'drivers' && (
-          <section className="drivers-section">
-            <div className="section-header">
-              <h2>Gestion des Chauffeurs</h2>
-              <div className="filters">
-                <button 
-                  className={driverFilter === 'all' ? 'active' : ''}
-                  onClick={() => setDriverFilter('all')}
-                >
-                  Tous
-                </button>
-                <button 
-                  className={driverFilter === 'verified' ? 'active' : ''}
-                  onClick={() => setDriverFilter('verified')}
-                >
-                  Vérifiés
-                </button>
-                <button 
-                  className={driverFilter === 'unverified' ? 'active' : ''}
-                  onClick={() => setDriverFilter('unverified')}
-                >
-                  Non vérifiés
-                </button>
+          <section className="drivers-section-modern">
+            <div className="section-header-modern">
+              <h2 className="section-title-modern">Gestion des Chauffeurs</h2>
+              <div className="drivers-controls">
+                <div className="search-box-modern">
+                  <Search className="search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher un chauffeur..."
+                    value={driverSearch}
+                    onChange={(e) => setDriverSearch(e.target.value)}
+                    className="search-input-modern"
+                  />
+                  {driverSearch && (
+                    <button
+                      className="clear-search-btn"
+                      onClick={() => setDriverSearch('')}
+                      title="Effacer"
+                    >
+                      <X className="clear-icon" />
+                    </button>
+                  )}
+                </div>
+                <div className="filters-modern">
+                  <button 
+                    className={`filter-btn-modern ${driverFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setDriverFilter('all')}
+                  >
+                    Tous
+                  </button>
+                  <button 
+                    className={`filter-btn-modern ${driverFilter === 'verified' ? 'active' : ''}`}
+                    onClick={() => setDriverFilter('verified')}
+                  >
+                    <ShieldCheck className="filter-icon" />
+                    Vérifiés
+                  </button>
+                  <button 
+                    className={`filter-btn-modern ${driverFilter === 'unverified' ? 'active' : ''}`}
+                    onClick={() => setDriverFilter('unverified')}
+                  >
+                    <Shield className="filter-icon" />
+                    Non vérifiés
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nom</th>
-                    <th>Email</th>
-                    <th>Téléphone</th>
-                    <th>Permis</th>
-                    <th>Statut</th>
-                    <th>Vérifié</th>
-                    <th>Courses</th>
-                    <th>Note</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {drivers
-                    .filter((driver) => {
-                      if (driverFilter === 'verified') return driver.isVerified;
-                      if (driverFilter === 'unverified') return !driver.isVerified;
-                      return true;
-                    })
-                    .map((driver) => (
-                    <tr key={driver.id}>
-                      <td>{driver.user?.firstName} {driver.user?.lastName}</td>
-                      <td>{driver.user?.email || 'N/A'}</td>
-                      <td>{driver.user?.phone || 'N/A'}</td>
-                      <td>{driver.licenseNumber || 'N/A'}</td>
-                      <td>
-                        <span className={`status-badge status-${driver.status}`}>
-                          {driver.status}
-                        </span>
-                      </td>
-                      <td>{driver.isVerified ? '✅' : '❌'}</td>
-                      <td>{driver.totalRides || 0}</td>
-                      <td>
-                        {driver.rating != null 
-                          ? (typeof driver.rating === 'number' 
-                              ? driver.rating.toFixed(1) 
-                              : parseFloat(driver.rating.toString() || '0').toFixed(1))
-                          : '0.0'} ⭐
-                      </td>
-                      <td>
-                        {!driver.isVerified && (
-                          <button
-                            className="btn-verify"
-                            onClick={() => verifyDriverMutation.mutate(driver.id)}
-                            disabled={verifyDriverMutation.isPending}
-                          >
-                            Valider
-                          </button>
-                        )}
+            <div className="drivers-grid-modern">
+              {drivers
+                .filter((driver) => {
+                  // Filtre par statut de vérification
+                  if (driverFilter === 'verified' && !driver.isVerified) return false;
+                  if (driverFilter === 'unverified' && driver.isVerified) return false;
+                  
+                  // Filtre par recherche
+                  if (driverSearch) {
+                    const searchLower = driverSearch.toLowerCase();
+                    const fullName = `${driver.user?.firstName || ''} ${driver.user?.lastName || ''}`.toLowerCase();
+                    const email = (driver.user?.email || '').toLowerCase();
+                    const phone = (driver.user?.phone || '').toLowerCase();
+                    const license = (driver.licenseNumber || '').toLowerCase();
+                    
+                    if (!fullName.includes(searchLower) && 
+                        !email.includes(searchLower) && 
+                        !phone.includes(searchLower) &&
+                        !license.includes(searchLower)) {
+                      return false;
+                    }
+                  }
+                  
+                  return true;
+                })
+                .map((driver) => (
+                  <div key={driver.id} className="driver-card-modern">
+                    <div className="driver-card-header-modern">
+                      <div className="driver-avatar-modern">
+                        <User className="avatar-icon" />
+                      </div>
+                      <div className="driver-name-section">
+                        <h3 className="driver-name-modern">
+                          {driver.user?.firstName} {driver.user?.lastName}
+                        </h3>
+                        <div className="driver-badges">
+                          <span className={`status-badge-modern status-${driver.status}`}>
+                            {driver.status === 'available' ? 'Disponible' : 
+                             driver.status === 'unavailable' ? 'Indisponible' : 
+                             driver.status === 'on_break' ? 'En pause' : 
+                             driver.status === 'on_ride' ? 'En course' : driver.status}
+                          </span>
+                          {driver.isVerified ? (
+                            <span className="verified-badge-modern">
+                              <ShieldCheck className="verified-icon" />
+                              Vérifié
+                            </span>
+                          ) : (
+                            <span className="unverified-badge-modern">
+                              <Shield className="unverified-icon" />
+                              Non vérifié
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="driver-card-body-modern">
+                      <div className="driver-info-row-modern">
+                        <Mail className="info-icon" />
+                        <span className="info-label">Email:</span>
+                        <span className="info-value">{driver.user?.email || 'N/A'}</span>
+                      </div>
+                      <div className="driver-info-row-modern">
+                        <Phone className="info-icon" />
+                        <span className="info-label">Téléphone:</span>
+                        <span className="info-value">{driver.user?.phone || 'N/A'}</span>
+                      </div>
+                      <div className="driver-info-row-modern">
+                        <CreditCard className="info-icon" />
+                        <span className="info-label">Permis:</span>
+                        <span className="info-value">{driver.licenseNumber || 'N/A'}</span>
+                      </div>
+                      <div className="driver-stats-modern">
+                        <div className="stat-item-modern">
+                          <Car className="stat-icon-modern" />
+                          <div className="stat-content">
+                            <span className="stat-label">Courses</span>
+                            <span className="stat-value">{driver.totalRides || 0}</span>
+                          </div>
+                        </div>
+                        <div className="stat-item-modern">
+                          <Star className="stat-icon-modern" />
+                          <div className="stat-content">
+                            <span className="stat-label">Note</span>
+                            <span className="stat-value">
+                              {driver.rating != null 
+                                ? (typeof driver.rating === 'number' 
+                                    ? driver.rating.toFixed(1)
+                                    : parseFloat(driver.rating.toString() || '0').toFixed(1))
+                                : '0.0'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="driver-card-actions-modern">
+                      {!driver.isVerified && (
                         <button
-                          className="btn-edit"
-                          onClick={() => navigate(`/admin/drivers/${driver.id}/edit`)}
+                          className="btn-verify-modern"
+                          onClick={() => verifyDriverMutation.mutate(driver.id)}
+                          disabled={verifyDriverMutation.isPending}
+                          title="Vérifier le chauffeur"
                         >
-                          Modifier
+                          <ShieldCheck className="btn-icon-modern" />
+                          Valider
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {driversData && (
-                <Pagination
-                  currentPage={driversPage}
-                  totalPages={driversData.totalPages}
-                  onPageChange={setDriversPage}
-                  hasNextPage={driversData.hasNextPage}
-                  hasPreviousPage={driversData.hasPreviousPage}
-                />
-              )}
-              <div className="pagination-info">
-                Affichage de {drivers.length} sur {driversData?.total || 0} chauffeur(s)
+                      )}
+                      <button
+                        className="btn-edit-modern"
+                        onClick={() => navigate(`/admin/drivers/${driver.id}/edit`)}
+                        title="Modifier le chauffeur"
+                      >
+                        <Edit className="btn-icon-modern" />
+                        Modifier
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+            {drivers.length === 0 && (
+              <div className="no-drivers-modern">
+                <Users className="no-drivers-icon" />
+                <p>Aucun chauffeur trouvé</p>
               </div>
+            )}
+            {driversData && (
+              <Pagination
+                currentPage={driversPage}
+                totalPages={driversData.totalPages}
+                onPageChange={setDriversPage}
+                hasNextPage={driversData.hasNextPage}
+                hasPreviousPage={driversData.hasPreviousPage}
+              />
+            )}
+            <div className="pagination-info">
+              Affichage de {drivers.filter((driver) => {
+                if (driverFilter === 'verified' && !driver.isVerified) return false;
+                if (driverFilter === 'unverified' && driver.isVerified) return false;
+                if (driverSearch) {
+                  const searchLower = driverSearch.toLowerCase();
+                  const fullName = `${driver.user?.firstName || ''} ${driver.user?.lastName || ''}`.toLowerCase();
+                  const email = (driver.user?.email || '').toLowerCase();
+                  const phone = (driver.user?.phone || '').toLowerCase();
+                  const license = (driver.licenseNumber || '').toLowerCase();
+                  if (!fullName.includes(searchLower) && !email.includes(searchLower) && !phone.includes(searchLower) && !license.includes(searchLower)) return false;
+                }
+                return true;
+              }).length} sur {driversData?.total || 0} chauffeur(s)
             </div>
           </section>
         )}
@@ -902,22 +1129,6 @@ function AdminDashboard() {
                     onChange={(e) => setRideSearch(e.target.value)}
                     className="search-input"
                   />
-                </div>
-                <div className="filter-group">
-                  <label htmlFor="driverFilter">Filtrer par chauffeur:</label>
-                  <select
-                    id="driverFilter"
-                    value={selectedDriverId}
-                    onChange={(e) => setSelectedDriverId(e.target.value)}
-                    className="filter-select"
-                  >
-                    <option value="all">Tous les chauffeurs</option>
-                    {drivers?.map((driver) => (
-                      <option key={driver.id} value={driver.id}>
-                        {driver.user?.firstName} {driver.user?.lastName}
-                      </option>
-                    ))}
-                  </select>
                 </div>
               </div>
             </div>
@@ -979,22 +1190,6 @@ function AdminDashboard() {
           <section className="vehicles-section">
             <div className="section-header">
               <h2>Gestion des Véhicules</h2>
-              <div className="filter-group">
-                <label htmlFor="vehicleDriverFilter">Filtrer par chauffeur:</label>
-                <select
-                  id="vehicleDriverFilter"
-                  value={vehicleDriverFilter}
-                  onChange={(e) => setVehicleDriverFilter(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="all">Tous les chauffeurs</option>
-                  {drivers?.map((driver) => (
-                    <option key={driver.id} value={driver.id}>
-                      {driver.user?.firstName} {driver.user?.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
             {vehiclesLoading ? (
               <div className="loading">Chargement...</div>
@@ -1057,6 +1252,45 @@ function AdminDashboard() {
           </section>
         )}
       </div>
+
+      {/* Barre de navigation en bas - Style WhatsApp */}
+      <nav className="bottom-nav">
+        <button 
+          className={`nav-item ${selectedTab === 'overview' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('overview')}
+        >
+          <LayoutDashboard className="nav-icon" />
+          <span className="nav-label">Statuts</span>
+        </button>
+        <button 
+          className={`nav-item ${selectedTab === 'drivers' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('drivers')}
+        >
+          <Users className="nav-icon" />
+          <span className="nav-label">Chauffeurs</span>
+        </button>
+        <button 
+          className={`nav-item ${selectedTab === 'rides' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('rides')}
+        >
+          <Car className="nav-icon" />
+          <span className="nav-label">Courses</span>
+        </button>
+        <button 
+          className={`nav-item ${selectedTab === 'pricing' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('pricing')}
+        >
+          <DollarSign className="nav-icon" />
+          <span className="nav-label">Tarifs</span>
+        </button>
+        <button 
+          className={`nav-item ${selectedTab === 'vehicles' ? 'active' : ''}`}
+          onClick={() => setSelectedTab('vehicles')}
+        >
+          <Truck className="nav-icon" />
+          <span className="nav-label">Véhicules</span>
+        </button>
+      </nav>
     </div>
   );
 }

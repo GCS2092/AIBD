@@ -30,7 +30,7 @@ export interface Ride {
   numberOfPassengers: number;
   numberOfBags: number;
   price: number;
-  status: 'pending' | 'assigned' | 'accepted' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'pending' | 'assigned' | 'accepted' | 'driver_on_way' | 'picked_up' | 'in_progress' | 'completed' | 'cancelled';
   driverId?: string;
   assignedAt?: string;
   acceptedAt?: string;
@@ -49,6 +49,25 @@ export interface Ride {
   dropoffLocation?: {
     lat: number;
     lng: number;
+  };
+  // Informations du chauffeur (quand assigné)
+  driver?: {
+    id: string;
+    user: {
+      firstName: string;
+      lastName: string;
+      phone?: string;
+      email?: string;
+    };
+    vehicles?: Array<{
+      id: string;
+      brand: string;
+      model: string;
+      licensePlate: string;
+      color?: string;
+      year?: number;
+      isActive: boolean;
+    }>;
   };
 }
 

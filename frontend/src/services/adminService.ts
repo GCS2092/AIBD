@@ -6,9 +6,10 @@ export interface DashboardStats {
     total: number;
     completed: number;
     pending: number;
-    assigned: number;
-    accepted: number;
-    cancelled: number;
+    assigned?: number;
+    accepted?: number;
+    cancelled?: number;
+    inProgress?: number;
     byDay: Array<{ date: string; count: string }>;
   };
   drivers: {
@@ -18,12 +19,17 @@ export interface DashboardStats {
   };
   revenue: {
     total: number;
-    byDay: Array<{ date: string; revenue: string }>;
+    byDay?: Array<{ date: string; revenue: string }>;
   };
-  metrics: {
+  metrics?: {
     acceptanceRate: number;
     cancellationRate: number;
     avgResponseTimeMinutes: number;
+  };
+  validation?: {
+    ridesSum: number;
+    totalRides: number;
+    isValid: boolean;
   };
 }
 

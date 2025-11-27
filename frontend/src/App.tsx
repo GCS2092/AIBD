@@ -16,6 +16,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import DriverDashboard from './pages/DriverDashboard';
 import NotificationsPage from './pages/NotificationsPage';
 import RideDetailPage from './pages/RideDetailPage';
+import DriverTrackingPage from './pages/DriverTrackingPage';
 import EditDriverPage from './pages/EditDriverPage';
 import EditDriverProfilePage from './pages/EditDriverProfilePage';
 import RegisterVehiclePage from './pages/RegisterVehiclePage';
@@ -56,6 +57,7 @@ function App() {
           <Route path="/admin/rides/:id" element={<RideDetailPage />} />
           <Route path="/admin/drivers/:id/edit" element={<EditDriverPage />} />
           <Route path="/driver/dashboard" element={<DriverDashboard />} />
+          <Route path="/driver/track/:rideId" element={<DriverTrackingPage />} />
           <Route path="/driver/profile/edit" element={<EditDriverProfilePage />} />
           <Route path="/driver/vehicle/register" element={<RegisterVehiclePage />} />
           <Route path="/admin/notifications" element={<NotificationsPage />} />

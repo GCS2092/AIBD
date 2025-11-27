@@ -16,12 +16,12 @@ function getApiUrl(): string {
   
   // Si l'hostname est une IP locale (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
   if (hostname.match(/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/)) {
-    // Utiliser l'IP locale pour l'API aussi
-    return `http://${hostname}:3000`;
+    // Utiliser l'IP locale pour l'API aussi (port 3001)
+    return `http://${hostname}:3001`;
   }
   
-  // Sinon, utiliser localhost (PC)
-  return 'http://localhost:3000';
+  // Sinon, utiliser localhost (PC) avec le port 3001
+  return 'http://localhost:3001';
 }
 
 export const API_URL = getApiUrl();

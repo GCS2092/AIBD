@@ -51,5 +51,19 @@ export const authService = {
   isAuthenticated: (): boolean => {
     return !!localStorage.getItem('token');
   },
+
+  getRole: (): 'admin' | 'driver' | 'client' | null => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      
+      // Décoder le JWT token (partie payload)
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role || null;
+    } catch (error) {
+      console.error('Erreur lors du décodage du token:', error);
+      return null;
+    }
+  },
 };
 

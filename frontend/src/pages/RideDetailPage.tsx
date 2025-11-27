@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, Phone, Mail, MapPin, Navigation, Calendar, Clock, Car, UserCheck, AlertCircle, RefreshCw } from 'lucide-react';
-import { adminService, Ride, Driver } from '../services/adminService';
+import { ArrowLeft, User, Phone, Mail, MapPin, Navigation, Calendar, Car, UserCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { adminService, Driver } from '../services/adminService';
 import { authService } from '../services/authService';
 import NavigationBar from '../components/NavigationBar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import './RideDetailPage.css';
@@ -21,6 +21,11 @@ function RideDetailPage() {
   useEffect(() => {
     if (!authService.isAuthenticated()) {
       navigate('/login');
+      return;
+    }
+    // Vérifier que l'utilisateur est admin
+    if (authService.getRole() !== 'admin') {
+      navigate('/');
     }
   }, [navigate]);
 
@@ -280,7 +285,7 @@ function RideDetailPage() {
                     {ride.price != null 
                       ? (typeof ride.price === 'number' 
                           ? ride.price.toLocaleString() 
-                          : parseFloat(ride.price.toString() || '0').toLocaleString())
+                          : parseFloat(String(ride.price) || '0').toLocaleString())
                       : '0'} FCFA
                   </span>
                 </div>

@@ -231,11 +231,17 @@ export class RideService {
   async getRideStatus(rideId: string) {
     const ride = await this.rideRepository.findOne({
       where: { id: rideId },
-      relations: ['driver', 'driver.user', 'pricing'],
+      relations: ['driver', 'driver.user', 'driver.vehicles', 'pricing'],
     });
 
     if (!ride) {
       throw new NotFoundException('Course non trouvée');
+    }
+
+    // Injecter le service d'encryption pour déchiffrer les données sensibles
+    ride.setEncryptionService(this.encryptionService);
+    if (ride.driver && ride.driver.user) {
+      ride.driver.user.setEncryptionService(this.encryptionService);
     }
 
     return ride;

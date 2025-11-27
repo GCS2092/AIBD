@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { MapPin, Navigation, Calendar, Clock, RefreshCw, CheckCircle2, XCircle, Plane, ArrowLeft, Radio } from 'lucide-react';
+import { MapPin, Navigation, Calendar, Clock, RefreshCw, CheckCircle2, XCircle, Plane, ArrowLeft, Radio, Users, Car } from 'lucide-react';
 import { useRideStatus } from '../hooks/useRide';
 import { useETA } from '../hooks/useGPS';
 import MapComponent from '../components/MapComponent';
@@ -20,7 +20,7 @@ function TrackingPage() {
 
   // Rafraîchir automatiquement toutes les 5 secondes si la course est active
   useEffect(() => {
-    if (ride && (ride.status === 'accepted' || ride.status === 'in_progress')) {
+    if (ride && (ride.status === 'pending' || ride.status === 'assigned' || ride.status === 'accepted' || ride.status === 'in_progress' || ride.status === 'driver_on_way' || ride.status === 'picked_up')) {
       const interval = setInterval(() => {
         refetch();
       }, 5000);
@@ -157,11 +157,71 @@ function TrackingPage() {
           </Card>
         </motion.div>
 
+        {/* Informations du chauffeur (quand accepté) */}
+        {ride.driver && (ride.status === 'accepted' || ride.status === 'assigned' || ride.status === 'in_progress' || ride.status === 'driver_on_way' || ride.status === 'picked_up') && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mb-8"
+          >
+            <Card className="bg-white border-gray-200 shadow-2xl">
+              <CardHeader className="px-4 sm:px-6">
+                <CardTitle className="text-xl sm:text-2xl text-gray-900">Votre chauffeur</CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 sm:px-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-blue-100 rounded-xl">
+                      <Users className="w-6 h-6 text-blue-900" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-500 uppercase mb-1">Nom du chauffeur</p>
+                      <p className="text-base text-gray-900 font-medium">
+                        {ride.driver.user?.firstName} {ride.driver.user?.lastName}
+                      </p>
+                    </div>
+                  </div>
+
+                  {ride.driver.vehicles && ride.driver.vehicles.length > 0 && ride.driver.vehicles[0] && (
+                    <>
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-green-100 rounded-xl">
+                          <Car className="w-6 h-6 text-green-900" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-500 uppercase mb-1">Véhicule</p>
+                          <p className="text-base text-gray-900 font-medium">
+                            {ride.driver.vehicles[0].brand} {ride.driver.vehicles[0].model}
+                            {ride.driver.vehicles[0].year && ` (${ride.driver.vehicles[0].year})`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 sm:col-span-2">
+                        <div className="p-3 bg-yellow-100 rounded-xl">
+                          <span className="text-lg font-bold text-yellow-900">🚗</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-500 uppercase mb-1">Plaque d'immatriculation</p>
+                          <p className="text-xl font-bold text-gray-900 tracking-wider">
+                            {ride.driver.vehicles[0].licensePlate}
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Détails de la course */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
           className="mb-8"
         >
           <Card className="bg-white border-gray-200 shadow-2xl">
@@ -226,8 +286,8 @@ function TrackingPage() {
           </Card>
         </motion.div>
 
-        {/* Carte - Afficher toujours si on a au moins pickup ou dropoff, même sans driverLocation */}
-        {(ride.pickupLocation || ride.dropoffLocation || ride.driverLocation) && (
+        {/* Carte - Afficher toujours si on a au moins pickup ou dropoff, ou si un chauffeur est assigné */}
+        {(ride.pickupLocation || ride.dropoffLocation || ride.driverLocation || (ride.driver && ride.status !== 'pending')) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

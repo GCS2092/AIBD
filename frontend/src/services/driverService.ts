@@ -64,6 +64,26 @@ export interface Ride {
   status: string;
   price: number;
   createdAt: string;
+  numberOfPassengers?: number;
+  numberOfBags?: number;
+  clientFirstName?: string;
+  clientLastName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
+  flightNumber?: string;
+  driverLocation?: {
+    lat: number;
+    lng: number;
+    timestamp?: string;
+  };
+  pickupLocation?: {
+    lat: number;
+    lng: number;
+  };
+  dropoffLocation?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export const driverService = {
@@ -81,6 +101,11 @@ export const driverService = {
     const response = await apiClient.get(API_ENDPOINTS.DRIVER_RIDES, {
       params: { page, limit, ...(status ? { status } : {}) },
     });
+    return response.data;
+  },
+
+  getRideById: async (rideId: string): Promise<Ride> => {
+    const response = await apiClient.get(`/driver/rides/${rideId}`);
     return response.data;
   },
 

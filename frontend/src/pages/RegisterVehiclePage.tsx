@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { driverService } from '../services/driverService';
 import { authService } from '../services/authService';
-import NavigationBar from '../components/NavigationBar';
+import DriverHeader from '../components/DriverHeader';
+import DriverBottomNav from '../components/DriverBottomNav';
 import './RegisterVehiclePage.css';
 
 function RegisterVehiclePage() {
@@ -99,7 +100,7 @@ function RegisterVehiclePage() {
 
   return (
     <div className="register-vehicle-page">
-      <NavigationBar />
+      <DriverHeader showStatusButtons={false} />
       <div className="register-vehicle-container">
         <div>
           <Link to="/driver/dashboard" className="btn-back">← Retour au Dashboard</Link>
@@ -224,6 +225,9 @@ function RegisterVehiclePage() {
           </div>
         </form>
       </div>
+
+      {/* Barre de navigation en bas */}
+      <DriverBottomNav />
     </div>
   );
 }

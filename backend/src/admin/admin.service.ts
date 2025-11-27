@@ -53,9 +53,123 @@ export class AdminService {
     };
   }
 
+  /**
+   * Déchiffre toutes les données sensibles d'un driver pour l'affichage admin
+   * IMPORTANT: Les données restent chiffrées en base de données, mais sont déchiffrées ici pour l'affichage
+   * Cette méthode est appelée uniquement pour les requêtes admin afin d'afficher les données en clair
+   */
+  private decryptDriverData(driver: Driver): void {
+    if (!this.encryptionService) {
+      console.error('[Admin] EncryptionService non disponible');
+      return;
+    }
+
+    // Injecter le service d'encryption
+    driver.setEncryptionService(this.encryptionService);
+    
+    // Déchiffrer le numéro de permis
+    if (driver.licenseNumber) {
+      if (typeof driver.licenseNumber === 'string' && driver.licenseNumber.includes(':')) {
+        try {
+          const decrypted = this.encryptionService.decrypt(driver.licenseNumber);
+          driver.licenseNumber = decrypted;
+          console.log(`[Admin] LicenseNumber déchiffré pour driver ${driver.id}`);
+        } catch (e) {
+          console.error(`[Admin] Erreur déchiffrement licenseNumber pour driver ${driver.id}:`, e);
+        }
+      }
+    }
+    
+    // Déchiffrer les données de l'utilisateur
+    if (driver.user) {
+      driver.user.setEncryptionService(this.encryptionService);
+      
+      // Déchiffrer email - FORCER le déchiffrement
+      // IMPORTANT: Les hooks @AfterLoad() peuvent ne pas fonctionner si le service n'est pas injecté à temps
+      // On force donc le déchiffrement manuellement ici
+      if (driver.user.email && typeof driver.user.email === 'string') {
+        const originalEmail = driver.user.email;
+        
+        // Vérifier si c'est chiffré (format: iv:tag:encrypted)
+        if (originalEmail.includes(':') && originalEmail.split(':').length === 3) {
+          try {
+            const decrypted = this.encryptionService.decrypt(originalEmail);
+            // FORCER la modification de la propriété
+            Object.defineProperty(driver.user, 'email', {
+              value: decrypted,
+              writable: true,
+              enumerable: true,
+              configurable: true
+            });
+            console.log(`[Admin] ✓ Email déchiffré pour driver ${driver.id}: ${decrypted.substring(0, Math.min(30, decrypted.length))}...`);
+          } catch (e) {
+            console.error(`[Admin] ❌ Erreur déchiffrement email pour driver ${driver.id}:`, e);
+            console.error(`[Admin] Email chiffré (premiers 50 chars): ${originalEmail.substring(0, 50)}...`);
+          }
+        } else {
+          // Email non chiffré ou format invalide
+          console.log(`[Admin] Email non chiffré pour driver ${driver.id}: ${originalEmail.substring(0, 30)}...`);
+        }
+      } else {
+        console.warn(`[Admin] ⚠ Email manquant ou invalide pour driver ${driver.id}`);
+      }
+      
+      // Déchiffrer téléphone - FORCER le déchiffrement
+      if (driver.user.phone && typeof driver.user.phone === 'string') {
+        const originalPhone = driver.user.phone;
+        
+        // Vérifier si c'est chiffré (format: iv:tag:encrypted)
+        if (originalPhone.includes(':') && originalPhone.split(':').length === 3) {
+          try {
+            const decrypted = this.encryptionService.decrypt(originalPhone);
+            // FORCER la modification de la propriété
+            Object.defineProperty(driver.user, 'phone', {
+              value: decrypted,
+              writable: true,
+              enumerable: true,
+              configurable: true
+            });
+            console.log(`[Admin] ✓ Phone déchiffré pour driver ${driver.id}: ${decrypted}`);
+          } catch (e) {
+            console.error(`[Admin] ❌ Erreur déchiffrement phone pour driver ${driver.id}:`, e);
+            console.error(`[Admin] Phone chiffré (premiers 50 chars): ${originalPhone.substring(0, 50)}...`);
+          }
+        } else {
+          // Phone non chiffré ou format invalide
+          console.log(`[Admin] Phone non chiffré pour driver ${driver.id}: ${originalPhone}`);
+        }
+      } else {
+        console.warn(`[Admin] ⚠ Phone manquant ou invalide pour driver ${driver.id}`);
+      }
+      
+      // Déchiffrer firstName si chiffré
+      if (driver.user.firstName && typeof driver.user.firstName === 'string' && driver.user.firstName.includes(':')) {
+        try {
+          driver.user.firstName = this.encryptionService.decrypt(driver.user.firstName);
+        } catch (e) {
+          console.warn(`[Admin] Erreur déchiffrement firstName pour driver ${driver.id}:`, e);
+        }
+      }
+      
+      // Déchiffrer lastName si chiffré
+      if (driver.user.lastName && typeof driver.user.lastName === 'string' && driver.user.lastName.includes(':')) {
+        try {
+          driver.user.lastName = this.encryptionService.decrypt(driver.user.lastName);
+        } catch (e) {
+          console.warn(`[Admin] Erreur déchiffrement lastName pour driver ${driver.id}:`, e);
+        }
+      }
+    } else {
+      console.warn(`[Admin] User manquant pour driver ${driver.id}`);
+    }
+  }
+
   async getAllDrivers(page: number = 1, limit: number = 10): Promise<PaginatedResponse<Driver>> {
     const skip = (page - 1) * limit;
     
+    // Charger les drivers avec leurs relations
+    // IMPORTANT: Ne pas utiliser les hooks @AfterLoad() qui pourraient interférer
+    // On va déchiffrer manuellement après le chargement
     const [drivers, total] = await this.driverRepository.findAndCount({
       relations: ['user', 'vehicles', 'rides'],
       order: { createdAt: 'DESC' },
@@ -63,40 +177,35 @@ export class AdminService {
       take: limit,
     });
 
-    // S'assurer que le service d'encryption est injecté pour déchiffrer
-    drivers.forEach(driver => {
-      // Injecter le service dans le driver
-      driver.setEncryptionService(this.encryptionService);
+    // IMPORTANT: Déchiffrer toutes les données sensibles pour l'affichage admin
+    // Les données restent chiffrées en base de données, mais sont déchiffrées ici pour l'affichage
+    console.log(`[Admin] Déchiffrement de ${drivers.length} chauffeurs pour l'affichage admin`);
+    
+    // Déchiffrer directement les entités chargées
+    drivers.forEach((driver, index) => {
+      console.log(`[Admin] Traitement chauffeur ${index + 1}/${drivers.length} - ID: ${driver.id}`);
       
-      // Injecter le service dans l'utilisateur
+      // Stocker les valeurs originales pour debug
+      const originalEmail = driver.user?.email;
+      const originalPhone = driver.user?.phone;
+      
+      // Déchiffrer les données
+      this.decryptDriverData(driver);
+      
+      // Vérifier que le déchiffrement a fonctionné
       if (driver.user) {
-        driver.user.setEncryptionService(this.encryptionService);
-        // Forcer le déchiffrement en accédant aux propriétés (déclenche AfterLoad)
-        const email = driver.user.email;
-        const phone = driver.user.phone;
-        // Si toujours chiffré, déchiffrer manuellement
-        if (email && email.includes(':')) {
-          try {
-            driver.user.email = this.encryptionService.decrypt(email);
-          } catch (e) {
-            // Ignorer si échec
-          }
+        if (driver.user.email && driver.user.email.includes(':')) {
+          console.error(`[Admin] ❌ Email toujours chiffré après déchiffrement pour driver ${driver.id}`);
+          console.error(`[Admin] Email original: ${originalEmail?.substring(0, 50)}...`);
+        } else if (driver.user.email) {
+          console.log(`[Admin] ✓ Email déchiffré: ${driver.user.email.substring(0, 30)}...`);
         }
-        if (phone && phone.includes(':')) {
-          try {
-            driver.user.phone = this.encryptionService.decrypt(phone);
-          } catch (e) {
-            // Ignorer si échec
-          }
-        }
-      }
-      
-      // Forcer le déchiffrement du permis
-      if (driver.licenseNumber && driver.licenseNumber.includes(':')) {
-        try {
-          driver.licenseNumber = this.encryptionService.decrypt(driver.licenseNumber);
-        } catch (e) {
-          // Ignorer si échec
+        
+        if (driver.user.phone && driver.user.phone.includes(':')) {
+          console.error(`[Admin] ❌ Phone toujours chiffré après déchiffrement pour driver ${driver.id}`);
+          console.error(`[Admin] Phone original: ${originalPhone?.substring(0, 50)}...`);
+        } else if (driver.user.phone) {
+          console.log(`[Admin] ✓ Phone déchiffré: ${driver.user.phone}`);
         }
       }
     });
@@ -124,34 +233,9 @@ export class AdminService {
       throw new NotFoundException('Chauffeur non trouvé');
     }
 
-    // S'assurer que le service d'encryption est injecté pour déchiffrer
-    driver.setEncryptionService(this.encryptionService);
-    if (driver.user) {
-      driver.user.setEncryptionService(this.encryptionService);
-      // Déchiffrer manuellement si nécessaire
-      if (driver.user.email && driver.user.email.includes(':')) {
-        try {
-          driver.user.email = this.encryptionService.decrypt(driver.user.email);
-        } catch (e) {
-          // Ignorer si échec
-        }
-      }
-      if (driver.user.phone && driver.user.phone.includes(':')) {
-        try {
-          driver.user.phone = this.encryptionService.decrypt(driver.user.phone);
-        } catch (e) {
-          // Ignorer si échec
-        }
-      }
-    }
-    // Déchiffrer le permis si nécessaire
-    if (driver.licenseNumber && driver.licenseNumber.includes(':')) {
-      try {
-        driver.licenseNumber = this.encryptionService.decrypt(driver.licenseNumber);
-      } catch (e) {
-        // Ignorer si échec
-      }
-    }
+    // IMPORTANT: Déchiffrer toutes les données sensibles pour l'affichage admin
+    // Les données restent chiffrées en base de données, mais sont déchiffrées ici pour l'affichage
+    this.decryptDriverData(driver);
 
     return driver;
   }
@@ -251,6 +335,39 @@ export class AdminService {
     return this.getDriverById(id);
   }
 
+  /**
+   * Déchiffre toutes les données sensibles d'une course pour l'affichage admin
+   */
+  private decryptRideData(ride: Ride): void {
+    ride.setEncryptionService(this.encryptionService);
+    
+    // Fonction helper pour déchiffrer si nécessaire
+    const decryptIfNeeded = (value: string | undefined): string | undefined => {
+      if (value && typeof value === 'string' && value.includes(':')) {
+        try {
+          return this.encryptionService.decrypt(value);
+        } catch (e) {
+          console.warn(`[Admin] Erreur déchiffrement pour ride ${ride.id}:`, e);
+          return value;
+        }
+      }
+      return value;
+    };
+    
+    // Déchiffrer toutes les données du client
+    ride.clientEmail = decryptIfNeeded(ride.clientEmail);
+    ride.clientPhone = decryptIfNeeded(ride.clientPhone);
+    ride.clientFirstName = decryptIfNeeded(ride.clientFirstName);
+    ride.clientLastName = decryptIfNeeded(ride.clientLastName);
+    ride.pickupAddress = decryptIfNeeded(ride.pickupAddress);
+    ride.dropoffAddress = decryptIfNeeded(ride.dropoffAddress);
+    
+    // Déchiffrer les données du chauffeur si présent
+    if (ride.driver) {
+      this.decryptDriverData(ride.driver);
+    }
+  }
+
   async getAllRides(
     page: number = 1,
     limit: number = 10,
@@ -293,59 +410,10 @@ export class AdminService {
     // Récupérer les données
     let rides = await queryBuilder.getMany();
 
-    // S'assurer que le service d'encryption est injecté pour déchiffrer
+    // IMPORTANT: Déchiffrer toutes les données sensibles pour l'affichage admin
+    // Les données restent chiffrées en base de données, mais sont déchiffrées ici pour l'affichage
     rides.forEach(ride => {
-      ride.setEncryptionService(this.encryptionService);
-      
-      // Déchiffrer les données de la course
-      if (ride.clientFirstName && ride.clientFirstName.includes(':')) {
-        try {
-          ride.clientFirstName = this.encryptionService.decrypt(ride.clientFirstName);
-        } catch (e) {}
-      }
-      if (ride.clientLastName && ride.clientLastName.includes(':')) {
-        try {
-          ride.clientLastName = this.encryptionService.decrypt(ride.clientLastName);
-        } catch (e) {}
-      }
-      if (ride.clientPhone && ride.clientPhone.includes(':')) {
-        try {
-          ride.clientPhone = this.encryptionService.decrypt(ride.clientPhone);
-        } catch (e) {}
-      }
-      if (ride.clientEmail && ride.clientEmail.includes(':')) {
-        try {
-          ride.clientEmail = this.encryptionService.decrypt(ride.clientEmail);
-        } catch (e) {}
-      }
-      if (ride.pickupAddress && ride.pickupAddress.includes(':')) {
-        try {
-          ride.pickupAddress = this.encryptionService.decrypt(ride.pickupAddress);
-        } catch (e) {}
-      }
-      if (ride.dropoffAddress && ride.dropoffAddress.includes(':')) {
-        try {
-          ride.dropoffAddress = this.encryptionService.decrypt(ride.dropoffAddress);
-        } catch (e) {}
-      }
-      
-      // Déchiffrer les données du chauffeur si présent
-      if (ride.driver?.user) {
-        ride.driver.user.setEncryptionService(this.encryptionService);
-        if (ride.driver.user.email && ride.driver.user.email.includes(':')) {
-          try {
-            ride.driver.user.email = this.encryptionService.decrypt(ride.driver.user.email);
-          } catch (e) {}
-        }
-        if (ride.driver.user.phone && ride.driver.user.phone.includes(':')) {
-          try {
-            ride.driver.user.phone = this.encryptionService.decrypt(ride.driver.user.phone);
-          } catch (e) {}
-        }
-      }
-      if (ride.driver) {
-        ride.driver.setEncryptionService(this.encryptionService);
-      }
+      this.decryptRideData(ride);
     });
 
     // Appliquer le filtre de recherche après déchiffrement (car on ne peut pas chercher dans des données chiffrées)
@@ -373,25 +441,69 @@ export class AdminService {
   }
 
   async getDashboardStats() {
-    const [
-      totalRides,
-      completedRides,
-      pendingRides,
-      totalDrivers,
-      activeDrivers,
-      totalRevenue,
-    ] = await Promise.all([
-      this.rideRepository.count(),
-      this.rideRepository.count({ where: { status: RideStatus.COMPLETED } }),
-      this.rideRepository.count({ where: { status: RideStatus.PENDING } }),
-      this.driverRepository.count(),
-      this.driverRepository.count({ where: { status: DriverStatus.AVAILABLE } }),
-      this.rideRepository
-        .createQueryBuilder('ride')
-        .select('SUM(ride.price)', 'total')
-        .where('ride.status = :status', { status: RideStatus.COMPLETED })
-        .getRawOne(),
-    ]);
+    // Compter toutes les courses
+    const totalRides = await this.rideRepository.count();
+    
+    // Compter les courses complétées
+    const completedRides = await this.rideRepository.count({ 
+      where: { status: RideStatus.COMPLETED } 
+    });
+    
+    // Compter les courses en attente
+    const pendingRides = await this.rideRepository.count({ 
+      where: { status: RideStatus.PENDING } 
+    });
+    
+    // Compter les courses assignées
+    const assignedRides = await this.rideRepository.count({ 
+      where: { status: RideStatus.ASSIGNED } 
+    });
+    
+    // Compter les courses acceptées
+    const acceptedRides = await this.rideRepository.count({ 
+      where: { status: RideStatus.ACCEPTED } 
+    });
+    
+    // Compter les courses annulées
+    const cancelledRides = await this.rideRepository.count({ 
+      where: { status: RideStatus.CANCELLED } 
+    });
+    
+    // Compter tous les chauffeurs
+    const totalDrivers = await this.driverRepository.count();
+    
+    // Compter les chauffeurs actifs (disponibles)
+    const activeDrivers = await this.driverRepository.count({ 
+      where: { status: DriverStatus.AVAILABLE } 
+    });
+    
+    // Calculer le revenu total (seulement les courses complétées)
+    const revenueResult = await this.rideRepository
+      .createQueryBuilder('ride')
+      .select('COALESCE(SUM(ride.price), 0)', 'total')
+      .where('ride.status = :status', { status: RideStatus.COMPLETED })
+      .getRawOne();
+    
+    const totalRevenue = parseFloat(revenueResult?.total || '0');
+    
+    // Vérifier la cohérence des compteurs
+    const ridesSum = completedRides + pendingRides + assignedRides + acceptedRides + cancelledRides;
+    const inProgressRides = await this.rideRepository.count({
+      where: [
+        { status: RideStatus.IN_PROGRESS },
+        { status: RideStatus.DRIVER_ON_WAY },
+        { status: RideStatus.PICKED_UP }
+      ]
+    });
+    
+    // Calculer la note moyenne des chauffeurs
+    const avgRatingResult = await this.driverRepository
+      .createQueryBuilder('driver')
+      .select('COALESCE(AVG(driver.rating), 0)', 'avgRating')
+      .where('driver.ratingCount > 0')
+      .getRawOne();
+    
+    const avgRating = parseFloat(avgRatingResult?.avgRating || '0');
 
     // Rides par jour (7 derniers jours)
     const sevenDaysAgo = new Date();
@@ -406,21 +518,77 @@ export class AdminService {
       .orderBy('date', 'ASC')
       .getRawMany();
 
+    // Revenus par jour (7 derniers jours) - seulement courses complétées
+    const revenueByDay = await this.rideRepository
+      .createQueryBuilder('ride')
+      .select('DATE(ride.completedAt)', 'date')
+      .addSelect('COALESCE(SUM(ride.price), 0)', 'revenue')
+      .where('ride.status = :status', { status: RideStatus.COMPLETED })
+      .andWhere('ride.completedAt >= :date', { date: sevenDaysAgo })
+      .groupBy('DATE(ride.completedAt)')
+      .orderBy('date', 'ASC')
+      .getRawMany();
+
     return {
       rides: {
         total: totalRides,
         completed: completedRides,
         pending: pendingRides,
+        assigned: assignedRides,
+        accepted: acceptedRides,
+        cancelled: cancelledRides,
+        inProgress: inProgressRides,
         byDay: ridesByDay,
       },
       drivers: {
         total: totalDrivers,
         active: activeDrivers,
+        avgRating: Math.round(avgRating * 10) / 10, // Arrondir à 1 décimale
       },
       revenue: {
-        total: parseFloat(totalRevenue?.total || '0'),
+        total: totalRevenue,
+        byDay: revenueByDay,
+      },
+      // Validation des compteurs
+      validation: {
+        ridesSum: ridesSum + inProgressRides,
+        totalRides: totalRides,
+        isValid: (ridesSum + inProgressRides) <= totalRides, // La somme peut être inférieure si d'autres statuts existent
       },
     };
+  }
+
+  /**
+   * Déchiffre toutes les données sensibles d'une course pour l'affichage admin
+   */
+  private decryptRideData(ride: Ride): void {
+    ride.setEncryptionService(this.encryptionService);
+    
+    // Fonction helper pour déchiffrer si nécessaire
+    const decryptIfNeeded = (value: string | undefined): string | undefined => {
+      if (value && typeof value === 'string' && value.includes(':')) {
+        try {
+          return this.encryptionService.decrypt(value);
+        } catch (e) {
+          console.warn(`[Admin] Erreur déchiffrement pour ride ${ride.id}:`, e);
+          return value;
+        }
+      }
+      return value;
+    };
+    
+    // Déchiffrer toutes les données du client
+    ride.clientEmail = decryptIfNeeded(ride.clientEmail);
+    ride.clientPhone = decryptIfNeeded(ride.clientPhone);
+    ride.clientFirstName = decryptIfNeeded(ride.clientFirstName);
+    ride.clientLastName = decryptIfNeeded(ride.clientLastName);
+    ride.pickupAddress = decryptIfNeeded(ride.pickupAddress);
+    ride.dropoffAddress = decryptIfNeeded(ride.dropoffAddress);
+    
+    // Déchiffrer les données du chauffeur si présent
+    if (ride.driver) {
+      this.decryptDriverData(ride.driver);
+    }
   }
 
   async getRideById(id: string) {
@@ -433,82 +601,10 @@ export class AdminService {
       throw new NotFoundException('Course non trouvée');
     }
 
-    // S'assurer que le service d'encryption est injecté pour déchiffrer
-    ride.setEncryptionService(this.encryptionService);
-    
-    // Déchiffrer les données de la course (client)
-    if (ride.clientEmail && ride.clientEmail.includes(':')) {
-      try {
-        ride.clientEmail = this.encryptionService.decrypt(ride.clientEmail);
-      } catch (e) {
-        // Ignorer si échec
-      }
-    }
-    if (ride.clientPhone && ride.clientPhone.includes(':')) {
-      try {
-        ride.clientPhone = this.encryptionService.decrypt(ride.clientPhone);
-      } catch (e) {
-        // Ignorer si échec
-      }
-    }
-    if (ride.clientFirstName && ride.clientFirstName.includes(':')) {
-      try {
-        ride.clientFirstName = this.encryptionService.decrypt(ride.clientFirstName);
-      } catch (e) {
-        // Ignorer si échec
-      }
-    }
-    if (ride.clientLastName && ride.clientLastName.includes(':')) {
-      try {
-        ride.clientLastName = this.encryptionService.decrypt(ride.clientLastName);
-      } catch (e) {
-        // Ignorer si échec
-      }
-    }
-    
-    // Déchiffrer les données du chauffeur si présent
-    if (ride.driver) {
-      ride.driver.setEncryptionService(this.encryptionService);
-      
-      // Déchiffrer le numéro de permis - vérifier d'abord si c'est chiffré
-      if (ride.driver.licenseNumber) {
-        // Vérifier si c'est chiffré (contient ':' qui est le séparateur)
-        if (typeof ride.driver.licenseNumber === 'string' && ride.driver.licenseNumber.includes(':')) {
-          try {
-            ride.driver.licenseNumber = this.encryptionService.decrypt(ride.driver.licenseNumber);
-          } catch (e) {
-            console.error('Erreur déchiffrement licenseNumber:', e);
-          }
-        }
-      }
-      
-      // Déchiffrer les données de l'utilisateur (chauffeur)
-      if (ride.driver.user) {
-        ride.driver.user.setEncryptionService(this.encryptionService);
-        
-        // Déchiffrer l'email
-        if (ride.driver.user.email) {
-          if (typeof ride.driver.user.email === 'string' && ride.driver.user.email.includes(':')) {
-            try {
-              ride.driver.user.email = this.encryptionService.decrypt(ride.driver.user.email);
-            } catch (e) {
-              console.error('Erreur déchiffrement email chauffeur:', e);
-            }
-          }
-        }
-        
-        // Déchiffrer le téléphone
-        if (ride.driver.user.phone) {
-          if (typeof ride.driver.user.phone === 'string' && ride.driver.user.phone.includes(':')) {
-            try {
-              ride.driver.user.phone = this.encryptionService.decrypt(ride.driver.user.phone);
-            } catch (e) {
-              console.error('Erreur déchiffrement téléphone chauffeur:', e);
-            }
-          }
-        }
-      }
-    }
+    // IMPORTANT: Déchiffrer toutes les données sensibles pour l'affichage admin
+    // Les données restent chiffrées en base de données, mais sont déchiffrées ici pour l'affichage
+    // La méthode decryptRideData déchiffre automatiquement toutes les données (client + chauffeur)
+    this.decryptRideData(ride);
 
     return ride;
   }

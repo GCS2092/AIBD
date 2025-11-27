@@ -22,7 +22,8 @@
     "create:users": "ts-node -r tsconfig-paths/register src/scripts/create-users.ts",
     "fix:hashes": "ts-node -r tsconfig-paths/register src/scripts/fix-user-hashes.ts",
     "add:vehicles": "ts-node -r tsconfig-paths/register src/scripts/add-vehicles-to-drivers.ts",
-    "test:notifications": "ts-node -r tsconfig-paths/register src/scripts/test-notifications-workflow.ts"
+    "test:notifications": "ts-node -r tsconfig-paths/register src/scripts/test-notifications-workflow.ts",
+    "generate:access-code": "ts-node -r tsconfig-paths/register src/scripts/generate-access-code.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

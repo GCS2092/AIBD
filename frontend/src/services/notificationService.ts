@@ -31,5 +31,12 @@ export const notificationService = {
     const unread = notifications.filter(n => !n.read);
     await Promise.all(unread.map(n => notificationService.markAsRead(n.id)));
   },
+
+  deleteAll: async (): Promise<void> => {
+    // Pour l'instant, on marque toutes comme lues
+    // Si un endpoint DELETE existe côté backend, on l'utilisera
+    const notifications = await notificationService.getAll();
+    await Promise.all(notifications.map(n => notificationService.markAsRead(n.id)));
+  },
 };
 

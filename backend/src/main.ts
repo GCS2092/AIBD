@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import * as os from 'os';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -41,6 +42,25 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0'); // Permet l'accès depuis le réseau local
   console.log(`🚀 Application is running on: http://localhost:${port}`);
-  console.log(`🌐 Accessible depuis le réseau local sur: http://[VOTRE_IP]:${port}`);
+  
+  // Afficher l'IP locale pour l'accès depuis le téléphone
+  const networkInterfaces = os.networkInterfaces();
+  const localIPs: string[] = [];
+  for (const interfaceName in networkInterfaces) {
+    const interfaces = networkInterfaces[interfaceName];
+    if (interfaces) {
+      for (const iface of interfaces) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          localIPs.push(iface.address);
+        }
+      }
+    }
+  }
+  if (localIPs.length > 0) {
+    console.log(`🌐 Accessible depuis le réseau local (téléphone) sur:`);
+    localIPs.forEach(ip => {
+      console.log(`   http://${ip}:${port}`);
+    });
+  }
 }
 bootstrap();
