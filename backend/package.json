@@ -23,7 +23,8 @@
     "fix:hashes": "ts-node -r tsconfig-paths/register src/scripts/fix-user-hashes.ts",
     "add:vehicles": "ts-node -r tsconfig-paths/register src/scripts/add-vehicles-to-drivers.ts",
     "test:notifications": "ts-node -r tsconfig-paths/register src/scripts/test-notifications-workflow.ts",
-    "generate:access-code": "ts-node -r tsconfig-paths/register src/scripts/generate-access-code.ts"
+    "generate:access-code": "ts-node -r tsconfig-paths/register src/scripts/generate-access-code.ts",
+    "test:geocoding": "ts-node -r tsconfig-paths/register src/scripts/test-geocoding.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -36,6 +37,7 @@
     "@nestjs/throttler": "^6.1.1",
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/websockets": "^11.1.9",
+    "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",

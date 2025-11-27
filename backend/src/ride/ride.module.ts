@@ -12,6 +12,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { ConfigSystemModule } from '../config-system/config-system.module';
 import { EncryptionModule } from '../encryption/encryption.module';
 import { WebSocketModule } from '../websocket/websocket.module';
+import { GeocodingModule } from '../geocoding/geocoding.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { WebSocketModule } from '../websocket/websocket.module';
     NotificationsModule,
     ConfigSystemModule,
     EncryptionModule,
+    GeocodingModule,
     forwardRef(() => WebSocketModule),
   ],
   controllers: [RideController],

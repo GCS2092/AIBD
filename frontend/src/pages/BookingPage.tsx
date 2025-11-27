@@ -191,8 +191,17 @@ function BookingPage() {
 
     createRide(submitData, {
       onSuccess: (ride) => {
-        // Afficher le code d'accès dans une modal
+        // Sauvegarder le code d'accès dans localStorage pour l'afficher dans la barre de navigation
         if (ride.accessCode) {
+          try {
+            localStorage.setItem('activeAccessCode', ride.accessCode);
+            // Déclencher un événement personnalisé pour mettre à jour la navigation immédiatement
+            window.dispatchEvent(new CustomEvent('activeAccessCodeUpdated'));
+          } catch (error) {
+            // localStorage peut être indisponible (mode privé, désactivé, etc.)
+            // Ce n'est pas critique : le code est affiché dans la modal et l'utilisateur peut toujours rechercher
+            console.warn('Impossible de sauvegarder le code dans localStorage:', error);
+          }
           setAccessCode(ride.accessCode);
           setRideId(ride.id);
           setShowAccessCodeModal(true);

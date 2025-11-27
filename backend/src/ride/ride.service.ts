@@ -21,6 +21,7 @@ import { InternalNotificationType } from '../entities/internal-notification.enti
 import { WebSocketGateway } from '../websocket/websocket.gateway';
 import { Inject, forwardRef } from '@nestjs/common';
 import { RideAssignmentService } from './ride-assignment.service';
+import { GeocodingService } from '../geocoding/geocoding.service';
 
 @Injectable()
 export class RideService {
@@ -42,11 +43,32 @@ export class RideService {
     @Inject(forwardRef(() => WebSocketGateway))
     private websocketGateway: WebSocketGateway,
     private assignmentService: RideAssignmentService,
+    private geocodingService: GeocodingService,
   ) {}
 
   async createRide(createDto: CreateRideDto) {
     // Générer un code d'accès unique (8 caractères alphanumériques)
     const accessCode = await this.generateAccessCode();
+    
+    // Géocoder les adresses pour obtenir les coordonnées GPS
+    let pickupLocation = null;
+    let dropoffLocation = null;
+    
+    try {
+      // Géocoder l'adresse de départ
+      pickupLocation = await this.geocodingService.geocodeAddress(createDto.pickupAddress);
+    } catch (error) {
+      console.error('Erreur lors du géocodage de l\'adresse de départ:', error);
+      // Continuer même si le géocodage échoue
+    }
+    
+    try {
+      // Géocoder l'adresse de destination
+      dropoffLocation = await this.geocodingService.geocodeAddress(createDto.dropoffAddress);
+    } catch (error) {
+      console.error('Erreur lors du géocodage de l\'adresse de destination:', error);
+      // Continuer même si le géocodage échoue
+    }
     
     // Trouver le tarif approprié
     const scheduledDate = new Date(createDto.scheduledAt);
@@ -91,6 +113,8 @@ export class RideService {
         pricingId: standardPricing.id,
         status: RideStatus.PENDING,
         accessCode: accessCode,
+        pickupLocation: pickupLocation,
+        dropoffLocation: dropoffLocation,
       });
 
       const savedRide = await this.rideRepository.save(ride);
@@ -108,6 +132,8 @@ export class RideService {
       pricingId: pricing.id,
       status: RideStatus.PENDING,
       accessCode: accessCode,
+      pickupLocation: pickupLocation,
+      dropoffLocation: dropoffLocation,
     });
 
     const savedRide = await this.rideRepository.save(ride);
@@ -157,7 +183,7 @@ export class RideService {
     if (!offered) {
       // Si la proposition multiple n'a pas fonctionné, passer à l'assignation séquentielle
       await this.assignmentService.assignDriverSequentially(rideId);
-    }
+      }
   }
 
   async reassignDriver(rideId: string) {
@@ -262,7 +288,7 @@ export class RideService {
     if (!accessCode) {
       throw new BadRequestException('Code d\'accès requis pour consulter vos trajets');
     }
-
+    
     if (!phone && !email && !firstName && !lastName) {
       throw new BadRequestException('Téléphone, email, nom ou prénom requis');
     }

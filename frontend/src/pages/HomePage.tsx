@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import './HomePage.css';
 
 function HomePage() {
@@ -47,6 +48,8 @@ function HomePage() {
   const [accessCodeError, setAccessCodeError] = useState<string>('');
   const [showAccessCodeForm, setShowAccessCodeForm] = useState<boolean>(false);
   const [page, setPage] = useState(1);
+  // Code de test pour visualisation
+  const [testAccessCode] = useState<string>('A1B2C3D4');
   const [pageSize] = useState(10);
 
   useEffect(() => {
@@ -108,6 +111,16 @@ function HomePage() {
         ride.status === 'in_progress'
       )
   );
+
+  // Mettre à jour le code d'accès actif dans localStorage si des courses actives existent
+  useEffect(() => {
+    if (activeRidesList.length > 0 && searchParams.accessCode) {
+      localStorage.setItem('activeAccessCode', searchParams.accessCode);
+    } else if (activeRidesList.length === 0) {
+      // Plus de courses actives, retirer le code
+      localStorage.removeItem('activeAccessCode');
+    }
+  }, [activeRidesList.length, searchParams.accessCode]);
 
   const handlePhoneSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,14 +225,14 @@ function HomePage() {
         </div>
       </motion.header>
 
-      <main className="relative max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-8 sm:pb-12">
+      <main className="relative max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-20 sm:pb-24">
         {/* Formulaire de recherche */}
         {!hasSearchParams && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-12"
+            className="mb-16 sm:mb-20"
           >
             <Card className="bg-white border-gray-200 shadow-2xl max-w-2xl mx-auto">
               <CardHeader className="text-center pb-4">
@@ -286,11 +299,11 @@ function HomePage() {
                         }}
                         className={`font-semibold transition-all text-sm sm:text-base px-3 sm:px-5 ${
                           phonePrefix === '+221' 
-                            ? 'bg-gray-900 text-white shadow-lg hover:bg-gray-800' 
-                            : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                            ? 'bg-green-600 text-white shadow-lg hover:bg-green-700 border-2 border-green-700' 
+                            : 'bg-gray-100 text-gray-700 border-2 border-gray-300 hover:bg-gray-200 hover:border-green-400'
                         }`}
                       >
-                        <span className="text-lg sm:text-xl mr-1 sm:mr-2">🇸🇳</span>
+                        <span className="text-2xl sm:text-3xl mr-2" style={{ filter: phonePrefix === '+221' ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' : 'none' }}>🇸🇳</span>
                         +221
                       </Button>
                       <Button
@@ -303,11 +316,11 @@ function HomePage() {
                         }}
                         className={`font-semibold transition-all text-sm sm:text-base px-3 sm:px-5 ${
                           phonePrefix === '+242' 
-                            ? 'bg-gray-900 text-white shadow-lg hover:bg-gray-800' 
-                            : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                            ? 'bg-yellow-500 text-white shadow-lg hover:bg-yellow-600 border-2 border-yellow-600' 
+                            : 'bg-gray-100 text-gray-700 border-2 border-gray-300 hover:bg-gray-200 hover:border-yellow-400'
                         }`}
                       >
-                        <span className="text-lg sm:text-xl mr-1 sm:mr-2">🇨🇬</span>
+                        <span className="text-2xl sm:text-3xl mr-2" style={{ filter: phonePrefix === '+242' ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' : 'none' }}>🇨🇬</span>
                         +242
                       </Button>
                     </div>
@@ -403,44 +416,55 @@ function HomePage() {
         )}
 
         {/* Courses actives */}
-        {hasSearchParams && (
+            {hasSearchParams && (
           <motion.section
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="mb-12"
           >
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-              <div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-white">Mes Courses Actives</h2>
-                <p className="text-sm sm:text-base text-gray-300">Suivez l'état de vos réservations en temps réel</p>
-              </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <div className="flex items-center gap-3 px-5 py-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-                  <div className="p-2 bg-gray-800 rounded-lg">
-                    <Phone className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Recherche</p>
-                    <p className="text-sm font-semibold text-white">{searchParams.phone}</p>
-                  </div>
+            {/* En-tête de section avec informations de recherche */}
+            <div className="mb-8 sm:mb-10">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6 mb-6">
+                <div className="flex-1">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 text-white">
+                    Mes Courses Actives
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-300">
+                    Suivez l'état de vos réservations en temps réel
+                  </p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() => {
-                    setSearchParams({});
-                    setPhoneNumber('');
-                    setAccessCode('');
-                    setShowAccessCodeForm(false);
-                    localStorage.removeItem('clientPhone');
-                  }}
-                  className="bg-white/10 text-white border-white/30 hover:bg-white/20 backdrop-blur-sm"
-                >
-                  <RefreshCw className="mr-2 w-5 h-5" />
-                  Nouvelle recherche
-                </Button>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center gap-3 px-4 sm:px-5 py-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 min-w-0">
+                    <div className="p-2 bg-gray-800 rounded-lg flex-shrink-0">
+                      <Phone className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-gray-400 mb-1">Recherche</p>
+                      <p className="text-sm font-semibold text-white truncate">{searchParams.phone}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => {
+                      setSearchParams({});
+                      setPhoneNumber('');
+                      setAccessCode('');
+                      setShowAccessCodeForm(false);
+                      localStorage.removeItem('clientPhone');
+                    }}
+                    className="bg-white/10 text-white border-white/30 hover:bg-white/20 backdrop-blur-sm whitespace-nowrap"
+                  >
+                    <RefreshCw className="mr-2 w-5 h-5" />
+                    <span className="hidden sm:inline">Nouvelle recherche</span>
+                    <span className="sm:hidden">Nouvelle</span>
+                  </Button>
+                </div>
               </div>
+              
+              {/* Séparateur visuel */}
+              <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
             </div>
 
             {isLoading ? (
@@ -456,7 +480,7 @@ function HomePage() {
               </div>
             ) : activeRidesList.length > 0 ? (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
                   {activeRidesList.map((ride: Ride, index: number) => (
                     <motion.div
                       key={ride.id}
@@ -561,31 +585,43 @@ function HomePage() {
                     </motion.div>
                   ))}
                 </div>
-                {ridesData && (
-                  <div className="mb-6">
-                    <Pagination
-                      currentPage={page}
-                      totalPages={ridesData.totalPages}
-                      onPageChange={setPage}
-                      hasNextPage={ridesData.hasNextPage}
-                      hasPreviousPage={ridesData.hasPreviousPage}
-                    />
+                {/* Pagination et informations */}
+                <div className="space-y-4 mt-8 sm:mt-10">
+                  {ridesData && (
+                    <div className="flex justify-center">
+                      <Pagination
+                        currentPage={page}
+                        totalPages={ridesData.totalPages}
+                        onPageChange={setPage}
+                        hasNextPage={ridesData.hasNextPage}
+                        hasPreviousPage={ridesData.hasPreviousPage}
+                      />
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <p className="text-sm sm:text-base text-white/80">
+                      Affichage de <strong className="text-white">{activeRidesList.length}</strong> course(s) active(s) 
+                      {ridesData?.total && ridesData.total > 0 && (
+                        <> sur <strong className="text-white">{ridesData.total}</strong> course(s) totale(s)</>
+                      )}
+                    </p>
                   </div>
-                )}
-                <p className="text-center text-white/80 text-sm">
-                  Affichage de <strong>{activeRidesList.length}</strong> course(s) active(s) sur <strong>{ridesData?.total || 0}</strong> course(s) totale(s)
-                </p>
+                </div>
               </>
             ) : (
-              <Card className="bg-white border-gray-200 shadow-2xl text-center py-16">
-                <CardContent>
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
-                    <Search className="w-10 h-10 text-gray-400" />
+              <Card className="bg-white border-gray-200 shadow-2xl text-center py-12 sm:py-16 max-w-2xl mx-auto">
+                <CardContent className="px-6 sm:px-8">
+                  <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full mb-4 sm:mb-6">
+                    <Search className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Aucune course active</h3>
-                  <p className="text-gray-600 mb-6">Aucune course active trouvée pour ce numéro de téléphone.</p>
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">
+                    Aucune course active
+                  </h3>
+                  <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-md mx-auto">
+                    Aucune course active trouvée pour ce numéro de téléphone.
+                  </p>
                   <Button asChild size="lg" className="bg-gray-900 hover:bg-gray-800 text-white font-semibold shadow-lg">
-                    <Link to="/book" className="flex items-center">
+                    <Link to="/book" className="flex items-center justify-center">
                       <BookOpen className="mr-2 w-5 h-5" />
                       Réserver une course
                     </Link>
@@ -602,8 +638,17 @@ function HomePage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-8 sm:mb-12 max-w-4xl mx-auto"
+            className="mb-16 sm:mb-20"
           >
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+                Que souhaitez-vous faire ?
+              </h2>
+              <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
+                Réservez une nouvelle course ou consultez votre historique
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto mb-16 sm:mb-20">
             <motion.div
               whileHover={{ scale: 1.02, y: -5 }}
               transition={{ duration: 0.2 }}
@@ -641,6 +686,7 @@ function HomePage() {
                 </Link>
               </Button>
             </motion.div>
+            </div>
           </motion.div>
         )}
 
@@ -650,8 +696,17 @@ function HomePage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+            className="mb-8 sm:mb-12"
           >
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+                Pourquoi choisir AIBD ?
+              </h2>
+              <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
+                Un service professionnel et fiable pour vos déplacements vers l'aéroport
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
             <motion.div
               whileHover={{ y: -8, scale: 1.02 }}
               transition={{ duration: 0.3 }}
@@ -694,9 +749,11 @@ function HomePage() {
                 </CardContent>
               </Card>
             </motion.div>
+            </div>
           </motion.div>
         )}
       </main>
+
     </div>
   );
 }

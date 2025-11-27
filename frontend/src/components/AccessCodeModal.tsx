@@ -95,16 +95,35 @@ function AccessCodeModal({ isOpen, accessCode, rideId, onClose }: AccessCodeModa
                 </div>
               </div>
 
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 space-y-3">
+                <p className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                  <span className="text-lg">ℹ️</span>
+                  Information importante
+                </p>
+                <div className="text-sm text-blue-800 space-y-2">
+                  <p className="font-semibold">
+                    Ce code d'accès s'affichera en haut de votre écran (dans la barre de navigation) pendant toute la durée de votre course.
+                  </p>
+                  <p>
+                    <strong>Vous en aurez besoin pour :</strong>
+                  </p>
+                  <ul className="space-y-1 list-disc list-inside ml-2">
+                    <li>Rechercher et consulter votre course sur la page d'accueil</li>
+                    <li>Accéder à votre historique de courses</li>
+                    <li>Suivre votre trajet en temps réel</li>
+                  </ul>
+                </div>
+              </div>
+
               <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 space-y-2">
                 <p className="text-sm font-semibold text-yellow-900 flex items-center gap-2">
                   <span className="text-lg">⚠️</span>
-                  Important
+                  Sécurité
                 </p>
                 <ul className="text-sm text-yellow-800 space-y-1 list-disc list-inside">
                   <li>Faites une capture d'écran de ce code</li>
                   <li>Enregistrez-le dans un endroit sûr</li>
                   <li>Ne le partagez avec personne</li>
-                  <li>Ce code vous permet de consulter et suivre votre trajet</li>
                 </ul>
                 <p className="text-xs text-yellow-700 mt-2 font-semibold">
                   Sans ce code, vous ne pourrez pas accéder à vos informations de trajet.

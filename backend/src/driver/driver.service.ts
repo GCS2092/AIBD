@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Not, IsNull } from 'typeorm';
 import { Driver, DriverStatus } from '../entities/driver.entity';
 import { Ride, RideStatus } from '../entities/ride.entity';
 import { Vehicle } from '../entities/vehicle.entity';
@@ -189,12 +189,34 @@ export class DriverService {
       take: 10, // Limiter à 10 courses disponibles
     });
 
+    // Récupérer aussi les courses déjà acceptées par d'autres chauffeurs pour informer
+    const acceptedRides = await this.rideRepository
+      .createQueryBuilder('ride')
+      .where('ride.status IN (:...statuses)', { 
+        statuses: [RideStatus.ASSIGNED, RideStatus.ACCEPTED] 
+      })
+      .andWhere('ride.driverId IS NOT NULL')
+      .orderBy('ride.scheduledAt', 'ASC')
+      .take(10)
+      .getMany();
+
     // Injecter le service d'encryption pour déchiffrer
     availableRides.forEach(ride => {
       ride.setEncryptionService(this.encryptionService);
     });
 
-    return availableRides;
+    // Pour les courses acceptées, masquer les infos du chauffeur et marquer comme acceptée
+    acceptedRides.forEach(ride => {
+      ride.setEncryptionService(this.encryptionService);
+      // Marquer comme acceptée par un autre chauffeur
+      (ride as any).acceptedByOther = true;
+      // Retirer les infos du chauffeur pour la confidentialité
+      ride.driver = null as any;
+      ride.driverId = null as any;
+    });
+
+    // Combiner les courses disponibles et les courses acceptées
+    return [...availableRides, ...acceptedRides];
   }
 
   async acceptRide(userId: string, rideId: string) {

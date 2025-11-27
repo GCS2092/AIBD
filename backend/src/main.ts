@@ -14,15 +14,26 @@ async function bootstrap() {
     process.env.FRONTEND_URL,
   ].filter(Boolean);
 
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   app.enableCors({
     origin: (origin, callback) => {
-      // Permettre les requêtes sans origine (Postman, curl, etc.)
-      if (!origin) return callback(null, true);
+      // Permettre les requêtes sans origine (Postman, curl, etc.) - seulement en dev
+      if (!origin) {
+        if (isProduction) {
+          return callback(new Error('CORS: Origin required in production'), false);
+        }
+        return callback(null, true);
+      }
       
-      if (allowedOrigins.includes(origin) || !origin) {
+      if (allowedOrigins.includes(origin)) {
         callback(null, true);
+      } else if (isProduction) {
+        // En production, rejeter les origines non autorisées
+        callback(new Error(`CORS: Origin ${origin} not allowed`), false);
       } else {
-        callback(null, true); // Accepter toutes les origines en dev
+        // En développement, accepter toutes les origines
+        callback(null, true);
       }
     },
     credentials: true,

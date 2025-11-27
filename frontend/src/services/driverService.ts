@@ -71,6 +71,7 @@ export interface Ride {
   clientPhone?: string;
   clientEmail?: string;
   flightNumber?: string;
+  acceptedByOther?: boolean; // Indique si la course a été acceptée par un autre chauffeur
   driverLocation?: {
     lat: number;
     lng: number;

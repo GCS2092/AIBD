@@ -8,6 +8,7 @@ import { notificationService } from '../services/notificationService';
 import Pagination from '../components/Pagination';
 import DriverHeader from '../components/DriverHeader';
 import DriverBottomNav from '../components/DriverBottomNav';
+import MiniMapComponent from '../components/MiniMapComponent';
 import { 
   Bell, 
   LogOut, 
@@ -22,10 +23,7 @@ import {
   Phone,
   Edit,
   Car as CarIcon,
-  List,
-  History,
   DollarSign,
-  LayoutDashboard,
   CheckCircle2
 } from 'lucide-react';
 import './DriverDashboard.css';
@@ -314,13 +312,19 @@ function DriverDashboard() {
             <h2 className="section-title-modern">Courses Disponibles {availableRides && availableRides.length > 0 && `(${availableRides.length})`}</h2>
             {availableRides && availableRides.length > 0 ? (
               <div className="rides-grid-modern">
-                {availableRides.map((ride) => (
+                {availableRides.map((ride: any) => (
                 <div key={ride.id} className="ride-card-stat-style">
                   <div className="ride-card-header-stat">
                     <span className="ride-type-badge-stat">
                       {ride.rideType === 'city_to_airport' ? 'Ville → Aéroport' : 'Aéroport → Ville'}
                     </span>
-                    <span className="status-badge-stat status-pending">Disponible</span>
+                    {ride.acceptedByOther ? (
+                      <span className="status-badge-stat status-assigned" style={{ backgroundColor: '#f59e0b', color: 'white' }}>
+                        Acceptée par un autre chauffeur
+                      </span>
+                    ) : (
+                      <span className="status-badge-stat status-pending">Disponible</span>
+                    )}
                   </div>
                   <div className="ride-card-body-stat">
                     <div className="ride-details-stat">
@@ -341,18 +345,32 @@ function DriverDashboard() {
                       <DollarSign className="price-icon" />
                       <strong>{typeof ride.price === 'number' ? ride.price.toLocaleString() : Number(ride.price || 0).toLocaleString()} FCFA</strong>
                     </div>
-                    <button
-                      className="btn-accept-modern"
-                      onClick={() => {
-                        if (confirm('Voulez-vous accepter cette course ?')) {
-                          acceptRideMutation.mutate(ride.id);
-                        }
-                      }}
-                      disabled={acceptRideMutation.isPending}
-                    >
-                      <CheckCircle2 className="btn-icon" />
-                      Accepter
-                    </button>
+                    {ride.acceptedByOther ? (
+                      <div style={{ 
+                        padding: '12px', 
+                        backgroundColor: '#fef3c7', 
+                        borderRadius: '8px', 
+                        textAlign: 'center',
+                        color: '#92400e',
+                        fontWeight: '500',
+                        fontSize: '14px'
+                      }}>
+                        Cette course a déjà été acceptée par un autre chauffeur
+                      </div>
+                    ) : (
+                      <button
+                        className="btn-accept-modern"
+                        onClick={() => {
+                          if (confirm('Voulez-vous accepter cette course ?')) {
+                            acceptRideMutation.mutate(ride.id);
+                          }
+                        }}
+                        disabled={acceptRideMutation.isPending}
+                      >
+                        <CheckCircle2 className="btn-icon" />
+                        Accepter
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -399,6 +417,17 @@ function DriverDashboard() {
                             <span>{new Date(ride.scheduledAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
                         </div>
+                        {/* Mini-carte si les coordonnées GPS sont disponibles */}
+                        {ride.pickupLocation && ride.dropoffLocation && (
+                          <div className="ride-map-container" style={{ marginTop: '12px', marginBottom: '12px' }}>
+                            <MiniMapComponent
+                              pickupLocation={ride.pickupLocation}
+                              dropoffLocation={ride.dropoffLocation}
+                              height="180px"
+                              className="w-full"
+                            />
+                          </div>
+                        )}
                         <div className="ride-price-stat">
                           <DollarSign className="price-icon" />
                           <strong>{typeof ride.price === 'number' ? ride.price.toLocaleString() : Number(ride.price || 0).toLocaleString()} FCFA</strong>
