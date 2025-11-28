@@ -194,9 +194,12 @@ function BookingPage() {
         // Sauvegarder le code d'accès dans localStorage pour l'afficher dans la barre de navigation
         if (ride.accessCode) {
           try {
+            console.log('💾 Sauvegarde du code d\'accès dans localStorage:', ride.accessCode);
             localStorage.setItem('activeAccessCode', ride.accessCode);
             // Déclencher un événement personnalisé pour mettre à jour la navigation immédiatement
-            window.dispatchEvent(new CustomEvent('activeAccessCodeUpdated'));
+            const event = new CustomEvent('activeAccessCodeUpdated');
+            window.dispatchEvent(event);
+            console.log('📢 Événement activeAccessCodeUpdated déclenché');
           } catch (error) {
             // localStorage peut être indisponible (mode privé, désactivé, etc.)
             // Ce n'est pas critique : le code est affiché dans la modal et l'utilisateur peut toujours rechercher

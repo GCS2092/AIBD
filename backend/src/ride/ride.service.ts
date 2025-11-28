@@ -51,8 +51,8 @@ export class RideService {
     const accessCode = await this.generateAccessCode();
     
     // Géocoder les adresses pour obtenir les coordonnées GPS
-    let pickupLocation = null;
-    let dropoffLocation = null;
+    let pickupLocation: { lat: number; lng: number } | null = null;
+    let dropoffLocation: { lat: number; lng: number } | null = null;
     
     try {
       // Géocoder l'adresse de départ
@@ -113,11 +113,11 @@ export class RideService {
         pricingId: standardPricing.id,
         status: RideStatus.PENDING,
         accessCode: accessCode,
-        pickupLocation: pickupLocation,
-        dropoffLocation: dropoffLocation,
+        pickupLocation: pickupLocation || undefined,
+        dropoffLocation: dropoffLocation || undefined,
       });
 
-      const savedRide = await this.rideRepository.save(ride);
+      const savedRide = await this.rideRepository.save(ride) as Ride;
 
       // Attribuer automatiquement un chauffeur
       await this.assignDriver(savedRide.id);
@@ -132,11 +132,11 @@ export class RideService {
       pricingId: pricing.id,
       status: RideStatus.PENDING,
       accessCode: accessCode,
-      pickupLocation: pickupLocation,
-      dropoffLocation: dropoffLocation,
+      pickupLocation: pickupLocation || undefined,
+      dropoffLocation: dropoffLocation || undefined,
     });
 
-    const savedRide = await this.rideRepository.save(ride);
+    const savedRide = await this.rideRepository.save(ride) as Ride;
 
     // Notifier les admins de la nouvelle course
     try {

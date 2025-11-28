@@ -70,26 +70,39 @@ function NavigationBar() {
 
   // Récupérer le code d'accès depuis localStorage et l'afficher immédiatement
   useEffect(() => {
-    try {
-      const storedCode = localStorage.getItem('activeAccessCode');
-      if (storedCode) {
-        setActiveAccessCode(storedCode);
+    const loadAccessCode = () => {
+      try {
+        const storedCode = localStorage.getItem('activeAccessCode');
+        if (storedCode) {
+          console.log('📋 Code d\'accès trouvé dans localStorage:', storedCode);
+          setActiveAccessCode(storedCode);
+        } else {
+          console.log('📋 Aucun code d\'accès dans localStorage');
+          setActiveAccessCode(null);
+        }
+      } catch (error) {
+        // localStorage peut être indisponible (mode privé, désactivé, etc.)
+        // Ce n'est pas critique car la recherche fonctionne toujours avec téléphone + code
+        console.warn('localStorage non disponible:', error);
       }
-    } catch (error) {
-      // localStorage peut être indisponible (mode privé, désactivé, etc.)
-      // Ce n'est pas critique car la recherche fonctionne toujours avec téléphone + code
-      console.warn('localStorage non disponible:', error);
-    }
+    };
+    
+    loadAccessCode();
   }, []);
 
   // Écouter les changements dans localStorage pour mettre à jour immédiatement
   useEffect(() => {
     const handleStorageChange = () => {
-      const storedCode = localStorage.getItem('activeAccessCode');
-      if (storedCode) {
-        setActiveAccessCode(storedCode);
-      } else {
-        setActiveAccessCode(null);
+      try {
+        const storedCode = localStorage.getItem('activeAccessCode');
+        console.log('📋 Événement de changement détecté, code:', storedCode);
+        if (storedCode) {
+          setActiveAccessCode(storedCode);
+        } else {
+          setActiveAccessCode(null);
+        }
+      } catch (error) {
+        console.warn('Erreur lors de la lecture de localStorage:', error);
       }
     };
 
@@ -104,8 +117,10 @@ function NavigationBar() {
       try {
         const storedCode = localStorage.getItem('activeAccessCode');
         if (storedCode && storedCode !== activeAccessCode) {
+          console.log('📋 Code mis à jour via interval:', storedCode);
           setActiveAccessCode(storedCode);
         } else if (!storedCode && activeAccessCode) {
+          console.log('📋 Code retiré via interval');
           setActiveAccessCode(null);
         }
       } catch (error) {
@@ -194,8 +209,8 @@ function NavigationBar() {
               <Calendar className="w-4 h-4" />
               <span>{currentDate}</span>
             </div>
-            {/* Code d'accès si course active */}
-            {activeAccessCode && showClientNav && (
+            {/* Code d'accès si course active - Afficher pour tous les clients/non authentifiés */}
+            {activeAccessCode && (!isAuthenticated || isClient) && (
               <>
                 <div className="nav-separator"></div>
                 <div className="nav-access-code">

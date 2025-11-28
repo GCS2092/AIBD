@@ -149,5 +149,15 @@ export const adminService = {
     });
     return response.data;
   },
+
+  createVehicle: async (data: { brand: string; model: string; licensePlate: string; color?: string; year?: number; capacity?: number; photoUrl?: string; driverId: string }): Promise<Vehicle> => {
+    const response = await apiClient.post('/admin/vehicles', data);
+    return response.data;
+  },
+
+  createDriver: async (data: { firstName: string; lastName: string; email: string; phone: string; password: string; licenseNumber: string; serviceZone?: string }): Promise<Driver> => {
+    const response = await apiClient.post('/admin/drivers', data);
+    return response.data;
+  },
 };
 

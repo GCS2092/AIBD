@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { adminService } from '../services/adminService';
 import { authService } from '../services/authService';
 import { notificationService } from '../services/notificationService';
 import { pricingService, Pricing, CreatePricingDto } from '../services/pricingService';
-import { websocketService } from '../services/websocketService';
 import Pagination from '../components/Pagination';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   LayoutDashboard, 
   Users, 
@@ -28,14 +33,47 @@ import {
   Navigation,
   User,
   Mail,
+  Search,
+  Eye,
   CreditCard,
   Edit,
   Shield,
   ShieldCheck,
-  Search,
-  X
+  X,
+  Plus,
+  Trash2,
+  Play,
+  Pause,
+  Calendar as CalendarIcon,
+  Clock as ClockIcon,
+  DollarSign as DollarSignIcon,
 } from 'lucide-react';
 import './AdminDashboard.css';
+
+// Fonction pour corriger l'encodage des caractères mal encodés
+const fixEncoding = (str: string): string => {
+  if (!str) return str;
+  try {
+    // Détecter et corriger les problèmes d'encodage courants
+    return str
+      .replace(/Ã©/g, 'é')
+      .replace(/Ã /g, 'à')
+      .replace(/Ã§/g, 'ç')
+      .replace(/Ã´/g, 'ô')
+      .replace(/Ã¨/g, 'è')
+      .replace(/Ãª/g, 'ê')
+      .replace(/Ã®/g, 'î')
+      .replace(/Ã»/g, 'û')
+      .replace(/â†'/g, '→')
+      .replace(/â€"/g, '"')
+      .replace(/â€™/g, "'")
+      .replace(/â€"/g, '"')
+      .replace(/â€"/g, '—')
+      .replace(/â€"/g, '–');
+  } catch {
+    return str;
+  }
+};
 
 function PricingManagement() {
   const queryClient = useQueryClient();
@@ -92,142 +130,204 @@ function PricingManagement() {
   });
 
   return (
-    <section className="pricing-section">
-      <div className="section-header">
-        <h2>Gestion des Tarifs</h2>
-        <button
-          className="btn-primary"
-          onClick={() => {
-            setEditingPricing(null);
-            setShowPricingModal(true);
-          }}
-        >
-          + Nouveau Tarif
-        </button>
-      </div>
+    <section className="pricing-section-modern">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-2xl font-bold text-gray-900">Gestion des Tarifs</CardTitle>
+              <Button
+                onClick={() => {
+                  setEditingPricing(null);
+                  setShowPricingModal(true);
+                }}
+                className="bg-gray-900 hover:bg-gray-800 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nouveau Tarif
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* Filtres */}
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={pricingFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPricingFilter('all')}
+                  className={pricingFilter === 'all' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                >
+                  Tous
+                </Button>
+                <Button
+                  variant={pricingFilter === 'dakar_to_airport' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPricingFilter('dakar_to_airport')}
+                  className={pricingFilter === 'dakar_to_airport' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                >
+                  Dakar → Aéroport
+                </Button>
+                <Button
+                  variant={pricingFilter === 'airport_to_dakar' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPricingFilter('airport_to_dakar')}
+                  className={pricingFilter === 'airport_to_dakar' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                >
+                  Aéroport → Dakar
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={pricingTypeFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPricingTypeFilter('all')}
+                  className={pricingTypeFilter === 'all' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                >
+                  Tous les types
+                </Button>
+                <Button
+                  variant={pricingTypeFilter === 'standard' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPricingTypeFilter('standard')}
+                  className={pricingTypeFilter === 'standard' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                >
+                  Standard
+                </Button>
+                <Button
+                  variant={pricingTypeFilter === 'peak_hours' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPricingTypeFilter('peak_hours')}
+                  className={pricingTypeFilter === 'peak_hours' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                >
+                  Heures de pointe
+                </Button>
+                <Button
+                  variant={pricingTypeFilter === 'night' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPricingTypeFilter('night')}
+                  className={pricingTypeFilter === 'night' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                >
+                  Nuit
+                </Button>
+                <Button
+                  variant={pricingTypeFilter === 'special' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setPricingTypeFilter('special')}
+                  className={pricingTypeFilter === 'special' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                >
+                  Spécial
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="showInactive"
+                  checked={showInactivePricing}
+                  onChange={(e) => setShowInactivePricing(e.target.checked)}
+                  className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900"
+                />
+                <Label htmlFor="showInactive" className="text-sm text-gray-700 cursor-pointer">
+                  Afficher les tarifs inactifs
+                </Label>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-      <div className="filters">
-        <button 
-          className={pricingFilter === 'all' ? 'active' : ''}
-          onClick={() => setPricingFilter('all')}
-        >
-          Tous
-        </button>
-        <button 
-          className={pricingFilter === 'dakar_to_airport' ? 'active' : ''}
-          onClick={() => setPricingFilter('dakar_to_airport')}
-        >
-          Dakar → Aéroport
-        </button>
-        <button 
-          className={pricingFilter === 'airport_to_dakar' ? 'active' : ''}
-          onClick={() => setPricingFilter('airport_to_dakar')}
-        >
-          Aéroport → Dakar
-        </button>
-        <button 
-          className={pricingTypeFilter === 'all' ? 'active' : ''}
-          onClick={() => setPricingTypeFilter('all')}
-        >
-          Tous les types
-        </button>
-        <button 
-          className={pricingTypeFilter === 'standard' ? 'active' : ''}
-          onClick={() => setPricingTypeFilter('standard')}
-        >
-          Standard
-        </button>
-        <button 
-          className={pricingTypeFilter === 'peak_hours' ? 'active' : ''}
-          onClick={() => setPricingTypeFilter('peak_hours')}
-        >
-          Heures de pointe
-        </button>
-        <button 
-          className={pricingTypeFilter === 'night' ? 'active' : ''}
-          onClick={() => setPricingTypeFilter('night')}
-        >
-          Nuit
-        </button>
-        <button 
-          className={pricingTypeFilter === 'special' ? 'active' : ''}
-          onClick={() => setPricingTypeFilter('special')}
-        >
-          Spécial
-        </button>
-        <label className="filter-checkbox">
-          <input
-            type="checkbox"
-            checked={showInactivePricing}
-            onChange={(e) => setShowInactivePricing(e.target.checked)}
-          />
-          Afficher les tarifs inactifs
-        </label>
-      </div>
+        {/* Liste des tarifs */}
+        {isLoading ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-gray-600">Chargement...</p>
+            </CardContent>
+          </Card>
+        ) : filteredPricing.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <DollarSignIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 font-medium">Aucun tarif trouvé</p>
+              <p className="text-gray-500 text-sm mt-2">Essayez de modifier vos filtres</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {filteredPricing.map((pricing, index) => (
+              <motion.div
+                key={pricing.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <Card className={`hover:shadow-lg transition-shadow ${!pricing.isActive ? 'opacity-60' : ''}`}>
+                  <CardContent className="p-6">
+                    <div className="flex flex-col lg:flex-row gap-6">
+                      {/* Informations principales */}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <h3 className="text-lg font-bold text-gray-900">{fixEncoding(pricing.name || '')}</h3>
+                          <Badge
+                            variant="outline"
+                            className={
+                              pricing.type === 'standard' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                              pricing.type === 'peak_hours' ? 'bg-orange-100 text-orange-800 border-orange-300' :
+                              pricing.type === 'night' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                              'bg-pink-100 text-pink-800 border-pink-300'
+                            }
+                          >
+                            {pricing.type === 'standard' ? 'Standard' :
+                             pricing.type === 'peak_hours' ? 'Heures de pointe' :
+                             pricing.type === 'night' ? 'Nuit' : 'Spécial'}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className={pricing.isActive ? 'bg-green-100 text-green-800 border-green-300' : 'bg-red-100 text-red-800 border-red-300'}
+                          >
+                            {pricing.isActive ? 'Actif' : 'Inactif'}
+                          </Badge>
+                        </div>
 
-      {isLoading ? (
-        <div className="loading">Chargement...</div>
-      ) : (
-        <div className="pricing-list">
-          {filteredPricing.length === 0 ? (
-            <div className="no-data">Aucun tarif trouvé</div>
-          ) : (
-            <table className="pricing-table">
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>Type de trajet</th>
-                  <th>Type</th>
-                  <th>Prix (FCFA)</th>
-                  <th>Horaires</th>
-                  <th>Jours</th>
-                  <th>Statut</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPricing.map((pricing) => (
-                  <tr key={pricing.id} className={!pricing.isActive ? 'inactive' : ''}>
-                    <td>{pricing.name}</td>
-                    <td>
-                      {pricing.rideType === 'dakar_to_airport' ? 'Dakar → Aéroport' : 'Aéroport → Dakar'}
-                    </td>
-                    <td>
-                      <span className={`pricing-type-badge type-${pricing.type}`}>
-                        {pricing.type === 'standard' ? 'Standard' :
-                         pricing.type === 'peak_hours' ? 'Heures de pointe' :
-                         pricing.type === 'night' ? 'Nuit' : 'Spécial'}
-                      </span>
-                    </td>
-                    <td>{parseFloat(pricing.price.toString()).toLocaleString()}</td>
-                    <td>
-                      {pricing.startTime && pricing.endTime
-                        ? `${pricing.startTime} - ${pricing.endTime}`
-                        : 'Toute la journée'}
-                    </td>
-                    <td>
-                      {pricing.daysOfWeek && pricing.daysOfWeek.length > 0
-                        ? pricing.daysOfWeek.map(d => ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][d]).join(', ')
-                        : 'Tous les jours'}
-                    </td>
-                    <td>
-                      <span className={`status-badge ${pricing.isActive ? 'status-active' : 'status-inactive'}`}>
-                        {pricing.isActive ? 'Actif' : 'Inactif'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <button
-                          className="btn-edit"
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <Car className="w-4 h-4 text-gray-500" />
+                            <span><strong>Type de trajet:</strong> {pricing.rideType === 'dakar_to_airport' ? 'Dakar → Aéroport' : 'Aéroport → Dakar'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <DollarSignIcon className="w-4 h-4 text-gray-500" />
+                            <span><strong>Prix:</strong> {parseFloat(pricing.price.toString()).toLocaleString()} FCFA</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <ClockIcon className="w-4 h-4 text-gray-500" />
+                            <span><strong>Horaires:</strong> {pricing.startTime && pricing.endTime ? `${pricing.startTime} - ${pricing.endTime}` : 'Toute la journée'}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-700">
+                            <CalendarIcon className="w-4 h-4 text-gray-500" />
+                            <span><strong>Jours:</strong> {pricing.daysOfWeek && pricing.daysOfWeek.length > 0 ? pricing.daysOfWeek.map(d => ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][d]).join(', ') : 'Tous les jours'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex lg:flex-col justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => {
                             setEditingPricing(pricing);
                             setShowPricingModal(true);
                           }}
+                          className="flex items-center gap-2"
                         >
-                          ✏️ Modifier
-                        </button>
-                        <button
-                          className={pricing.isActive ? 'btn-deactivate' : 'btn-activate'}
+                          <Edit className="w-4 h-4" />
+                          Modifier
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() =>
                             togglePricingActiveMutation.mutate({
                               id: pricing.id,
@@ -235,47 +335,61 @@ function PricingManagement() {
                             })
                           }
                           disabled={togglePricingActiveMutation.isPending}
+                          className={`flex items-center gap-2 ${pricing.isActive ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700'}`}
                         >
-                          {pricing.isActive ? '⏸️ Désactiver' : '▶️ Activer'}
-                        </button>
-                        <button
-                          className="btn-delete"
+                          {pricing.isActive ? (
+                            <>
+                              <Pause className="w-4 h-4" />
+                              Désactiver
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-4 h-4" />
+                              Activer
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => {
                             if (confirm('Êtes-vous sûr de vouloir supprimer ce tarif ?')) {
                               deletePricingMutation.mutate(pricing.id);
                             }
                           }}
                           disabled={deletePricingMutation.isPending}
+                          className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
-                          🗑️ Supprimer
-                        </button>
+                          <Trash2 className="w-4 h-4" />
+                          Supprimer
+                        </Button>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
-      {showPricingModal && (
-        <PricingModal
-          pricing={editingPricing}
-          onClose={() => {
-            setShowPricingModal(false);
-            setEditingPricing(null);
-          }}
-          onSave={(data) => {
-            if (editingPricing) {
-              updatePricingMutation.mutate({ id: editingPricing.id, data });
-            } else {
-              createPricingMutation.mutate(data);
-            }
-          }}
-          isSaving={createPricingMutation.isPending || updatePricingMutation.isPending}
-        />
-      )}
+        {showPricingModal && (
+          <PricingModal
+            pricing={editingPricing}
+            onClose={() => {
+              setShowPricingModal(false);
+              setEditingPricing(null);
+            }}
+            onSave={(data) => {
+              if (editingPricing) {
+                updatePricingMutation.mutate({ id: editingPricing.id, data });
+              } else {
+                createPricingMutation.mutate(data);
+              }
+            }}
+            isSaving={createPricingMutation.isPending || updatePricingMutation.isPending}
+          />
+        )}
+      </motion.div>
     </section>
   );
 }
@@ -363,7 +477,7 @@ function PricingModal({
       ...formData,
       startTime: formData.startTime || undefined,
       endTime: formData.endTime || undefined,
-      daysOfWeek: formData.daysOfWeek.length > 0 ? formData.daysOfWeek : undefined,
+      daysOfWeek: (formData.daysOfWeek && formData.daysOfWeek.length > 0) ? formData.daysOfWeek : undefined,
       description: formData.description || undefined,
     };
 
@@ -380,174 +494,660 @@ function PricingModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{pricing ? 'Modifier le Tarif' : 'Nouveau Tarif'}</h2>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-2xl font-bold text-gray-900">
+            {pricing ? 'Modifier le Tarif' : 'Nouveau Tarif'}
+          </CardTitle>
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
 
-        <form onSubmit={handleSubmit} className="pricing-form">
-          <div className="form-group">
-            <label>Nom du tarif *</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => {
-                setFormData({ ...formData, name: e.target.value });
-                if (errors.name) setErrors({ ...errors, name: '' });
-              }}
-              className={errors.name ? 'error' : ''}
-              placeholder="Ex: Dakar → Aéroport Standard"
-              required
-            />
-            {errors.name && <span className="field-error">{errors.name}</span>}
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Type de trajet *</label>
-              <div className="button-group">
-                <button
-                  type="button"
-                  className={`option-button ${formData.rideType === 'dakar_to_airport' ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, rideType: 'dakar_to_airport' })}
-                >
-                  Dakar → Aéroport
-                </button>
-                <button
-                  type="button"
-                  className={`option-button ${formData.rideType === 'airport_to_dakar' ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, rideType: 'airport_to_dakar' })}
-                >
-                  Aéroport → Dakar
-                </button>
-              </div>
-            </div>
-            <div className="form-group">
-              <label>Type de tarif *</label>
-              <div className="button-group">
-                <button
-                  type="button"
-                  className={`option-button ${formData.type === 'standard' ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, type: 'standard' })}
-                >
-                  Standard
-                </button>
-                <button
-                  type="button"
-                  className={`option-button ${formData.type === 'peak_hours' ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, type: 'peak_hours' })}
-                >
-                  Heures de pointe
-                </button>
-                <button
-                  type="button"
-                  className={`option-button ${formData.type === 'night' ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, type: 'night' })}
-                >
-                  Nuit
-                </button>
-                <button
-                  type="button"
-                  className={`option-button ${formData.type === 'special' ? 'active' : ''}`}
-                  onClick={() => setFormData({ ...formData, type: 'special' })}
-                >
-                  Spécial
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label>Prix (FCFA) *</label>
-            <input
-              type="number"
-              min="0"
-              step="100"
-              value={formData.price}
-              onChange={(e) => {
-                setFormData({ ...formData, price: parseFloat(e.target.value) || 0 });
-                if (errors.price) setErrors({ ...errors, price: '' });
-              }}
-              className={errors.price ? 'error' : ''}
-              required
-            />
-            {errors.price && <span className="field-error">{errors.price}</span>}
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label>Heure de début</label>
-              <input
-                type="time"
-                value={formData.startTime}
-                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label>Heure de fin</label>
-              <input
-                type="time"
-                value={formData.endTime}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-gray-900 font-semibold">Nom du tarif *</Label>
+              <Input
+                id="name"
+                type="text"
+                value={formData.name}
                 onChange={(e) => {
-                  setFormData({ ...formData, endTime: e.target.value });
-                  if (errors.endTime) setErrors({ ...errors, endTime: '' });
+                  setFormData({ ...formData, name: e.target.value });
+                  if (errors.name) setErrors({ ...errors, name: '' });
                 }}
-                className={errors.endTime ? 'error' : ''}
+                className={errors.name ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                placeholder="Ex: Dakar → Aéroport Standard"
+                required
               />
-              {errors.endTime && <span className="field-error">{errors.endTime}</span>}
+              {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
             </div>
-          </div>
 
-          <div className="form-group">
-            <label>Jours de la semaine</label>
-            <div className="days-selector">
-              {['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'].map((day, index) => (
-                <label key={index} className="day-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={(formData.daysOfWeek || []).includes(index)}
-                    onChange={() => toggleDay(index)}
-                  />
-                  <span>{day.substring(0, 3)}</span>
-                </label>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-gray-900 font-semibold">Type de trajet *</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={formData.rideType === 'dakar_to_airport' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, rideType: 'dakar_to_airport' })}
+                    className={formData.rideType === 'dakar_to_airport' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  >
+                    Dakar → Aéroport
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={formData.rideType === 'airport_to_dakar' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, rideType: 'airport_to_dakar' })}
+                    className={formData.rideType === 'airport_to_dakar' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  >
+                    Aéroport → Dakar
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-gray-900 font-semibold">Type de tarif *</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant={formData.type === 'standard' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, type: 'standard' })}
+                    className={formData.type === 'standard' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  >
+                    Standard
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={formData.type === 'peak_hours' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, type: 'peak_hours' })}
+                    className={formData.type === 'peak_hours' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  >
+                    Heures de pointe
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={formData.type === 'night' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, type: 'night' })}
+                    className={formData.type === 'night' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  >
+                    Nuit
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={formData.type === 'special' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFormData({ ...formData, type: 'special' })}
+                    className={formData.type === 'special' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  >
+                    Spécial
+                  </Button>
+                </div>
+              </div>
             </div>
-            <small>Laissez vide pour tous les jours</small>
-          </div>
 
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
-              placeholder="Description optionnelle du tarif"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="price" className="text-gray-900 font-semibold">Prix (FCFA) *</Label>
+              <Input
+                id="price"
+                type="number"
+                min="0"
+                step="100"
+                value={formData.price}
+                onChange={(e) => {
+                  setFormData({ ...formData, price: parseFloat(e.target.value) || 0 });
+                  if (errors.price) setErrors({ ...errors, price: '' });
+                }}
+                className={errors.price ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                required
+              />
+              {errors.price && <p className="text-sm text-red-600">{errors.price}</p>}
+            </div>
 
-          <div className="form-group">
-            <label className="checkbox-label">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="startTime" className="text-gray-900 font-semibold">Heure de début</Label>
+                <Input
+                  id="startTime"
+                  type="time"
+                  value={formData.startTime}
+                  onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endTime" className="text-gray-900 font-semibold">Heure de fin</Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={formData.endTime}
+                  onChange={(e) => {
+                    setFormData({ ...formData, endTime: e.target.value });
+                    if (errors.endTime) setErrors({ ...errors, endTime: '' });
+                  }}
+                  className={errors.endTime ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                />
+                {errors.endTime && <p className="text-sm text-red-600">{errors.endTime}</p>}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-gray-900 font-semibold">Jours de la semaine</Label>
+              <div className="flex flex-wrap gap-2">
+                {['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'].map((day, index) => (
+                  <Button
+                    key={index}
+                    type="button"
+                    variant={(formData.daysOfWeek || []).includes(index) ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => toggleDay(index)}
+                    className={(formData.daysOfWeek || []).includes(index) ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  >
+                    {day.substring(0, 3)}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500">Laissez vide pour tous les jours</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-gray-900 font-semibold">Description</Label>
+              <textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                placeholder="Description optionnelle du tarif"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 transition-all"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
               <input
                 type="checkbox"
+                id="isActive"
                 checked={formData.isActive}
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900"
               />
-              <span>Tarif actif</span>
-            </label>
-          </div>
+              <Label htmlFor="isActive" className="text-gray-900 font-semibold cursor-pointer">
+                Tarif actif
+              </Label>
+            </div>
 
-          <div className="modal-actions">
-            <button type="button" onClick={onClose} className="btn-cancel">
-              Annuler
-            </button>
-            <button type="submit" className="btn-submit" disabled={isSaving}>
-              {isSaving ? 'Enregistrement...' : pricing ? 'Modifier' : 'Créer'}
-            </button>
-          </div>
-        </form>
-      </div>
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Annuler
+              </Button>
+              <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white" disabled={isSaving}>
+                {isSaving ? 'Enregistrement...' : pricing ? 'Modifier' : 'Créer'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function VehicleModal({
+  onClose,
+  onSave,
+  isSaving,
+  drivers,
+}: {
+  onClose: () => void;
+  onSave: (data: { brand: string; model: string; licensePlate: string; color?: string; year?: number; capacity?: number; photoUrl?: string; driverId: string }) => void;
+  isSaving: boolean;
+  drivers: Array<{ id: string; user?: { firstName: string; lastName: string } }>;
+}) {
+  const [formData, setFormData] = useState({
+    brand: '',
+    model: '',
+    licensePlate: '',
+    color: '',
+    year: '',
+    capacity: '',
+    photoUrl: '',
+    driverId: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.brand.trim()) {
+      newErrors.brand = 'La marque est requise';
+    }
+    if (!formData.model.trim()) {
+      newErrors.model = 'Le modèle est requis';
+    }
+    if (!formData.licensePlate.trim()) {
+      newErrors.licensePlate = 'L\'immatriculation est requise';
+    }
+    if (!formData.driverId) {
+      newErrors.driverId = 'Le chauffeur est requis';
+    }
+    if (formData.year && (isNaN(Number(formData.year)) || Number(formData.year) < 1900 || Number(formData.year) > new Date().getFullYear() + 1)) {
+      newErrors.year = 'Année invalide';
+    }
+    if (formData.capacity && (isNaN(Number(formData.capacity)) || Number(formData.capacity) < 1)) {
+      newErrors.capacity = 'Capacité invalide (minimum 1)';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    onSave({
+      brand: formData.brand.trim(),
+      model: formData.model.trim(),
+      licensePlate: formData.licensePlate.trim().toUpperCase(),
+      color: formData.color.trim() || undefined,
+      year: formData.year ? Number(formData.year) : undefined,
+      capacity: formData.capacity ? Number(formData.capacity) : undefined,
+      photoUrl: formData.photoUrl.trim() || undefined,
+      driverId: formData.driverId,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-2xl font-bold text-gray-900">Nouveau Véhicule</CardTitle>
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="driverId" className="text-gray-900 font-semibold">Chauffeur *</Label>
+              <select
+                id="driverId"
+                value={formData.driverId}
+                onChange={(e) => {
+                  setFormData({ ...formData, driverId: e.target.value });
+                  if (errors.driverId) setErrors({ ...errors, driverId: '' });
+                }}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 transition-all ${
+                  errors.driverId ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : 'border-gray-300'
+                }`}
+                required
+              >
+                <option value="">Sélectionner un chauffeur</option>
+                {drivers.map((driver) => (
+                  <option key={driver.id} value={driver.id}>
+                    {driver.user ? `${driver.user.firstName} ${driver.user.lastName}` : `Chauffeur ${driver.id}`}
+                  </option>
+                ))}
+              </select>
+              {errors.driverId && <p className="text-sm text-red-600">{errors.driverId}</p>}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="brand" className="text-gray-900 font-semibold">Marque *</Label>
+                <Input
+                  id="brand"
+                  type="text"
+                  value={formData.brand}
+                  onChange={(e) => {
+                    setFormData({ ...formData, brand: e.target.value });
+                    if (errors.brand) setErrors({ ...errors, brand: '' });
+                  }}
+                  className={errors.brand ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  placeholder="Ex: Toyota"
+                  required
+                />
+                {errors.brand && <p className="text-sm text-red-600">{errors.brand}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="model" className="text-gray-900 font-semibold">Modèle *</Label>
+                <Input
+                  id="model"
+                  type="text"
+                  value={formData.model}
+                  onChange={(e) => {
+                    setFormData({ ...formData, model: e.target.value });
+                    if (errors.model) setErrors({ ...errors, model: '' });
+                  }}
+                  className={errors.model ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  placeholder="Ex: Corolla"
+                  required
+                />
+                {errors.model && <p className="text-sm text-red-600">{errors.model}</p>}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="licensePlate" className="text-gray-900 font-semibold">Immatriculation *</Label>
+              <Input
+                id="licensePlate"
+                type="text"
+                value={formData.licensePlate}
+                onChange={(e) => {
+                  setFormData({ ...formData, licensePlate: e.target.value.toUpperCase() });
+                  if (errors.licensePlate) setErrors({ ...errors, licensePlate: '' });
+                }}
+                className={errors.licensePlate ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                placeholder="Ex: AB-123-CD"
+                required
+              />
+              {errors.licensePlate && <p className="text-sm text-red-600">{errors.licensePlate}</p>}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="color" className="text-gray-900 font-semibold">Couleur</Label>
+                <Input
+                  id="color"
+                  type="text"
+                  value={formData.color}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  placeholder="Ex: Blanc"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="year" className="text-gray-900 font-semibold">Année</Label>
+                <Input
+                  id="year"
+                  type="number"
+                  min="1900"
+                  max={new Date().getFullYear() + 1}
+                  value={formData.year}
+                  onChange={(e) => {
+                    setFormData({ ...formData, year: e.target.value });
+                    if (errors.year) setErrors({ ...errors, year: '' });
+                  }}
+                  className={errors.year ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  placeholder="Ex: 2020"
+                />
+                {errors.year && <p className="text-sm text-red-600">{errors.year}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="capacity" className="text-gray-900 font-semibold">Places</Label>
+                <Input
+                  id="capacity"
+                  type="number"
+                  min="1"
+                  value={formData.capacity}
+                  onChange={(e) => {
+                    setFormData({ ...formData, capacity: e.target.value });
+                    if (errors.capacity) setErrors({ ...errors, capacity: '' });
+                  }}
+                  className={errors.capacity ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  placeholder="Ex: 4"
+                />
+                {errors.capacity && <p className="text-sm text-red-600">{errors.capacity}</p>}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="photoUrl" className="text-gray-900 font-semibold">URL de la photo</Label>
+              <Input
+                id="photoUrl"
+                type="url"
+                value={formData.photoUrl}
+                onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+                placeholder="https://example.com/photo.jpg"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Annuler
+              </Button>
+              <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white" disabled={isSaving}>
+                {isSaving ? 'Création...' : 'Créer'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function DriverModal({
+  onClose,
+  onSave,
+  isSaving,
+}: {
+  onClose: () => void;
+  onSave: (data: { firstName: string; lastName: string; email: string; phone: string; password: string; licenseNumber: string; serviceZone?: string }) => void;
+  isSaving: boolean;
+}) {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    licenseNumber: '',
+    serviceZone: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'Le prénom est requis';
+    }
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Le nom est requis';
+    }
+    if (!formData.email.trim()) {
+      newErrors.email = 'L\'email est requis';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Email invalide';
+    }
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Le téléphone est requis';
+    }
+    if (!formData.password) {
+      newErrors.password = 'Le mot de passe est requis';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
+    }
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
+    }
+    if (!formData.licenseNumber.trim()) {
+      newErrors.licenseNumber = 'Le numéro de permis est requis';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    onSave({
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      email: formData.email.trim().toLowerCase(),
+      phone: formData.phone.trim(),
+      password: formData.password,
+      licenseNumber: formData.licenseNumber.trim(),
+      serviceZone: formData.serviceZone.trim() || undefined,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-2xl font-bold text-gray-900">Nouveau Chauffeur</CardTitle>
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+            <X className="h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="text-gray-900 font-semibold">Prénom *</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => {
+                    setFormData({ ...formData, firstName: e.target.value });
+                    if (errors.firstName) setErrors({ ...errors, firstName: '' });
+                  }}
+                  className={errors.firstName ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  placeholder="Ex: Amadou"
+                  required
+                />
+                {errors.firstName && <p className="text-sm text-red-600">{errors.firstName}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="text-gray-900 font-semibold">Nom *</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => {
+                    setFormData({ ...formData, lastName: e.target.value });
+                    if (errors.lastName) setErrors({ ...errors, lastName: '' });
+                  }}
+                  className={errors.lastName ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  placeholder="Ex: Diallo"
+                  required
+                />
+                {errors.lastName && <p className="text-sm text-red-600">{errors.lastName}</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-gray-900 font-semibold">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (errors.email) setErrors({ ...errors, email: '' });
+                  }}
+                  className={errors.email ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  placeholder="Ex: amadou.diallo@example.com"
+                  required
+                />
+                {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-gray-900 font-semibold">Téléphone *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value });
+                    if (errors.phone) setErrors({ ...errors, phone: '' });
+                  }}
+                  className={errors.phone ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  placeholder="Ex: +221771234567"
+                  required
+                />
+                {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-gray-900 font-semibold">Mot de passe *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                    if (errors.password) setErrors({ ...errors, password: '' });
+                  }}
+                  className={errors.password ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  placeholder="Minimum 6 caractères"
+                  required
+                />
+                {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-gray-900 font-semibold">Confirmer le mot de passe *</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => {
+                    setFormData({ ...formData, confirmPassword: e.target.value });
+                    if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' });
+                  }}
+                  className={errors.confirmPassword ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  placeholder="Répétez le mot de passe"
+                  required
+                />
+                {errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword}</p>}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="licenseNumber" className="text-gray-900 font-semibold">Numéro de permis *</Label>
+              <Input
+                id="licenseNumber"
+                type="text"
+                value={formData.licenseNumber}
+                onChange={(e) => {
+                  setFormData({ ...formData, licenseNumber: e.target.value });
+                  if (errors.licenseNumber) setErrors({ ...errors, licenseNumber: '' });
+                }}
+                className={errors.licenseNumber ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                placeholder="Ex: ABC123456"
+                required
+              />
+              {errors.licenseNumber && <p className="text-sm text-red-600">{errors.licenseNumber}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="serviceZone" className="text-gray-900 font-semibold">Zone de service</Label>
+              <Input
+                id="serviceZone"
+                type="text"
+                value={formData.serviceZone}
+                onChange={(e) => setFormData({ ...formData, serviceZone: e.target.value })}
+                placeholder="Ex: Dakar, Plateau"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Annuler
+              </Button>
+              <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white" disabled={isSaving}>
+                {isSaving ? 'Création...' : 'Créer'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -560,16 +1160,14 @@ function AdminDashboard() {
   const [driverFilter, setDriverFilter] = useState<'all' | 'verified' | 'unverified'>('all');
   const [rideFilter, setRideFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
   const [rideSearch, setRideSearch] = useState<string>('');
-  const [selectedDriverId, setSelectedDriverId] = useState<string>('all');
-  const [pricingFilter, setPricingFilter] = useState<'all' | 'dakar_to_airport' | 'airport_to_dakar'>('all');
-  const [pricingTypeFilter, setPricingTypeFilter] = useState<'all' | 'standard' | 'peak_hours' | 'night' | 'special'>('all');
-  const [showPricingModal, setShowPricingModal] = useState(false);
-  const [editingPricing, setEditingPricing] = useState<Pricing | null>(null);
-  const [showInactivePricing, setShowInactivePricing] = useState(false);
+  const [selectedDriverId] = useState<string>('all');
   const [vehicleDriverFilter, setVehicleDriverFilter] = useState<string>('all');
+  const [vehicleStatusFilter, setVehicleStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [driverSearch, setDriverSearch] = useState<string>('');
+  const [showVehicleModal, setShowVehicleModal] = useState(false);
+  const [showDriverModal, setShowDriverModal] = useState(false);
   
   // États de pagination
   const [driversPage, setDriversPage] = useState(1);
@@ -624,6 +1222,31 @@ function AdminDashboard() {
     refetchInterval: 30000, // Rafraîchir toutes les 30 secondes
   });
 
+  const createVehicleMutation = useMutation({
+    mutationFn: (data: { brand: string; model: string; licensePlate: string; color?: string; year?: number; capacity?: number; photoUrl?: string; driverId: string }) => 
+      adminService.createVehicle(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vehicles'] });
+      setShowVehicleModal(false);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Erreur lors de la création du véhicule');
+    },
+  });
+
+  const createDriverMutation = useMutation({
+    mutationFn: (data: { firstName: string; lastName: string; email: string; phone: string; password: string; licenseNumber: string; serviceZone?: string }) => 
+      adminService.createDriver(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-drivers'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      setShowDriverModal(false);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Erreur lors de la création du chauffeur');
+    },
+  });
+
   // Extraire les données et métadonnées de pagination
   const drivers = driversData?.data || [];
   const rides = ridesData?.data || [];
@@ -642,24 +1265,32 @@ function AdminDashboard() {
 
   // Vérifier le statut de connexion
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {
+      setIsOnline(true);
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+    
+    // Initialiser avec le statut actuel
+    setIsOnline(navigator.onLine);
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     
-    // Vérifier le statut WebSocket
-    const checkWebSocketStatus = () => {
-      const wsConnected = websocketService.isConnected();
-      setIsOnline(navigator.onLine && wsConnected);
+    // Vérifier périodiquement le statut de connexion Internet
+    // Note: On se base sur navigator.onLine car le WebSocket peut être déconnecté
+    // pour d'autres raisons (serveur, authentification, etc.) sans que l'utilisateur soit hors ligne
+    const checkConnectionStatus = () => {
+      setIsOnline(navigator.onLine);
     };
     
-    const wsInterval = setInterval(checkWebSocketStatus, 2000);
+    const statusInterval = setInterval(checkConnectionStatus, 5000);
     
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      clearInterval(wsInterval);
+      clearInterval(statusInterval);
     };
   }, []);
 
@@ -809,7 +1440,7 @@ function AdminDashboard() {
                     {stats?.revenue?.total 
                       ? (typeof stats.revenue.total === 'number' 
                           ? stats.revenue.total.toLocaleString() 
-                          : parseFloat(stats.revenue.total.toString() || '0').toLocaleString())
+                          : parseFloat(String(stats.revenue.total) || '0').toLocaleString())
                       : '0'} FCFA
                   </p>
                 </div>
@@ -820,7 +1451,7 @@ function AdminDashboard() {
                   <h3>Note Moyenne</h3>
                   <p className="stat-value">
                     {stats?.drivers?.avgRating 
-                      ? parseFloat(stats.drivers.avgRating.toString()).toFixed(1)
+                      ? parseFloat(String(stats.drivers.avgRating)).toFixed(1)
                       : '0.0'}
                   </p>
                 </div>
@@ -872,7 +1503,7 @@ function AdminDashboard() {
                           ride.price != null 
                             ? (typeof ride.price === 'number' 
                                 ? ride.price.toLocaleString() 
-                                : parseFloat(ride.price.toString() || '0').toLocaleString())
+                                : parseFloat(String(ride.price) || '0').toLocaleString())
                             : '0'
                         } FCFA</strong>
                       </div>
@@ -893,7 +1524,16 @@ function AdminDashboard() {
         {selectedTab === 'drivers' && (
           <section className="drivers-section-modern">
             <div className="section-header-modern">
-              <h2 className="section-title-modern">Gestion des Chauffeurs</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="section-title-modern">Gestion des Chauffeurs</h2>
+                <Button
+                  onClick={() => setShowDriverModal(true)}
+                  className="bg-gray-900 text-white hover:bg-gray-800"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nouveau chauffeur
+                </Button>
+              </div>
               <div className="drivers-controls">
                 <div className="search-box-modern">
                   <Search className="search-icon" />
@@ -1026,7 +1666,7 @@ function AdminDashboard() {
                               {driver.rating != null 
                                 ? (typeof driver.rating === 'number' 
                                     ? driver.rating.toFixed(1)
-                                    : parseFloat(driver.rating.toString() || '0').toFixed(1))
+                                    : parseFloat(String(driver.rating) || '0').toFixed(1))
                                 : '0.0'}
                             </span>
                           </div>
@@ -1091,149 +1731,381 @@ function AdminDashboard() {
         )}
 
         {selectedTab === 'rides' && (
-          <section className="rides-section">
-            <div className="section-header">
-              <h2>Gestion des Courses</h2>
-              <div className="filters-container">
-                <div className="filters">
-                  <button 
-                    className={rideFilter === 'all' ? 'active' : ''}
-                    onClick={() => setRideFilter('all')}
-                  >
-                    Toutes
-                  </button>
-                  <button 
-                    className={rideFilter === 'pending' ? 'active' : ''}
-                    onClick={() => setRideFilter('pending')}
-                  >
-                    En attente
-                  </button>
-                  <button 
-                    className={rideFilter === 'completed' ? 'active' : ''}
-                    onClick={() => setRideFilter('completed')}
-                  >
-                    Terminées
-                  </button>
-                  <button 
-                    className={rideFilter === 'cancelled' ? 'active' : ''}
-                    onClick={() => setRideFilter('cancelled')}
-                  >
-                    Annulées
-                  </button>
-                </div>
-                <div className="search-box">
-                  <input
-                    type="text"
-                    placeholder="Rechercher par nom, prénom, téléphone ou email..."
-                    value={rideSearch}
-                    onChange={(e) => setRideSearch(e.target.value)}
-                    className="search-input"
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="rides-list">
-              {rides.map((ride) => (
-                <div key={ride.id} className="ride-card">
-                  <div className="ride-info">
-                    <h4>{ride.rideType === 'city_to_airport' ? 'Ville → Aéroport' : ride.rideType === 'airport_to_city' ? 'Aéroport → Ville' : 'Ville → Ville'}</h4>
-                    <p><strong>Client:</strong> {ride.clientFirstName} {ride.clientLastName}</p>
-                    <p><strong>Téléphone:</strong> {ride.clientPhone}</p>
-                    <p><strong>Email:</strong> {ride.clientEmail}</p>
-                    <p><strong>Départ:</strong> {ride.pickupAddress}</p>
-                    <p><strong>Arrivée:</strong> {ride.dropoffAddress}</p>
-                    <p><strong>Date:</strong> {new Date(ride.scheduledAt).toLocaleString('fr-FR')}</p>
-                    <p><strong>Prix:</strong> {
-                      ride.price != null 
-                        ? (typeof ride.price === 'number' 
-                            ? ride.price.toLocaleString() 
-                            : parseFloat(ride.price.toString() || '0').toLocaleString())
-                        : '0'
-                    } FCFA</p>
-                    {ride.flightNumber && <p><strong>Vol:</strong> {ride.flightNumber}</p>}
+          <section className="rides-section-modern">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="text-2xl font-bold text-gray-900">Gestion des Courses</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Filtres */}
+                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant={rideFilter === 'all' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setRideFilter('all')}
+                        className={rideFilter === 'all' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                      >
+                        Toutes
+                      </Button>
+                      <Button
+                        variant={rideFilter === 'pending' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setRideFilter('pending')}
+                        className={rideFilter === 'pending' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                      >
+                        En attente
+                      </Button>
+                      <Button
+                        variant={rideFilter === 'completed' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setRideFilter('completed')}
+                        className={rideFilter === 'completed' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                      >
+                        Terminées
+                      </Button>
+                      <Button
+                        variant={rideFilter === 'cancelled' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setRideFilter('cancelled')}
+                        className={rideFilter === 'cancelled' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                      >
+                        Annulées
+                      </Button>
+                    </div>
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                          type="text"
+                          placeholder="Rechercher par nom, prénom, téléphone ou email..."
+                          value={rideSearch}
+                          onChange={(e) => setRideSearch(e.target.value)}
+                          className="pl-10 bg-white border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className="ride-status">
-                    <span className={`status-badge status-${ride.status}`}>
-                      {ride.status}
-                    </span>
-                    {ride.driver && (
-                      <p>Chauffeur: {ride.driver.user?.firstName} {ride.driver.user?.lastName}</p>
-                    )}
-                    <Link
-                      to={`/admin/rides/${ride.id}`}
-                      className="btn-view"
+                </CardContent>
+              </Card>
+
+              {/* Liste des courses */}
+              <div className="space-y-4">
+                {ridesLoading ? (
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <p className="text-gray-600">Chargement...</p>
+                    </CardContent>
+                  </Card>
+                ) : rides.length > 0 ? (
+                  rides.map((ride, index) => (
+                    <motion.div
+                      key={ride.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
-                      Voir détails
-                    </Link>
+                      <Card className="hover:shadow-lg transition-shadow">
+                        <CardContent className="p-6">
+                          <div className="flex flex-col lg:flex-row gap-6">
+                            {/* Informations principales */}
+                            <div className="flex-1 space-y-3">
+                              <div className="flex items-center gap-3">
+                                <h3 className="text-lg font-bold text-gray-900">
+                                  {ride.rideType === 'city_to_airport' ? 'Ville → Aéroport' : 
+                                   ride.rideType === 'airport_to_city' ? 'Aéroport → Ville' : 
+                                   'Ville → Ville'}
+                                </h3>
+                                <Badge 
+                                  variant="outline"
+                                  className={
+                                    ride.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                                    ride.status === 'completed' ? 'bg-green-100 text-green-800 border-green-300' :
+                                    ride.status === 'cancelled' ? 'bg-red-100 text-red-800 border-red-300' :
+                                    ride.status === 'in_progress' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                    'bg-gray-100 text-gray-800 border-gray-300'
+                                  }
+                                >
+                                  {ride.status === 'pending' ? 'En attente' :
+                                   ride.status === 'completed' ? 'Terminée' :
+                                   ride.status === 'cancelled' ? 'Annulée' :
+                                   ride.status === 'in_progress' ? 'En cours' :
+                                   ride.status}
+                                </Badge>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                <div className="flex items-center gap-2 text-gray-700">
+                                  <User className="w-4 h-4 text-gray-500" />
+                                  <span><strong>Client:</strong> {ride.clientFirstName} {ride.clientLastName}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-gray-700">
+                                  <Phone className="w-4 h-4 text-gray-500" />
+                                  <span><strong>Téléphone:</strong> {ride.clientPhone}</span>
+                                </div>
+                                {ride.clientEmail && (
+                                  <div className="flex items-center gap-2 text-gray-700">
+                                    <Mail className="w-4 h-4 text-gray-500" />
+                                    <span><strong>Email:</strong> {ride.clientEmail}</span>
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-2 text-gray-700">
+                                  <Calendar className="w-4 h-4 text-gray-500" />
+                                  <span><strong>Date:</strong> {new Date(ride.scheduledAt).toLocaleString('fr-FR')}</span>
+                                </div>
+                                <div className="flex items-start gap-2 text-gray-700">
+                                  <MapPin className="w-4 h-4 text-gray-500 mt-0.5" />
+                                  <span><strong>Départ:</strong> {ride.pickupAddress}</span>
+                                </div>
+                                <div className="flex items-start gap-2 text-gray-700">
+                                  <Navigation className="w-4 h-4 text-gray-500 mt-0.5" />
+                                  <span><strong>Arrivée:</strong> {ride.dropoffAddress}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-gray-700">
+                                  <DollarSign className="w-4 h-4 text-gray-500" />
+                                  <span><strong>Prix:</strong> {
+                                    ride.price != null 
+                                      ? (typeof ride.price === 'number' 
+                                          ? ride.price.toLocaleString() 
+                                          : parseFloat(String(ride.price) || '0').toLocaleString())
+                                      : '0'
+                                  } FCFA</span>
+                                </div>
+                                {ride.flightNumber && (
+                                  <div className="flex items-center gap-2 text-gray-700">
+                                    <Car className="w-4 h-4 text-gray-500" />
+                                    <span><strong>Vol:</strong> {ride.flightNumber}</span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {ride.driver && (
+                                <div className="flex items-center gap-2 text-sm text-gray-700 pt-2 border-t border-gray-200">
+                                  <UserCheck className="w-4 h-4 text-gray-500" />
+                                  <span><strong>Chauffeur:</strong> {ride.driver.user?.firstName} {ride.driver.user?.lastName}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex lg:flex-col justify-end gap-3">
+                              <Button
+                                asChild
+                                className="bg-gray-900 hover:bg-gray-800 text-white"
+                              >
+                                <Link to={`/admin/rides/${ride.id}`} className="flex items-center gap-2">
+                                  <Eye className="w-4 h-4" />
+                                  Voir détails
+                                </Link>
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))
+                ) : (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <Hourglass className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600 font-medium">Aucune course trouvée</p>
+                      <p className="text-gray-500 text-sm mt-2">Essayez de modifier vos filtres de recherche</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Pagination */}
+              {ridesData && rides.length > 0 && (
+                <div className="mt-6">
+                  <Pagination
+                    currentPage={ridesPage}
+                    totalPages={ridesData.totalPages}
+                    onPageChange={setRidesPage}
+                    hasNextPage={ridesData.hasNextPage}
+                    hasPreviousPage={ridesData.hasPreviousPage}
+                  />
+                  <div className="text-center text-sm text-gray-600 mt-4">
+                    Affichage de {rides.length} sur {ridesData?.total || 0} course(s)
                   </div>
                 </div>
-              ))}
-              {ridesData && (
-                <Pagination
-                  currentPage={ridesPage}
-                  totalPages={ridesData.totalPages}
-                  onPageChange={setRidesPage}
-                  hasNextPage={ridesData.hasNextPage}
-                  hasPreviousPage={ridesData.hasPreviousPage}
-                />
               )}
-              <div className="pagination-info">
-                Affichage de {rides.length} sur {ridesData?.total || 0} course(s)
-              </div>
-            </div>
+            </motion.div>
           </section>
         )}
 
         {selectedTab === 'pricing' && <PricingManagement />}
 
         {selectedTab === 'vehicles' && (
-          <section className="vehicles-section">
-            <div className="section-header">
-              <h2>Gestion des Véhicules</h2>
-            </div>
-            {vehiclesLoading ? (
-              <div className="loading">Chargement...</div>
-            ) : vehicles && vehicles.length > 0 ? (
-              <div className="table-container">
-                <table className="vehicles-table">
-                  <thead>
-                    <tr>
-                      <th>Chauffeur</th>
-                      <th>Marque</th>
-                      <th>Modèle</th>
-                      <th>Immatriculation</th>
-                      <th>Couleur</th>
-                      <th>Année</th>
-                      <th>Places</th>
-                      <th>Statut</th>
-                      <th>Date d'enregistrement</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {vehicles.map((vehicle) => (
-                      <tr key={vehicle.id} className={!vehicle.isActive ? 'inactive' : ''}>
-                        <td>
-                          {vehicle.driver?.user 
-                            ? `${vehicle.driver.user.firstName} ${vehicle.driver.user.lastName}`
-                            : 'N/A'}
-                        </td>
-                        <td>{vehicle.brand}</td>
-                        <td>{vehicle.model}</td>
-                        <td><strong>{vehicle.licensePlate}</strong></td>
-                        <td>{vehicle.color || 'N/A'}</td>
-                        <td>{vehicle.year || 'N/A'}</td>
-                        <td>{vehicle.capacity || 'N/A'}</td>
-                        <td>
-                          <span className={`status-badge ${vehicle.isActive ? 'status-active' : 'status-inactive'}`}>
-                            {vehicle.isActive ? 'Actif' : 'Inactif'}
-                          </span>
-                        </td>
-                        <td>{new Date(vehicle.createdAt).toLocaleDateString('fr-FR')}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {vehiclesData && (
+          <section className="vehicles-section-modern">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Card className="mb-6">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-2xl font-bold text-gray-900">Gestion des Véhicules</CardTitle>
+                    <Button
+                      onClick={() => setShowVehicleModal(true)}
+                      className="bg-gray-900 text-white hover:bg-gray-800"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Nouveau véhicule
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={vehicleDriverFilter === 'all' && vehicleStatusFilter === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setVehicleDriverFilter('all');
+                        setVehicleStatusFilter('all');
+                      }}
+                      className={vehicleDriverFilter === 'all' && vehicleStatusFilter === 'all' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                    >
+                      Tous les véhicules
+                    </Button>
+                    <Button
+                      variant={vehicleStatusFilter === 'active' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setVehicleStatusFilter('active')}
+                      className={vehicleStatusFilter === 'active' ? 'bg-green-600 text-white hover:bg-green-700' : ''}
+                    >
+                      Actifs
+                    </Button>
+                    <Button
+                      variant={vehicleStatusFilter === 'inactive' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setVehicleStatusFilter('inactive')}
+                      className={vehicleStatusFilter === 'inactive' ? 'bg-red-600 text-white hover:bg-red-700' : ''}
+                    >
+                      Inactifs
+                    </Button>
+                    <Input
+                      type="text"
+                      placeholder="Filtrer par ID chauffeur..."
+                      value={vehicleDriverFilter === 'all' ? '' : vehicleDriverFilter}
+                      onChange={(e) => setVehicleDriverFilter(e.target.value || 'all')}
+                      className="w-64 bg-white border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Liste des véhicules */}
+              {vehiclesLoading ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <p className="text-gray-600">Chargement...</p>
+                  </CardContent>
+                </Card>
+              ) : vehicles && vehicles.length > 0 ? (
+                <div className="space-y-4">
+                  {vehicles
+                    .filter((vehicle) => {
+                      if (vehicleStatusFilter === 'active') return vehicle.isActive;
+                      if (vehicleStatusFilter === 'inactive') return !vehicle.isActive;
+                      return true;
+                    })
+                    .map((vehicle, index) => (
+                    <motion.div
+                      key={vehicle.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                    >
+                      <Card className={`hover:shadow-lg transition-shadow ${!vehicle.isActive ? 'opacity-60' : ''}`}>
+                        <CardContent className="p-6">
+                          <div className="flex flex-col lg:flex-row gap-6">
+                            {/* Informations principales */}
+                            <div className="flex-1 space-y-3">
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <h3 className="text-lg font-bold text-gray-900">
+                                  {vehicle.brand} {vehicle.model}
+                                </h3>
+                                <Badge
+                                  variant="outline"
+                                  className="bg-gray-100 text-gray-800 border-gray-300 font-mono text-sm"
+                                >
+                                  {vehicle.licensePlate}
+                                </Badge>
+                                <Badge
+                                  variant="outline"
+                                  className={vehicle.isActive ? 'bg-green-100 text-green-800 border-green-300' : 'bg-red-100 text-red-800 border-red-300'}
+                                >
+                                  {vehicle.isActive ? 'Actif' : 'Inactif'}
+                                </Badge>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                                <div className="flex items-center gap-2 text-gray-700">
+                                  <User className="w-4 h-4 text-gray-500" />
+                                  <span><strong>Chauffeur:</strong> {vehicle.driver?.user ? `${vehicle.driver.user.firstName} ${vehicle.driver.user.lastName}` : 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-gray-700">
+                                  <Truck className="w-4 h-4 text-gray-500" />
+                                  <span><strong>Marque:</strong> {vehicle.brand}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-gray-700">
+                                  <Car className="w-4 h-4 text-gray-500" />
+                                  <span><strong>Modèle:</strong> {vehicle.model}</span>
+                                </div>
+                                {vehicle.color && (
+                                  <div className="flex items-center gap-2 text-gray-700">
+                                    <div 
+                                      className="w-4 h-4 rounded border border-gray-300" 
+                                      style={{ backgroundColor: vehicle.color }}
+                                      title={vehicle.color}
+                                    />
+                                    <span><strong>Couleur:</strong> {vehicle.color}</span>
+                                  </div>
+                                )}
+                                {vehicle.year && (
+                                  <div className="flex items-center gap-2 text-gray-700">
+                                    <CalendarIcon className="w-4 h-4 text-gray-500" />
+                                    <span><strong>Année:</strong> {vehicle.year}</span>
+                                  </div>
+                                )}
+                                {vehicle.capacity && (
+                                  <div className="flex items-center gap-2 text-gray-700">
+                                    <Users className="w-4 h-4 text-gray-500" />
+                                    <span><strong>Places:</strong> {vehicle.capacity}</span>
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-2 text-gray-700">
+                                  <CalendarIcon className="w-4 h-4 text-gray-500" />
+                                  <span><strong>Enregistré le:</strong> {new Date(vehicle.createdAt).toLocaleDateString('fr-FR')}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <Truck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 font-medium">Aucun véhicule enregistré</p>
+                    <p className="text-gray-500 text-sm mt-2">Les véhicules enregistrés par les chauffeurs apparaîtront ici</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Pagination */}
+              {vehiclesData && vehicles.length > 0 && (
+                <div className="mt-6">
                   <Pagination
                     currentPage={vehiclesPage}
                     totalPages={vehiclesData.totalPages}
@@ -1241,15 +2113,34 @@ function AdminDashboard() {
                     hasNextPage={vehiclesData.hasNextPage}
                     hasPreviousPage={vehiclesData.hasPreviousPage}
                   />
-                )}
-                <div className="pagination-info">
-                  Affichage de {vehicles.length} sur {vehiclesData?.total || 0} véhicule(s)
+                  <div className="text-center text-sm text-gray-600 mt-4">
+                    Affichage de {vehicles.length} sur {vehiclesData?.total || 0} véhicule(s)
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="no-data">Aucun véhicule enregistré</div>
-            )}
+              )}
+            </motion.div>
           </section>
+        )}
+
+        {/* Modal de création de véhicule */}
+        {showVehicleModal && (
+          <VehicleModal
+            onClose={() => {
+              setShowVehicleModal(false);
+            }}
+            onSave={(data: { brand: string; model: string; licensePlate: string; color?: string; year?: number; capacity?: number; photoUrl?: string; driverId: string }) => createVehicleMutation.mutate(data)}
+            isSaving={createVehicleMutation.isPending}
+            drivers={driversData?.data || []}
+          />
+        )}
+
+        {/* Modal de création de chauffeur */}
+        {showDriverModal && (
+          <DriverModal
+            onClose={() => setShowDriverModal(false)}
+            onSave={(data: { firstName: string; lastName: string; email: string; phone: string; password: string; licenseNumber: string; serviceZone?: string }) => createDriverMutation.mutate(data)}
+            isSaving={createDriverMutation.isPending}
+          />
         )}
       </div>
 

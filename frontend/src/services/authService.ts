@@ -49,7 +49,28 @@ export const authService = {
   },
 
   isAuthenticated: (): boolean => {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+    
+    try {
+      // Décoder le JWT token pour vérifier l'expiration
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const exp = payload.exp;
+      
+      // Vérifier si le token est expiré (exp est en secondes, Date.now() est en millisecondes)
+      if (exp && exp * 1000 < Date.now()) {
+        // Token expiré, le supprimer
+        localStorage.removeItem('token');
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de la vérification du token:', error);
+      // En cas d'erreur de décodage, supprimer le token invalide
+      localStorage.removeItem('token');
+      return false;
+    }
   },
 
   getRole: (): 'admin' | 'driver' | 'client' | null => {

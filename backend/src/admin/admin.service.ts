@@ -6,12 +6,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from '../entities/user.entity';
+import * as bcrypt from 'bcrypt';
+import { User, UserRole } from '../entities/user.entity';
 import { Driver, DriverStatus } from '../entities/driver.entity';
 import { Ride, RideStatus } from '../entities/ride.entity';
 import { Pricing } from '../entities/pricing.entity';
 import { Vehicle } from '../entities/vehicle.entity';
 import { CreateDriverInviteDto } from './dto/create-driver-invite.dto';
+import { CreateDriverDto } from './dto/create-driver.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
 import { EncryptionService } from '../encryption/encryption.service';
 import { PaginatedResponse } from '../common/interfaces/paginated-response.interface';
@@ -53,11 +55,100 @@ export class AdminService {
     };
   }
 
+  async createDriver(createDto: CreateDriverDto): Promise<{ user: User; driver: Driver }> {
+    // Vérifier si l'email existe déjà (via hash)
+    const emailHash = this.encryptionService.hashForSearch(createDto.email.toLowerCase().trim());
+    const existingUser = await this.userRepository.findOne({
+      where: { emailHash },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('Cet email est déjà utilisé');
+    }
+
+    // Vérifier si le numéro de permis existe déjà
+    const existingDriver = await this.driverRepository.findOne({
+      where: { licenseNumber: createDto.licenseNumber },
+    });
+
+    if (existingDriver) {
+      throw new BadRequestException('Ce numéro de permis est déjà utilisé');
+    }
+
+    // Créer l'utilisateur
+    const hashedPassword = await bcrypt.hash(createDto.password, 10);
+    const user = this.userRepository.create({
+      firstName: createDto.firstName,
+      lastName: createDto.lastName,
+      email: createDto.email, // Sera chiffré automatiquement par l'entité
+      password: hashedPassword,
+      phone: createDto.phone, // Sera chiffré automatiquement par l'entité
+      role: UserRole.DRIVER,
+      isActive: true,
+    });
+
+    // Injecter le service d'encryption avant sauvegarde
+    user.setEncryptionService(this.encryptionService);
+    const savedUser = await this.userRepository.save(user);
+
+    // Créer le chauffeur
+    const driver = this.driverRepository.create({
+      userId: savedUser.id,
+      licenseNumber: createDto.licenseNumber, // Sera chiffré automatiquement
+      serviceZone: createDto.serviceZone,
+      status: DriverStatus.UNAVAILABLE,
+      isVerified: true, // Directement vérifié car créé par admin
+    });
+
+    // Injecter le service d'encryption avant sauvegarde
+    driver.setEncryptionService(this.encryptionService);
+    const savedDriver = await this.driverRepository.save(driver);
+
+    return {
+      user: savedUser,
+      driver: savedDriver,
+    };
+  }
+
   /**
    * Déchiffre toutes les données sensibles d'un driver pour l'affichage admin
    * IMPORTANT: Les données restent chiffrées en base de données, mais sont déchiffrées ici pour l'affichage
    * Cette méthode est appelée uniquement pour les requêtes admin afin d'afficher les données en clair
    */
+  /**
+   * Déchiffre toutes les données sensibles d'une course pour l'affichage admin
+   */
+  private decryptRideData(ride: Ride): void {
+    ride.setEncryptionService(this.encryptionService);
+    
+    // Fonction helper pour déchiffrer si nécessaire
+    const decryptIfNeeded = (value: string | undefined): string => {
+      if (!value) return '';
+      if (typeof value === 'string' && value.includes(':')) {
+        try {
+          return this.encryptionService.decrypt(value);
+        } catch (e) {
+          console.warn(`[Admin] Erreur déchiffrement pour ride ${ride.id}:`, e);
+          return value;
+        }
+      }
+      return value;
+    };
+    
+    // Déchiffrer toutes les données du client
+    ride.clientEmail = decryptIfNeeded(ride.clientEmail);
+    ride.clientPhone = decryptIfNeeded(ride.clientPhone);
+    ride.clientFirstName = decryptIfNeeded(ride.clientFirstName);
+    ride.clientLastName = decryptIfNeeded(ride.clientLastName);
+    ride.pickupAddress = decryptIfNeeded(ride.pickupAddress);
+    ride.dropoffAddress = decryptIfNeeded(ride.dropoffAddress);
+    
+    // Déchiffrer les données du chauffeur si présent
+    if (ride.driver) {
+      this.decryptDriverData(ride.driver);
+    }
+  }
+
   private decryptDriverData(driver: Driver): void {
     if (!this.encryptionService) {
       console.error('[Admin] EncryptionService non disponible');
@@ -335,38 +426,6 @@ export class AdminService {
     return this.getDriverById(id);
   }
 
-  /**
-   * Déchiffre toutes les données sensibles d'une course pour l'affichage admin
-   */
-  private decryptRideData(ride: Ride): void {
-    ride.setEncryptionService(this.encryptionService);
-    
-    // Fonction helper pour déchiffrer si nécessaire
-    const decryptIfNeeded = (value: string | undefined): string | undefined => {
-      if (value && typeof value === 'string' && value.includes(':')) {
-        try {
-          return this.encryptionService.decrypt(value);
-        } catch (e) {
-          console.warn(`[Admin] Erreur déchiffrement pour ride ${ride.id}:`, e);
-          return value;
-        }
-      }
-      return value;
-    };
-    
-    // Déchiffrer toutes les données du client
-    ride.clientEmail = decryptIfNeeded(ride.clientEmail);
-    ride.clientPhone = decryptIfNeeded(ride.clientPhone);
-    ride.clientFirstName = decryptIfNeeded(ride.clientFirstName);
-    ride.clientLastName = decryptIfNeeded(ride.clientLastName);
-    ride.pickupAddress = decryptIfNeeded(ride.pickupAddress);
-    ride.dropoffAddress = decryptIfNeeded(ride.dropoffAddress);
-    
-    // Déchiffrer les données du chauffeur si présent
-    if (ride.driver) {
-      this.decryptDriverData(ride.driver);
-    }
-  }
 
   async getAllRides(
     page: number = 1,
@@ -558,38 +617,6 @@ export class AdminService {
     };
   }
 
-  /**
-   * Déchiffre toutes les données sensibles d'une course pour l'affichage admin
-   */
-  private decryptRideData(ride: Ride): void {
-    ride.setEncryptionService(this.encryptionService);
-    
-    // Fonction helper pour déchiffrer si nécessaire
-    const decryptIfNeeded = (value: string | undefined): string | undefined => {
-      if (value && typeof value === 'string' && value.includes(':')) {
-        try {
-          return this.encryptionService.decrypt(value);
-        } catch (e) {
-          console.warn(`[Admin] Erreur déchiffrement pour ride ${ride.id}:`, e);
-          return value;
-        }
-      }
-      return value;
-    };
-    
-    // Déchiffrer toutes les données du client
-    ride.clientEmail = decryptIfNeeded(ride.clientEmail);
-    ride.clientPhone = decryptIfNeeded(ride.clientPhone);
-    ride.clientFirstName = decryptIfNeeded(ride.clientFirstName);
-    ride.clientLastName = decryptIfNeeded(ride.clientLastName);
-    ride.pickupAddress = decryptIfNeeded(ride.pickupAddress);
-    ride.dropoffAddress = decryptIfNeeded(ride.dropoffAddress);
-    
-    // Déchiffrer les données du chauffeur si présent
-    if (ride.driver) {
-      this.decryptDriverData(ride.driver);
-    }
-  }
 
   async getRideById(id: string) {
     const ride = await this.rideRepository.findOne({
@@ -661,6 +688,40 @@ export class AdminService {
       hasNextPage: page < totalPages,
       hasPreviousPage: page > 1,
     };
+  }
+
+  async createVehicle(createVehicleDto: { brand: string; model: string; licensePlate: string; color?: string; year?: number; capacity?: number; photoUrl?: string; driverId: string }): Promise<Vehicle> {
+    // Vérifier que le chauffeur existe
+    const driver = await this.driverRepository.findOne({
+      where: { id: createVehicleDto.driverId },
+    });
+
+    if (!driver) {
+      throw new NotFoundException('Chauffeur non trouvé');
+    }
+
+    // Vérifier que l'immatriculation n'existe pas déjà
+    const existingVehicle = await this.vehicleRepository.findOne({
+      where: { licensePlate: createVehicleDto.licensePlate },
+    });
+
+    if (existingVehicle) {
+      throw new BadRequestException('Cette immatriculation est déjà enregistrée');
+    }
+
+    const vehicle = this.vehicleRepository.create({
+      brand: createVehicleDto.brand,
+      model: createVehicleDto.model,
+      licensePlate: createVehicleDto.licensePlate,
+      color: createVehicleDto.color,
+      year: createVehicleDto.year,
+      capacity: createVehicleDto.capacity,
+      photoUrl: createVehicleDto.photoUrl,
+      driverId: createVehicleDto.driverId,
+      isActive: true,
+    });
+
+    return await this.vehicleRepository.save(vehicle);
   }
 }
 

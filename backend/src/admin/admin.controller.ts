@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateDriverInviteDto } from './dto/create-driver-invite.dto';
+import { CreateDriverDto } from './dto/create-driver.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -26,6 +27,11 @@ export class AdminController {
   @Post('drivers/invite')
   async createDriverInvite(@Body() createDto: CreateDriverInviteDto) {
     return this.adminService.createDriverInvite(createDto);
+  }
+
+  @Post('drivers')
+  async createDriver(@Body() createDto: CreateDriverDto) {
+    return this.adminService.createDriver(createDto);
   }
 
   @Get('drivers')
@@ -99,6 +105,13 @@ export class AdminController {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 10;
     return this.adminService.getAllVehicles(pageNum, limitNum, driverId);
+  }
+
+  @Post('vehicles')
+  async createVehicle(
+    @Body() createVehicleDto: { brand: string; model: string; licensePlate: string; color?: string; year?: number; capacity?: number; photoUrl?: string; driverId: string },
+  ) {
+    return this.adminService.createVehicle(createVehicleDto);
   }
 }
 

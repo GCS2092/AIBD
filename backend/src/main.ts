@@ -6,11 +6,25 @@ import * as os from 'os';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for frontend (accepter localhost et IP locale)
+  // Détecter automatiquement les IPs locales pour CORS
+  const networkInterfaces = os.networkInterfaces();
+  const localIPs: string[] = [];
+  for (const interfaceName in networkInterfaces) {
+    const interfaces = networkInterfaces[interfaceName];
+    if (interfaces) {
+      for (const iface of interfaces) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          localIPs.push(iface.address);
+        }
+      }
+    }
+  }
+
+  // Enable CORS for frontend (accepter localhost et IPs locales détectées)
   const allowedOrigins = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
-    'http://192.168.1.118:5173',
+    ...localIPs.map(ip => `http://${ip}:5173`), // Ajouter toutes les IPs locales détectées
     process.env.FRONTEND_URL,
   ].filter(Boolean);
 
@@ -50,28 +64,34 @@ async function bootstrap() {
     }),
   );
 
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3001;
   await app.listen(port, '0.0.0.0'); // Permet l'accès depuis le réseau local
-  console.log(`🚀 Application is running on: http://localhost:${port}`);
+  
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`🚀 BACKEND DÉMARRÉ AVEC SUCCÈS`);
+  console.log(`${'='.repeat(60)}`);
+  console.log(`📍 Local: http://localhost:${port}`);
   
   // Afficher l'IP locale pour l'accès depuis le téléphone
-  const networkInterfaces = os.networkInterfaces();
-  const localIPs: string[] = [];
-  for (const interfaceName in networkInterfaces) {
-    const interfaces = networkInterfaces[interfaceName];
-    if (interfaces) {
-      for (const iface of interfaces) {
-        if (iface.family === 'IPv4' && !iface.internal) {
-          localIPs.push(iface.address);
-        }
-      }
-    }
-  }
   if (localIPs.length > 0) {
-    console.log(`🌐 Accessible depuis le réseau local (téléphone) sur:`);
-    localIPs.forEach(ip => {
-      console.log(`   http://${ip}:${port}`);
+    console.log(`\n🌐 DÉTECTION AUTOMATIQUE DES IPs LOCALES:`);
+    localIPs.forEach((ip, index) => {
+      console.log(`   IP ${index + 1}: ${ip}`);
     });
+    console.log(`\n📡 URLs D'ACCÈS SUR LE RÉSEAU LOCAL:`);
+    localIPs.forEach(ip => {
+      console.log(`   ✅ Backend API: http://${ip}:${port}`);
+      console.log(`   ✅ Frontend:   http://${ip}:5173`);
+    });
+    console.log(`\n📱 POUR ACCÉDER DEPUIS VOTRE TÉLÉPHONE:`);
+    console.log(`   👉 Ouvrez: http://${localIPs[0]}:5173`);
+    console.log(`\n🔒 CORS configuré pour accepter les requêtes depuis:`);
+    allowedOrigins.forEach(origin => {
+      console.log(`   ✅ ${origin}`);
+    });
+  } else {
+    console.log(`\n⚠️  Aucune IP locale détectée. Vérifiez votre connexion réseau.`);
   }
+  console.log(`${'='.repeat(60)}\n`);
 }
 bootstrap();

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Clock, Wifi, WifiOff, CheckCircle2 } from 'lucide-react';
 import { driverService } from '../services/driverService';
-import { websocketService } from '../services/websocketService';
 import '../pages/DriverDashboard.css';
 
 interface DriverHeaderProps {
@@ -38,23 +37,32 @@ export default function DriverHeader({ showStatusButtons = true }: DriverHeaderP
 
   // Vérifier le statut de connexion
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
+    const handleOnline = () => {
+      setIsOnline(true);
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+    
+    // Initialiser avec le statut actuel
+    setIsOnline(navigator.onLine);
+    
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
-    // Vérifier le statut WebSocket
-    const checkWebSocket = () => {
-      setIsOnline(websocketService.isConnected());
+    
+    // Vérifier périodiquement le statut de connexion Internet
+    // Note: On se base sur navigator.onLine car le WebSocket peut être déconnecté
+    // pour d'autres raisons (serveur, authentification, etc.) sans que l'utilisateur soit hors ligne
+    const checkConnectionStatus = () => {
+      setIsOnline(navigator.onLine);
     };
-    const wsInterval = setInterval(checkWebSocket, 5000);
-    checkWebSocket();
-
+    
+    const statusInterval = setInterval(checkConnectionStatus, 5000);
+    
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      clearInterval(wsInterval);
+      clearInterval(statusInterval);
     };
   }, []);
 

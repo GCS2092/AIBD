@@ -1206,154 +1206,34 @@
   background: #2980b9;
 }
 
-/* Rides Section */
-.rides-section {
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
+/* Rides Section - Design moderne uniforme */
+.rides-section-modern {
+  padding: 0;
   margin-bottom: 30px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.rides-section h2 {
-  margin-top: 0;
-  color: #333;
-  font-size: 24px;
-  margin-bottom: 20px;
+.rides-section-modern .space-y-4 > * + * {
+  margin-top: 1rem;
 }
 
-.filters-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
+.rides-section-modern .space-y-3 > * + * {
+  margin-top: 0.75rem;
 }
 
-.filters-container .filters {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.rides-section-modern .gap-2 {
+  gap: 0.5rem;
 }
 
-.filters-container .filters button {
-  padding: 8px 16px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s;
+.rides-section-modern .gap-3 {
+  gap: 0.75rem;
 }
 
-.filters-container .filters button.active {
-  background: #667eea;
-  color: white;
-  border-color: #667eea;
+.rides-section-modern .gap-4 {
+  gap: 1rem;
 }
 
-.filters-container .filters button:hover {
-  border-color: #667eea;
-}
-
-.search-box {
-  width: 100%;
-}
-
-.search-input {
-  width: 100%;
-  padding: 10px 15px;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.rides-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.ride-card {
-  background: #f9f9f9;
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-}
-
-.ride-info {
-  flex: 1;
-}
-
-.ride-info h4 {
-  margin: 0 0 10px 0;
-  color: #333;
-  font-size: 18px;
-}
-
-.ride-info p {
-  margin: 5px 0;
-  color: #666;
-  font-size: 14px;
-}
-
-.ride-status {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-}
-
-.status-pending {
-  background: #f39c12;
-  color: white;
-}
-
-.status-assigned {
-  background: #3498db;
-  color: white;
-}
-
-.status-accepted {
-  background: #3498db;
-  color: white;
-}
-
-.status-in_progress {
-  background: #9b59b6;
-  color: white;
-}
-
-.status-completed {
-  background: #2ecc71;
-  color: white;
-}
-
-.status-cancelled {
-  background: #e74c3c;
-  color: white;
-}
-
-.btn-view {
-  padding: 8px 16px;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  display: inline-block;
-  transition: all 0.2s;
+.rides-section-modern .gap-6 {
+  gap: 1.5rem;
 }
 
 .btn-view:hover {
@@ -1440,13 +1320,26 @@
   background: #c0392b;
 }
 
-/* Vehicles Section */
-.vehicles-section {
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
+/* Vehicles Section - Design moderne uniforme */
+.vehicles-section-modern {
+  padding: 0;
   margin-bottom: 30px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.vehicles-section-modern .space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+.vehicles-section-modern .gap-2 {
+  gap: 0.5rem;
+}
+
+.vehicles-section-modern .gap-3 {
+  gap: 0.75rem;
+}
+
+.vehicles-section-modern .gap-6 {
+  gap: 1.5rem;
 }
 
 .no-data {

@@ -12,19 +12,48 @@ import { Logger, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserRole } from '../entities/user.entity';
+import * as os from 'os';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
   userRole?: UserRole;
 }
 
+// Détecter automatiquement les IPs locales pour WebSocket CORS
+function getLocalIPs(): string[] {
+  const networkInterfaces = os.networkInterfaces();
+  const localIPs: string[] = [];
+  for (const interfaceName in networkInterfaces) {
+    const interfaces = networkInterfaces[interfaceName];
+    if (interfaces) {
+      for (const iface of interfaces) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          localIPs.push(iface.address);
+        }
+      }
+    }
+  }
+  return localIPs;
+}
+
+const localIPs = getLocalIPs();
+const wsOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  ...localIPs.map(ip => `http://${ip}:5173`),
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+// Logger les origines WebSocket configurées (seulement en dev)
+if (process.env.NODE_ENV !== 'production' && localIPs.length > 0) {
+  const logger = new Logger('WebSocketGateway');
+  logger.log(`🔌 WebSocket CORS configuré avec ${wsOrigins.length} origine(s):`);
+  wsOrigins.forEach(origin => logger.log(`   ✅ ${origin}`));
+}
+
 @WSGateway({
   cors: {
-    origin: [
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-      process.env.FRONTEND_URL,
-    ].filter(Boolean),
+    origin: wsOrigins,
     credentials: true,
   },
   namespace: '/',

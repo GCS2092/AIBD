@@ -18,6 +18,20 @@ function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Vérifier si l'utilisateur est déjà connecté au chargement de la page
+  useEffect(() => {
+    if (authService.isAuthenticated()) {
+      const role = authService.getRole();
+      if (role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (role === 'driver') {
+        navigate('/driver/dashboard');
+      } else {
+        navigate('/');
+      }
+    }
+  }, [navigate]);
+
   // Empêcher le zoom automatique sur mobile
   useEffect(() => {
     const handleFocus = (e: FocusEvent) => {

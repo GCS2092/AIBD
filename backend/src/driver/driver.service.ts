@@ -783,21 +783,35 @@ export class DriverService {
       throw new NotFoundException('Chauffeur non trouvé');
     }
 
+    // D'abord, chercher la course par ID
     const ride = await this.rideRepository.findOne({
-      where: {
-        id: rideId,
-        driverId: driver.id,
-      },
+      where: { id: rideId },
     });
 
     if (!ride) {
-      throw new NotFoundException('Course non trouvée ou non assignée à ce chauffeur');
+      throw new NotFoundException('Course non trouvée');
     }
 
-    // Injecter le service d'encryption pour déchiffrer
-    ride.setEncryptionService(this.encryptionService);
+    // Vérifier si la course est assignée à ce chauffeur
+    if (ride.driverId === driver.id) {
+      // Course assignée à ce chauffeur - autoriser l'accès
+      ride.setEncryptionService(this.encryptionService);
+      return ride;
+    }
 
-    return ride;
+    // Si la course n'est pas assignée, vérifier si elle est disponible (PENDING ou ASSIGNED sans driverId)
+    if (!ride.driverId && (ride.status === RideStatus.PENDING || ride.status === RideStatus.ASSIGNED)) {
+      // Course disponible - autoriser l'accès pour voir les détails avant acceptation
+      ride.setEncryptionService(this.encryptionService);
+      return ride;
+    }
+
+    // Course assignée à un autre chauffeur ou statut non autorisé
+    if (ride.driverId && ride.driverId !== driver.id) {
+      throw new NotFoundException('Cette course est assignée à un autre chauffeur');
+    }
+
+    throw new NotFoundException('Course non accessible');
   }
 }
 
