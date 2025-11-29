@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { driverService, DriverProfile } from '../services/driverService';
 import { authService } from '../services/authService';
 import DriverHeader from '../components/DriverHeader';
@@ -9,7 +9,6 @@ import './EditDriverProfilePage.css';
 
 function EditDriverProfilePage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
