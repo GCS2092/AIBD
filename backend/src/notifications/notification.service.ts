@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as admin from 'firebase-admin';
 import { Notification, NotificationType, NotificationStatus } from '../entities/notification.entity';
 import { Ride } from '../entities/ride.entity';
 
@@ -11,6 +12,8 @@ export class NotificationService {
   constructor(
     @InjectRepository(Notification)
     private notificationRepository: Repository<Notification>,
+    @Inject('FIREBASE_ADMIN')
+    private firebaseAdmin: admin.app.App | null,
   ) {}
 
   async notifyDriverNewRide(phone: string, ride: Ride) {
@@ -115,10 +118,38 @@ export class NotificationService {
     rideId?: string,
   ) {
     try {
-      // TODO: Implémenter Firebase Cloud Messaging
-      this.logger.log(`Push to ${token}: ${title} - ${message}`);
+      if (!this.firebaseAdmin) {
+        this.logger.warn('⚠️ Firebase non configuré, notification push ignorée');
+        return;
+      }
 
-      const notification = this.notificationRepository.create({
+      const messaging = this.firebaseAdmin.messaging();
+      
+      const notification: admin.messaging.Message = {
+        token, // Token FCM du device
+        notification: {
+          title,
+          body: message,
+        },
+        data: {
+          rideId: rideId || '',
+          type: 'ride_notification',
+        },
+        android: {
+          priority: 'high' as const,
+        },
+        apns: {
+          headers: {
+            'apns-priority': '10',
+          },
+        },
+      };
+
+      const response = await messaging.send(notification);
+      this.logger.log(`✅ Push envoyé avec succès: ${response}`);
+
+      // Sauvegarder la notification
+      const notificationEntity = this.notificationRepository.create({
         recipient: token,
         type: NotificationType.PUSH,
         title,
@@ -126,10 +157,82 @@ export class NotificationService {
         rideId,
         status: NotificationStatus.SENT,
       });
+      await this.notificationRepository.save(notificationEntity);
 
-      await this.notificationRepository.save(notification);
     } catch (error) {
-      this.logger.error(`Erreur envoi Push: ${error.message}`);
+      this.logger.error(`❌ Erreur envoi Push: ${error.message}`);
+      
+      // Gérer les tokens invalides
+      if (error.code === 'messaging/invalid-registration-token' || 
+          error.code === 'messaging/registration-token-not-registered') {
+        this.logger.warn(`⚠️ Token invalide, à supprimer: ${token}`);
+      }
+
+      const notificationEntity = this.notificationRepository.create({
+        recipient: token,
+        type: NotificationType.PUSH,
+        title,
+        message,
+        rideId,
+        status: NotificationStatus.FAILED,
+        errorMessage: error.message,
+      });
+      await this.notificationRepository.save(notificationEntity);
+    }
+  }
+
+  /**
+   * Envoyer une notification push à plusieurs devices
+   */
+  async sendPushNotificationToMultiple(
+    tokens: string[],
+    title: string,
+    message: string,
+    rideId?: string,
+  ) {
+    if (!this.firebaseAdmin || !tokens.length) {
+      this.logger.warn('⚠️ Firebase non configuré ou aucun token fourni');
+      return;
+    }
+
+    try {
+      const messaging = this.firebaseAdmin.messaging();
+      
+      const messageData: admin.messaging.MulticastMessage = {
+        notification: {
+          title,
+          body: message,
+        },
+        data: {
+          rideId: rideId || '',
+          type: 'ride_notification',
+        },
+        tokens,
+        android: {
+          priority: 'high' as const,
+        },
+        apns: {
+          headers: {
+            'apns-priority': '10',
+          },
+        },
+      };
+
+      const response = await messaging.sendEachForMulticast(messageData);
+      this.logger.log(`✅ ${response.successCount}/${tokens.length} notifications envoyées avec succès`);
+      
+      if (response.failureCount > 0) {
+        response.responses.forEach((resp, idx) => {
+          if (!resp.success) {
+            this.logger.warn(`❌ Échec pour token ${tokens[idx]}: ${resp.error?.message}`);
+          }
+        });
+      }
+
+      return response;
+    } catch (error) {
+      this.logger.error(`❌ Erreur envoi Push multiple: ${error.message}`);
+      throw error;
     }
   }
 }

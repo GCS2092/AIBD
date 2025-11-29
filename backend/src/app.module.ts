@@ -33,6 +33,7 @@ import { GpsModule } from './gps/gps.module';
 import { RefundsModule } from './refunds/refunds.module';
 import { ConfigSystemModule } from './config-system/config-system.module';
 import { WebSocketModule } from './websocket/websocket.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { WebSocketModule } from './websocket/websocket.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    FirebaseModule,
     ThrottlerModule.forRoot([
       {
         ttl: 60000, // 1 minute

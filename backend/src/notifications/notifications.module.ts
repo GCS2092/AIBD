@@ -7,11 +7,13 @@ import { Notification } from '../entities/notification.entity';
 import { InternalNotification } from '../entities/internal-notification.entity';
 import { Driver } from '../entities/driver.entity';
 import { WebSocketModule } from '../websocket/websocket.module';
+import { FirebaseModule } from '../firebase/firebase.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Notification, InternalNotification, Driver]),
     forwardRef(() => WebSocketModule),
+    FirebaseModule,
   ],
   controllers: [InternalNotificationsController],
   providers: [NotificationService, InternalNotificationsService],
