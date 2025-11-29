@@ -20,9 +20,6 @@ import {
   ArrowRight,
   History,
   BookOpen,
-  Star,
-  Users,
-  TrendingUp,
   Key
 } from 'lucide-react';
 import { rideService, Ride } from '../services/rideService';

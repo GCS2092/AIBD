@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { driverService } from '../services/driverService';
+import { driverService, DriverProfile } from '../services/driverService';
 import { authService } from '../services/authService';
 import DriverHeader from '../components/DriverHeader';
 import DriverBottomNav from '../components/DriverBottomNav';
@@ -23,17 +23,20 @@ function EditDriverProfilePage() {
     }
   }, [navigate]);
 
-  const { data: profile } = useQuery({
+  const { data: profile } = useQuery<DriverProfile>({
     queryKey: ['driver-profile'],
     queryFn: () => driverService.getProfile(),
-    onSuccess: (data) => {
-      setFormData({
-        firstName: data.user?.firstName || '',
-        lastName: data.user?.lastName || '',
-        phone: data.user?.phone || '',
-      });
-    },
   });
+
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        firstName: profile.user?.firstName || '',
+        lastName: profile.user?.lastName || '',
+        phone: profile.user?.phone || '',
+      });
+    }
+  }, [profile]);
 
   const requestUpdateMutation = useMutation({
     mutationFn: (data: { firstName?: string; lastName?: string; phone?: string }) =>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Search, MapPin, Calendar, Car, RefreshCw, Phone, Mail, User, X, Navigation, Plane, Clock, CheckCircle2, Key, Shield, ArrowRight } from 'lucide-react';
+import { Search, MapPin, Calendar, RefreshCw, Phone, Mail, User, X, Navigation, Plane, Clock, CheckCircle2, Key, Shield, ArrowRight } from 'lucide-react';
 import { rideService, Ride } from '../services/rideService';
 import Pagination from '../components/Pagination';
 import NavigationBar from '../components/NavigationBar';
@@ -102,7 +102,7 @@ function HistoryPage() {
 
   const hasSearchParams = !!(searchParams.phone || searchParams.email || searchParams.firstName || searchParams.lastName) && !!searchParams.accessCode;
 
-  const { data: ridesData, isLoading, refetch } = useQuery({
+  const { data: ridesData, isLoading } = useQuery({
     queryKey: ['my-rides', searchParams, page],
     queryFn: () => rideService.getMyRides(
       page,
