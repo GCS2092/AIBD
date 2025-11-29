@@ -26,7 +26,7 @@ import NavigationBar from '../components/NavigationBar';
 import DriverHeader from '../components/DriverHeader';
 import DriverBottomNav from '../components/DriverBottomNav';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import './NotificationsPage.css';
 
@@ -154,16 +154,6 @@ function NotificationsPage() {
       error: '#ef4444', // red
     };
     return colorMap[type] || '#6b7280'; // gray
-  };
-
-  const getTypeVariant = (type: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-    if (type.includes('error') || type.includes('refused') || type.includes('cancelled')) {
-      return 'destructive';
-    }
-    if (type.includes('success') || type.includes('accepted') || type.includes('completed')) {
-      return 'default';
-    }
-    return 'secondary';
   };
 
   const formatTimeAgo = (dateString: string) => {

@@ -26,6 +26,8 @@ async function bootstrap() {
     'http://127.0.0.1:5173',
     ...localIPs.map(ip => `http://${ip}:5173`), // Ajouter toutes les IPs locales détectées
     process.env.FRONTEND_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+    process.env.FRONTEND_VERCEL_URL, // URL Vercel personnalisée
   ].filter(Boolean);
 
   const isProduction = process.env.NODE_ENV === 'production';

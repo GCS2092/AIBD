@@ -1,5 +1,4 @@
 import { requestNotificationPermission, onMessageListener } from '../config/firebase';
-import { apiClient } from './api';
 
 /**
  * Service pour gérer les notifications push Firebase Cloud Messaging

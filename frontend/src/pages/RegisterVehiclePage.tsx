@@ -31,13 +31,14 @@ function RegisterVehiclePage() {
   const { data: existingVehicle } = useQuery({
     queryKey: ['driver-vehicle'],
     queryFn: () => driverService.getMyVehicle(),
-    onSuccess: (data) => {
-      if (data) {
-        alert('Vous avez déjà un véhicule enregistré. Contactez un administrateur pour modifier.');
-        navigate('/driver/dashboard');
-      }
-    },
   });
+
+  useEffect(() => {
+    if (existingVehicle) {
+      alert('Vous avez déjà un véhicule enregistré. Contactez un administrateur pour modifier.');
+      navigate('/driver/dashboard');
+    }
+  }, [existingVehicle, navigate]);
 
   const registerVehicleMutation = useMutation({
     mutationFn: (data: {

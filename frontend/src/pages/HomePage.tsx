@@ -48,8 +48,6 @@ function HomePage() {
   const [accessCodeError, setAccessCodeError] = useState<string>('');
   const [showAccessCodeForm, setShowAccessCodeForm] = useState<boolean>(false);
   const [page, setPage] = useState(1);
-  // Code de test pour visualisation
-  const [testAccessCode] = useState<string>('A1B2C3D4');
   const [pageSize] = useState(10);
 
   useEffect(() => {
