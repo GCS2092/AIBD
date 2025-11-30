@@ -17,7 +17,7 @@ async function createUsers() {
     const driverRepository = app.get<Repository<Driver>>(getRepositoryToken(Driver));
     const encryptionService = app.get<EncryptionService>(EncryptionService);
 
-    const password = 'password123';
+    const password = 'password';
     const hashedPassword = await bcrypt.hash(password, 10);
     
     const hashForSearch = (value: string): string => {
@@ -106,7 +106,7 @@ async function createUsers() {
     console.log('\n📊 Résumé:');
     console.log(`- Admins: ${admins.length} créés`);
     console.log(`- Chauffeurs: ${drivers.length} créés`);
-    console.log('\n🔑 Mot de passe pour tous: password123');
+    console.log('\n🔑 Mot de passe pour tous: password');
 
     await app.close();
     process.exit(0);
