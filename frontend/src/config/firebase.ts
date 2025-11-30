@@ -44,8 +44,19 @@ export async function requestNotificationPermission(): Promise<string | null> {
       // Obtenir le token FCM
       // Note: Vous devez créer un Service Worker et l'enregistrer
       // Le nom du service worker doit correspondre à celui enregistré
+      // Enregistrer le service worker si ce n'est pas déjà fait
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+          console.log('✅ Service Worker enregistré:', registration.scope);
+        } catch (error) {
+          console.warn('⚠️ Erreur lors de l\'enregistrement du Service Worker:', error);
+        }
+      }
+
       const token = await getToken(messaging, {
         vapidKey: 'BHKtDo9VbKlopjWw5c5sIvz822xVES1pa9nKW9k4c5SImOLbfJqf8IEEkrewAaUAlYia2ZRMlwFfOqBASSCS6tU',
+        serviceWorkerRegistration: await navigator.serviceWorker.ready,
       });
       
       if (token) {
