@@ -1,5 +1,7 @@
 # Fichier de comptes (sensible)
 COMPTES.md
+backend/users.txt
+users.txt
 
 # Fichiers d'environnement
 .env
