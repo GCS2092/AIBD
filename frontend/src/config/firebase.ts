@@ -45,7 +45,7 @@ export async function requestNotificationPermission(): Promise<string | null> {
       // Note: Vous devez créer un Service Worker et l'enregistrer
       // Le nom du service worker doit correspondre à celui enregistré
       const token = await getToken(messaging, {
-        vapidKey: 'VOTRE_CLE_VAPID_ICI', // À remplacer par votre clé VAPID depuis Firebase Console
+        vapidKey: 'BHKtDo9VbKlopjWw5c5sIvz822xVES1pa9nKW9k4c5SImOLbfJqf8IEEkrewAaUAlYia2ZRMlwFfOqBASSCS6tU',
       });
       
       if (token) {
