@@ -34,11 +34,9 @@ async function bootstrap() {
   
   app.enableCors({
     origin: (origin, callback) => {
-      // Permettre les requêtes sans origine (Postman, curl, etc.) - seulement en dev
+      // Permettre les requêtes sans origine (health checks, tests, etc.)
+      // En production, on les accepte aussi pour les health checks de Render
       if (!origin) {
-        if (isProduction) {
-          return callback(new Error('CORS: Origin required in production'), false);
-        }
         return callback(null, true);
       }
       
