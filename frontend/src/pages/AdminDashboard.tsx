@@ -7,6 +7,8 @@ import { adminService } from '../services/adminService';
 import { authService } from '../services/authService';
 import { notificationService } from '../services/notificationService';
 import { pricingService, Pricing, CreatePricingDto } from '../services/pricingService';
+import { fcmService } from '../services/fcmService';
+import apiClient from '../services/api';
 import Pagination from '../components/Pagination';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,6 +49,7 @@ import {
   Calendar as CalendarIcon,
   Clock as ClockIcon,
   DollarSign as DollarSignIcon,
+  Bell,
 } from 'lucide-react';
 import './AdminDashboard.css';
 
@@ -1168,6 +1171,8 @@ function AdminDashboard() {
   const [driverSearch, setDriverSearch] = useState<string>('');
   const [showVehicleModal, setShowVehicleModal] = useState(false);
   const [showDriverModal, setShowDriverModal] = useState(false);
+  const [fcmToken, setFcmToken] = useState<string | null>(null);
+  const [testingNotification, setTestingNotification] = useState(false);
   
   // États de pagination
   const [driversPage, setDriversPage] = useState(1);
@@ -1456,6 +1461,82 @@ function AdminDashboard() {
                   </p>
                 </div>
               </div>
+            </section>
+
+            {/* Section de test des notifications push */}
+            <section className="stats-section" style={{ marginTop: '2rem' }}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>🔔 Test des Notifications Push</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div>
+                      <p style={{ marginBottom: '0.5rem' }}>
+                        <strong>Token FCM:</strong> {fcmToken ? (
+                          <code style={{ fontSize: '0.8rem', wordBreak: 'break-all' }}>
+                            {fcmToken.substring(0, 50)}...
+                          </code>
+                        ) : (
+                          <span style={{ color: '#999' }}>Non obtenu</span>
+                        )}
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <Button
+                        onClick={async () => {
+                          try {
+                            const token = await fcmService.initialize();
+                            if (token) {
+                              setFcmToken(token);
+                              alert('✅ Token FCM obtenu avec succès !');
+                            } else {
+                              alert('❌ Impossible d\'obtenir le token. Vérifiez que vous avez autorisé les notifications.');
+                            }
+                          } catch (error: any) {
+                            alert('❌ Erreur: ' + error.message);
+                          }
+                        }}
+                        variant="outline"
+                      >
+                        📱 Obtenir Token FCM
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          const token = fcmToken || fcmService.getToken();
+                          if (!token) {
+                            alert('❌ Aucun token disponible. Cliquez d\'abord sur "Obtenir Token FCM"');
+                            return;
+                          }
+                          
+                          setTestingNotification(true);
+                          try {
+                            const response = await apiClient.post('/test/push-notification', {
+                              token,
+                              title: 'Test Notification',
+                              message: 'Ceci est une notification de test depuis le dashboard admin ! 🎉'
+                            });
+                            
+                            if (response.data.success) {
+                              alert('✅ Notification envoyée avec succès ! Vérifiez votre navigateur.');
+                            } else {
+                              alert('❌ Erreur: ' + (response.data.error || 'Erreur inconnue'));
+                            }
+                          } catch (error: any) {
+                            alert('❌ Erreur: ' + (error.response?.data?.error || error.message));
+                          } finally {
+                            setTestingNotification(false);
+                          }
+                        }}
+                        disabled={testingNotification || !fcmToken}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        {testingNotification ? 'Envoi...' : '🚀 Envoyer Notification de Test'}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </section>
 
             {/* Courses récentes - Grille 2x2 - Style comme les stats */}
