@@ -16,9 +16,9 @@ export const getDatabaseConfig = (
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     synchronize: !isProduction, // false en production
     logging: !isProduction,
-    // SSL requis pour Render PostgreSQL
-    ssl: isProduction ? {
+    // SSL requis pour Render PostgreSQL (même en dev)
+    ssl: {
       rejectUnauthorized: false, // Render utilise des certificats auto-signés
-    } : false,
+    },
   };
 };
