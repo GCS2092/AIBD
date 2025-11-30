@@ -1,8 +1,8 @@
 // Service Worker pour Firebase Cloud Messaging
 // Ce fichier doit être à la racine du site (dans public/)
 
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/11.0.0/firebase-messaging-compat.js');
 
 // Configuration Firebase (même que dans firebase.ts)
 const firebaseConfig = {
