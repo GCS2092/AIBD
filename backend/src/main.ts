@@ -28,6 +28,9 @@ async function bootstrap() {
     process.env.FRONTEND_URL,
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
     process.env.FRONTEND_VERCEL_URL, // URL Vercel personnalisée
+    // Accepter tous les domaines Vercel
+    /^https:\/\/.*\.vercel\.app$/,
+    /^https:\/\/.*\.vercel\.com$/,
   ].filter(Boolean);
 
   const isProduction = process.env.NODE_ENV === 'production';
@@ -40,7 +43,19 @@ async function bootstrap() {
         return callback(null, true);
       }
       
-      if (allowedOrigins.includes(origin)) {
+      // Vérifier si l'origine est dans la liste autorisée
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (typeof allowed === 'string') {
+          return allowed === origin;
+        }
+        // Si c'est une regex, tester
+        if (allowed instanceof RegExp) {
+          return allowed.test(origin);
+        }
+        return false;
+      });
+      
+      if (isAllowed) {
         callback(null, true);
       } else if (isProduction) {
         // En production, rejeter les origines non autorisées

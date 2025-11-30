@@ -11,8 +11,14 @@ function getApiUrl(): string {
     return envApiUrl;
   }
   
-  // Détecter si on est sur mobile (IP locale) ou PC (localhost)
+  // Détecter si on est en production (Vercel, etc.)
   const hostname = window.location.hostname;
+  const isProduction = hostname.includes('vercel.app') || hostname.includes('vercel.com') || !hostname.includes('localhost');
+  
+  // Si on est en production, utiliser l'URL du backend Render
+  if (isProduction) {
+    return 'https://aibd-backend-sb36.onrender.com';
+  }
   
   // Si l'hostname est une IP locale (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
   if (hostname.match(/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/)) {
