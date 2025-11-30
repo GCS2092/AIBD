@@ -49,7 +49,6 @@ import {
   Calendar as CalendarIcon,
   Clock as ClockIcon,
   DollarSign as DollarSignIcon,
-  Bell,
 } from 'lucide-react';
 import './AdminDashboard.css';
 
