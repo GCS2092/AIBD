@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { AppService } from './app.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import { User } from './entities/user.entity';
 import { Driver } from './entities/driver.entity';
 import { Ride } from './entities/ride.entity';
 import { Pricing } from './entities/pricing.entity';
+import { NotificationService } from './notifications/notification.service';
 
 @Controller()
 export class AppController {
@@ -19,6 +20,7 @@ export class AppController {
     private readonly rideRepository: Repository<Ride>,
     @InjectRepository(Pricing)
     private readonly pricingRepository: Repository<Pricing>,
+    private readonly notificationService: NotificationService,
   ) {}
 
   @Get()
@@ -134,6 +136,41 @@ export class AppController {
         code: error.code,
         hint: error.hint || 'Database connection or table creation issue. Check if tables exist.',
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      };
+    }
+  }
+
+  @Post('test/push-notification')
+  async testPushNotification(@Body() body: { token: string; title?: string; message?: string }) {
+    try {
+      const { token, title = 'Test Notification', message = 'Ceci est une notification de test depuis le backend AIBD !' } = body;
+
+      if (!token) {
+        return {
+          success: false,
+          error: 'Token FCM requis. Fournissez un token dans le body: { "token": "votre-token-fcm" }',
+        };
+      }
+
+      // Utiliser la méthode privée via une méthode publique ou créer une méthode de test
+      // Pour l'instant, on va utiliser sendPushNotificationToMultiple avec un seul token
+      await this.notificationService.sendPushNotificationToMultiple(
+        [token],
+        title,
+        message,
+      );
+
+      return {
+        success: true,
+        message: 'Notification push envoyée avec succès !',
+        token: token.substring(0, 20) + '...', // Afficher seulement les 20 premiers caractères
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message,
+        code: error.code,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       };
     }
   }
