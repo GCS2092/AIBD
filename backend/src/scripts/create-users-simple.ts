@@ -13,6 +13,12 @@ import { User, UserRole } from '../entities/user.entity';
 import { Driver } from '../entities/driver.entity';
 import { Vehicle } from '../entities/vehicle.entity';
 import { Ride } from '../entities/ride.entity';
+import { Pricing } from '../entities/pricing.entity';
+import { Notification } from '../entities/notification.entity';
+import { InternalNotification } from '../entities/internal-notification.entity';
+import { RideAssignment } from '../entities/ride-assignment.entity';
+import { Cancellation } from '../entities/cancellation.entity';
+import { Config } from '../entities/config.entity';
 
 // Service d'encryption simplifié
 class SimpleEncryptionService {
@@ -58,7 +64,18 @@ async function createUsers() {
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE || 'AIBD',
-    entities: [User, Driver, Vehicle, Ride],
+    entities: [
+      User,
+      Driver,
+      Vehicle,
+      Ride,
+      Pricing,
+      Notification,
+      InternalNotification,
+      RideAssignment,
+      Cancellation,
+      Config,
+    ],
     ssl: {
       rejectUnauthorized: false,
     },
