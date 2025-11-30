@@ -11,6 +11,8 @@ config({ path: path.join(__dirname, '../../.env') });
 // Import des entités
 import { User, UserRole } from '../entities/user.entity';
 import { Driver } from '../entities/driver.entity';
+import { Vehicle } from '../entities/vehicle.entity';
+import { Ride } from '../entities/ride.entity';
 
 // Service d'encryption simplifié
 class SimpleEncryptionService {
@@ -56,7 +58,7 @@ async function createUsers() {
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE || 'AIBD',
-    entities: [User, Driver],
+    entities: [User, Driver, Vehicle, Ride],
     ssl: {
       rejectUnauthorized: false,
     },
