@@ -48,9 +48,19 @@ export class AppController {
       // Test Users
       try {
         const userCount = await this.userRepository.count();
-        results.tables.users = { status: 'ok', count: userCount };
-      } catch (error) {
-        results.tables.users = { status: 'error', error: error.message };
+        const users = await this.userRepository.find({ take: 5 });
+        results.tables.users = { 
+          status: 'ok', 
+          count: userCount,
+          sample: users.map(u => ({ id: u.id, email: u.email, role: u.role }))
+        };
+      } catch (error: any) {
+        results.tables.users = { 
+          status: 'error', 
+          error: error.message,
+          code: error.code,
+          hint: error.hint || 'Table users may not exist. Run migrations or set NODE_ENV=development to auto-create tables.'
+        };
         results.errors.push(`Users table: ${error.message}`);
       }
 
@@ -112,12 +122,17 @@ export class AppController {
       return {
         success: results.errors.length === 0,
         ...results,
+        message: results.errors.length > 0 
+          ? 'Some tables have errors. Check errors array for details.' 
+          : 'All tables are accessible.',
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         database: 'error',
         error: error.message,
+        code: error.code,
+        hint: error.hint || 'Database connection or table creation issue. Check if tables exist.',
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       };
     }
