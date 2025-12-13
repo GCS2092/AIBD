@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { User, UserRole } from '../entities/user.entity';
+import { Driver } from '../entities/driver.entity';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -47,7 +48,7 @@ async function createAdmin() {
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE || 'AIBD',
-    entities: [User],
+    entities: [User, Driver], // Inclure Driver car User a une relation avec Driver
     ...(useSsl && {
       ssl: {
         rejectUnauthorized: false,
@@ -82,8 +83,10 @@ async function createAdmin() {
         await userRepository.save(existingAdmin);
         console.log('✅ Rôle admin ajouté avec succès!');
       }
+    if (dataSource.isInitialized) {
       await dataSource.destroy();
-      return;
+    }
+    return;
     }
 
     console.log('🔐 Hashage du mot de passe...');
@@ -115,14 +118,18 @@ async function createAdmin() {
     console.log('👤 Rôle: ADMIN');
     console.log('⚠️  Changez le mot de passe après la première connexion!\n');
 
-    await dataSource.destroy();
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
+    }
     process.exit(0);
   } catch (error) {
     console.error('❌ Erreur:', error);
     if (error instanceof Error) {
       console.error('Message:', error.message);
     }
-    await dataSource.destroy();
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
+    }
     process.exit(1);
   }
 }
