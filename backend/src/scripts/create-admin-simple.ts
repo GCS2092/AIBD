@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { User, UserRole } from '../entities/user.entity';
 import { Driver } from '../entities/driver.entity';
+import { Vehicle } from '../entities/vehicle.entity';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -48,7 +49,7 @@ async function createAdmin() {
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE || 'AIBD',
-    entities: [User, Driver], // Inclure Driver car User a une relation avec Driver
+    entities: [User, Driver, Vehicle], // Inclure toutes les entités liées
     ...(useSsl && {
       ssl: {
         rejectUnauthorized: false,
