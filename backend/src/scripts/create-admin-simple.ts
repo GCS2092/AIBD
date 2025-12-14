@@ -1,9 +1,8 @@
 import { DataSource } from 'typeorm';
 import { User, UserRole } from '../entities/user.entity';
-import { Driver } from '../entities/driver.entity';
-import { Vehicle } from '../entities/vehicle.entity';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import * as path from 'path';
 
 // Service d'encryption simplifié
 class SimpleEncryptionService {
@@ -49,7 +48,8 @@ async function createAdmin() {
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE || 'AIBD',
-    entities: [User, Driver, Vehicle], // Inclure toutes les entités liées
+    // Charger toutes les entités automatiquement pour éviter les erreurs de relations
+    entities: [path.join(__dirname, '../**/*.entity{.ts,.js}')],
     ...(useSsl && {
       ssl: {
         rejectUnauthorized: false,
