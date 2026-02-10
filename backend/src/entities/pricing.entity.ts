@@ -24,6 +24,9 @@ export class Pricing {
   @Column({ type: 'varchar', length: 50 })
   rideType: string; // 'dakar_to_airport' ou 'airport_to_dakar'
 
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  tripType: string; // 'aller_retour' | 'aller_simple' | 'retour_simple'
+
   @Column({
     type: 'enum',
     enum: PricingType,

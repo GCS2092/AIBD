@@ -1,6 +1,6 @@
 .history-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-page-bg);
   padding: 20px;
 }
 
@@ -26,36 +26,33 @@
 }
 
 .history-header h1 {
-  color: white;
+  color: var(--color-text);
   font-size: 2rem;
   margin: 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .btn-back {
   padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: var(--color-surface);
+  color: var(--color-text);
   text-decoration: none;
   border-radius: 8px;
   font-weight: 600;
-  border: 2px solid white;
+  border: 1px solid var(--color-border);
   transition: all 0.2s;
-  backdrop-filter: blur(10px);
 }
 
 .btn-back:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--color-surface-elevated);
   transform: translateY(-2px);
 }
 
 .phone-form-container {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-surface-elevated);
   padding: 2rem;
   border-radius: 16px;
   margin-bottom: 2rem;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--color-border);
   max-width: 500px;
   margin: 0 auto;
 }
@@ -81,23 +78,23 @@
 .phone-form h2 {
   margin: 0 0 0.5rem 0;
   font-size: 1.5rem;
-  color: white;
+  color: var(--color-text);
 }
 
 .phone-form p {
   margin: 0 0 1rem 0;
-  opacity: 0.9;
-  color: white;
+  color: var(--color-text-muted);
 }
 
 .phone-input {
   padding: 1rem;
   border-radius: 8px;
-  border: 2px solid white;
-  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   font-size: 1rem;
   width: 100%;
   box-sizing: border-box;
+  color: var(--color-text);
 }
 
 .history-controls {
@@ -108,9 +105,9 @@
 
 .btn-change-phone {
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid white;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
@@ -118,13 +115,13 @@
 }
 
 .btn-change-phone:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--color-surface-elevated);
 }
 
 .loading {
   text-align: center;
   padding: 3rem;
-  color: white;
+  color: var(--color-text);
   font-size: 1.2rem;
 }
 
@@ -135,7 +132,7 @@
 }
 
 .ride-card {
-  background: white;
+  background: var(--color-surface-elevated);
   padding: 1.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -159,7 +156,7 @@
 .ride-header h3 {
   margin: 0;
   font-size: 1.2rem;
-  color: #667eea;
+  color: #333333;
 }
 
 .status-badge {
@@ -178,7 +175,7 @@
 .ride-details p {
   margin: 0.5rem 0;
   font-size: 0.95rem;
-  color: #666;
+  color: #333333;
 }
 
 .ride-actions {
@@ -203,24 +200,24 @@
 }
 
 .btn-primary {
-  background: #667eea;
+  background: var(--color-primary);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #5568d3;
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
 }
 
 .btn-track {
   flex: 1;
   min-width: 150px;
-  background: #667eea;
+  background: var(--color-primary);
   color: white;
 }
 
 .btn-track:hover {
-  background: #5568d3;
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
 }
 
@@ -250,10 +247,10 @@
 .no-rides {
   text-align: center;
   padding: 3rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-surface-elevated);
   border-radius: 12px;
-  backdrop-filter: blur(10px);
-  color: white;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
 }
 
 .no-rides p {

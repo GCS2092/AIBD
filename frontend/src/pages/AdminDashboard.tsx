@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -141,13 +142,13 @@ function PricingManagement() {
         <Card className="mb-6">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle className="text-2xl font-bold text-gray-900">Gestion des Tarifs</CardTitle>
+              <CardTitle className="text-2xl font-bold text-gray-800">Gestion des Tarifs</CardTitle>
               <Button
                 onClick={() => {
                   setEditingPricing(null);
                   setShowPricingModal(true);
                 }}
-                className="bg-gray-900 hover:bg-gray-800 text-white"
+                className="bg-primary-500 hover:bg-primary-600 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Nouveau Tarif
@@ -162,7 +163,7 @@ function PricingManagement() {
                   variant={pricingFilter === 'all' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPricingFilter('all')}
-                  className={pricingFilter === 'all' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  className={pricingFilter === 'all' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                 >
                   Tous
                 </Button>
@@ -170,7 +171,7 @@ function PricingManagement() {
                   variant={pricingFilter === 'dakar_to_airport' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPricingFilter('dakar_to_airport')}
-                  className={pricingFilter === 'dakar_to_airport' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  className={pricingFilter === 'dakar_to_airport' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                 >
                   Dakar → Aéroport
                 </Button>
@@ -178,7 +179,7 @@ function PricingManagement() {
                   variant={pricingFilter === 'airport_to_dakar' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPricingFilter('airport_to_dakar')}
-                  className={pricingFilter === 'airport_to_dakar' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  className={pricingFilter === 'airport_to_dakar' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                 >
                   Aéroport → Dakar
                 </Button>
@@ -188,7 +189,7 @@ function PricingManagement() {
                   variant={pricingTypeFilter === 'all' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPricingTypeFilter('all')}
-                  className={pricingTypeFilter === 'all' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  className={pricingTypeFilter === 'all' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                 >
                   Tous les types
                 </Button>
@@ -196,7 +197,7 @@ function PricingManagement() {
                   variant={pricingTypeFilter === 'standard' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPricingTypeFilter('standard')}
-                  className={pricingTypeFilter === 'standard' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  className={pricingTypeFilter === 'standard' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                 >
                   Standard
                 </Button>
@@ -204,7 +205,7 @@ function PricingManagement() {
                   variant={pricingTypeFilter === 'peak_hours' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPricingTypeFilter('peak_hours')}
-                  className={pricingTypeFilter === 'peak_hours' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  className={pricingTypeFilter === 'peak_hours' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                 >
                   Heures de pointe
                 </Button>
@@ -212,7 +213,7 @@ function PricingManagement() {
                   variant={pricingTypeFilter === 'night' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPricingTypeFilter('night')}
-                  className={pricingTypeFilter === 'night' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  className={pricingTypeFilter === 'night' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                 >
                   Nuit
                 </Button>
@@ -220,7 +221,7 @@ function PricingManagement() {
                   variant={pricingTypeFilter === 'special' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setPricingTypeFilter('special')}
-                  className={pricingTypeFilter === 'special' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                  className={pricingTypeFilter === 'special' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                 >
                   Spécial
                 </Button>
@@ -231,7 +232,7 @@ function PricingManagement() {
                   id="showInactive"
                   checked={showInactivePricing}
                   onChange={(e) => setShowInactivePricing(e.target.checked)}
-                  className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900"
+                  className="w-4 h-4 text-gray-800 border-gray-300 rounded focus:ring-primary-500"
                 />
                 <Label htmlFor="showInactive" className="text-sm text-gray-700 cursor-pointer">
                   Afficher les tarifs inactifs
@@ -271,7 +272,7 @@ function PricingManagement() {
                       {/* Informations principales */}
                       <div className="flex-1 space-y-3">
                         <div className="flex items-center gap-3 flex-wrap">
-                          <h3 className="text-lg font-bold text-gray-900">{fixEncoding(pricing.name || '')}</h3>
+                          <h3 className="text-lg font-bold text-gray-800">{fixEncoding(pricing.name || '')}</h3>
                           <Badge
                             variant="outline"
                             className={
@@ -499,7 +500,7 @@ function PricingModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold text-gray-800">
             {pricing ? 'Modifier le Tarif' : 'Nouveau Tarif'}
           </CardTitle>
           <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
@@ -510,7 +511,7 @@ function PricingModal({
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-900 font-semibold">Nom du tarif *</Label>
+              <Label htmlFor="name" className="text-gray-800 font-semibold">Nom du tarif *</Label>
               <Input
                 id="name"
                 type="text"
@@ -528,14 +529,14 @@ function PricingModal({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-gray-900 font-semibold">Type de trajet *</Label>
+                <Label className="text-gray-800 font-semibold">Type de trajet *</Label>
                 <div className="flex gap-2">
                   <Button
                     type="button"
                     variant={formData.rideType === 'dakar_to_airport' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFormData({ ...formData, rideType: 'dakar_to_airport' })}
-                    className={formData.rideType === 'dakar_to_airport' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                    className={formData.rideType === 'dakar_to_airport' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                   >
                     Dakar → Aéroport
                   </Button>
@@ -544,21 +545,21 @@ function PricingModal({
                     variant={formData.rideType === 'airport_to_dakar' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFormData({ ...formData, rideType: 'airport_to_dakar' })}
-                    className={formData.rideType === 'airport_to_dakar' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                    className={formData.rideType === 'airport_to_dakar' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                   >
                     Aéroport → Dakar
                   </Button>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-gray-900 font-semibold">Type de tarif *</Label>
+                <Label className="text-gray-800 font-semibold">Type de tarif *</Label>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
                     variant={formData.type === 'standard' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFormData({ ...formData, type: 'standard' })}
-                    className={formData.type === 'standard' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                    className={formData.type === 'standard' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                   >
                     Standard
                   </Button>
@@ -567,7 +568,7 @@ function PricingModal({
                     variant={formData.type === 'peak_hours' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFormData({ ...formData, type: 'peak_hours' })}
-                    className={formData.type === 'peak_hours' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                    className={formData.type === 'peak_hours' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                   >
                     Heures de pointe
                   </Button>
@@ -576,7 +577,7 @@ function PricingModal({
                     variant={formData.type === 'night' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFormData({ ...formData, type: 'night' })}
-                    className={formData.type === 'night' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                    className={formData.type === 'night' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                   >
                     Nuit
                   </Button>
@@ -585,7 +586,7 @@ function PricingModal({
                     variant={formData.type === 'special' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setFormData({ ...formData, type: 'special' })}
-                    className={formData.type === 'special' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                    className={formData.type === 'special' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                   >
                     Spécial
                   </Button>
@@ -594,7 +595,7 @@ function PricingModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price" className="text-gray-900 font-semibold">Prix (FCFA) *</Label>
+              <Label htmlFor="price" className="text-gray-800 font-semibold">Prix (FCFA) *</Label>
               <Input
                 id="price"
                 type="number"
@@ -613,7 +614,7 @@ function PricingModal({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="startTime" className="text-gray-900 font-semibold">Heure de début</Label>
+                <Label htmlFor="startTime" className="text-gray-800 font-semibold">Heure de début</Label>
                 <Input
                   id="startTime"
                   type="time"
@@ -622,7 +623,7 @@ function PricingModal({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endTime" className="text-gray-900 font-semibold">Heure de fin</Label>
+                <Label htmlFor="endTime" className="text-gray-800 font-semibold">Heure de fin</Label>
                 <Input
                   id="endTime"
                   type="time"
@@ -638,7 +639,7 @@ function PricingModal({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-gray-900 font-semibold">Jours de la semaine</Label>
+              <Label className="text-gray-800 font-semibold">Jours de la semaine</Label>
               <div className="flex flex-wrap gap-2">
                 {['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'].map((day, index) => (
                   <Button
@@ -647,7 +648,7 @@ function PricingModal({
                     variant={(formData.daysOfWeek || []).includes(index) ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => toggleDay(index)}
-                    className={(formData.daysOfWeek || []).includes(index) ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                    className={(formData.daysOfWeek || []).includes(index) ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                   >
                     {day.substring(0, 3)}
                   </Button>
@@ -657,14 +658,14 @@ function PricingModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-gray-900 font-semibold">Description</Label>
+              <Label htmlFor="description" className="text-gray-800 font-semibold">Description</Label>
               <textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
                 placeholder="Description optionnelle du tarif"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 transition-all"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
               />
             </div>
 
@@ -674,9 +675,9 @@ function PricingModal({
                 id="isActive"
                 checked={formData.isActive}
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900"
+                className="w-4 h-4 text-gray-800 border-gray-300 rounded focus:ring-primary-500"
               />
-              <Label htmlFor="isActive" className="text-gray-900 font-semibold cursor-pointer">
+              <Label htmlFor="isActive" className="text-gray-800 font-semibold cursor-pointer">
                 Tarif actif
               </Label>
             </div>
@@ -685,7 +686,7 @@ function PricingModal({
               <Button type="button" variant="outline" onClick={onClose}>
                 Annuler
               </Button>
-              <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white" disabled={isSaving}>
+              <Button type="submit" className="bg-primary-500 hover:bg-primary-600 text-white" disabled={isSaving}>
                 {isSaving ? 'Enregistrement...' : pricing ? 'Modifier' : 'Créer'}
               </Button>
             </div>
@@ -765,7 +766,7 @@ function VehicleModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-2xl font-bold text-gray-900">Nouveau Véhicule</CardTitle>
+          <CardTitle className="text-2xl font-bold text-gray-800">Nouveau Véhicule</CardTitle>
           <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
             <X className="h-4 w-4" />
           </Button>
@@ -773,7 +774,7 @@ function VehicleModal({
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="driverId" className="text-gray-900 font-semibold">Chauffeur *</Label>
+              <Label htmlFor="driverId" className="text-gray-800 font-semibold">Chauffeur *</Label>
               <select
                 id="driverId"
                 value={formData.driverId}
@@ -781,7 +782,7 @@ function VehicleModal({
                   setFormData({ ...formData, driverId: e.target.value });
                   if (errors.driverId) setErrors({ ...errors, driverId: '' });
                 }}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 transition-all ${
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all ${
                   errors.driverId ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : 'border-gray-300'
                 }`}
                 required
@@ -798,7 +799,7 @@ function VehicleModal({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="brand" className="text-gray-900 font-semibold">Marque *</Label>
+                <Label htmlFor="brand" className="text-gray-800 font-semibold">Marque *</Label>
                 <Input
                   id="brand"
                   type="text"
@@ -815,7 +816,7 @@ function VehicleModal({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="model" className="text-gray-900 font-semibold">Modèle *</Label>
+                <Label htmlFor="model" className="text-gray-800 font-semibold">Modèle *</Label>
                 <Input
                   id="model"
                   type="text"
@@ -833,7 +834,7 @@ function VehicleModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="licensePlate" className="text-gray-900 font-semibold">Immatriculation *</Label>
+              <Label htmlFor="licensePlate" className="text-gray-800 font-semibold">Immatriculation *</Label>
               <Input
                 id="licensePlate"
                 type="text"
@@ -851,7 +852,7 @@ function VehicleModal({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="color" className="text-gray-900 font-semibold">Couleur</Label>
+                <Label htmlFor="color" className="text-gray-800 font-semibold">Couleur</Label>
                 <Input
                   id="color"
                   type="text"
@@ -862,7 +863,7 @@ function VehicleModal({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="year" className="text-gray-900 font-semibold">Année</Label>
+                <Label htmlFor="year" className="text-gray-800 font-semibold">Année</Label>
                 <Input
                   id="year"
                   type="number"
@@ -880,7 +881,7 @@ function VehicleModal({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="capacity" className="text-gray-900 font-semibold">Places</Label>
+                <Label htmlFor="capacity" className="text-gray-800 font-semibold">Places</Label>
                 <Input
                   id="capacity"
                   type="number"
@@ -898,7 +899,7 @@ function VehicleModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="photoUrl" className="text-gray-900 font-semibold">URL de la photo</Label>
+              <Label htmlFor="photoUrl" className="text-gray-800 font-semibold">URL de la photo</Label>
               <Input
                 id="photoUrl"
                 type="url"
@@ -912,7 +913,7 @@ function VehicleModal({
               <Button type="button" variant="outline" onClick={onClose}>
                 Annuler
               </Button>
-              <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white" disabled={isSaving}>
+              <Button type="submit" className="bg-primary-500 hover:bg-primary-600 text-white" disabled={isSaving}>
                 {isSaving ? 'Création...' : 'Créer'}
               </Button>
             </div>
@@ -996,7 +997,7 @@ function DriverModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-2xl font-bold text-gray-900">Nouveau Chauffeur</CardTitle>
+          <CardTitle className="text-2xl font-bold text-gray-800">Nouveau Chauffeur</CardTitle>
           <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
             <X className="h-4 w-4" />
           </Button>
@@ -1005,7 +1006,7 @@ function DriverModal({
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-gray-900 font-semibold">Prénom *</Label>
+                <Label htmlFor="firstName" className="text-gray-800 font-semibold">Prénom *</Label>
                 <Input
                   id="firstName"
                   type="text"
@@ -1022,7 +1023,7 @@ function DriverModal({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-gray-900 font-semibold">Nom *</Label>
+                <Label htmlFor="lastName" className="text-gray-800 font-semibold">Nom *</Label>
                 <Input
                   id="lastName"
                   type="text"
@@ -1041,7 +1042,7 @@ function DriverModal({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-900 font-semibold">Email *</Label>
+                <Label htmlFor="email" className="text-gray-800 font-semibold">Email *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -1058,7 +1059,7 @@ function DriverModal({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-gray-900 font-semibold">Téléphone *</Label>
+                <Label htmlFor="phone" className="text-gray-800 font-semibold">Téléphone *</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -1077,7 +1078,7 @@ function DriverModal({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-900 font-semibold">Mot de passe *</Label>
+                <Label htmlFor="password" className="text-gray-800 font-semibold">Mot de passe *</Label>
                 <Input
                   id="password"
                   type="password"
@@ -1094,7 +1095,7 @@ function DriverModal({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-gray-900 font-semibold">Confirmer le mot de passe *</Label>
+                <Label htmlFor="confirmPassword" className="text-gray-800 font-semibold">Confirmer le mot de passe *</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -1112,7 +1113,7 @@ function DriverModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="licenseNumber" className="text-gray-900 font-semibold">Numéro de permis *</Label>
+              <Label htmlFor="licenseNumber" className="text-gray-800 font-semibold">Numéro de permis *</Label>
               <Input
                 id="licenseNumber"
                 type="text"
@@ -1129,7 +1130,7 @@ function DriverModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="serviceZone" className="text-gray-900 font-semibold">Zone de service</Label>
+              <Label htmlFor="serviceZone" className="text-gray-800 font-semibold">Zone de service</Label>
               <Input
                 id="serviceZone"
                 type="text"
@@ -1143,7 +1144,7 @@ function DriverModal({
               <Button type="button" variant="outline" onClick={onClose}>
                 Annuler
               </Button>
-              <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white" disabled={isSaving}>
+              <Button type="submit" className="bg-primary-500 hover:bg-primary-600 text-white" disabled={isSaving}>
                 {isSaving ? 'Création...' : 'Créer'}
               </Button>
             </div>
@@ -1485,15 +1486,19 @@ function AdminDashboard() {
                       <Button
                         onClick={async () => {
                           try {
-                            const token = await fcmService.initialize();
+                            const { token, registered } = await fcmService.initialize();
                             if (token) {
                               setFcmToken(token);
-                              alert('✅ Token FCM obtenu avec succès !');
+                              if (registered) {
+                                alert('✅ Token FCM obtenu et enregistré avec succès !');
+                              } else {
+                                alert('✅ Token FCM obtenu.\n⚠️ Enregistrement sur le serveur a échoué. Vérifiez que le backend est démarré (port 3001).');
+                              }
                             } else {
                               alert('❌ Impossible d\'obtenir le token. Vérifiez que vous avez autorisé les notifications.');
                             }
                           } catch (error: any) {
-                            alert('❌ Erreur: ' + error.message);
+                            alert('❌ Erreur: ' + (error?.message || error));
                           }
                         }}
                         variant="outline"
@@ -1608,7 +1613,7 @@ function AdminDashboard() {
                 <h2 className="section-title-modern">Gestion des Chauffeurs</h2>
                 <Button
                   onClick={() => setShowDriverModal(true)}
-                  className="bg-gray-900 text-white hover:bg-gray-800"
+                  className="bg-primary-500 text-white hover:bg-primary-600"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Nouveau chauffeur
@@ -1819,7 +1824,7 @@ function AdminDashboard() {
             >
               <Card className="mb-6">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold text-gray-900">Gestion des Courses</CardTitle>
+                  <CardTitle className="text-2xl font-bold text-gray-800">Gestion des Courses</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {/* Filtres */}
@@ -1829,7 +1834,7 @@ function AdminDashboard() {
                         variant={rideFilter === 'all' ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => setRideFilter('all')}
-                        className={rideFilter === 'all' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                        className={rideFilter === 'all' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                       >
                         Toutes
                       </Button>
@@ -1837,7 +1842,7 @@ function AdminDashboard() {
                         variant={rideFilter === 'pending' ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => setRideFilter('pending')}
-                        className={rideFilter === 'pending' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                        className={rideFilter === 'pending' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                       >
                         En attente
                       </Button>
@@ -1845,7 +1850,7 @@ function AdminDashboard() {
                         variant={rideFilter === 'completed' ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => setRideFilter('completed')}
-                        className={rideFilter === 'completed' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                        className={rideFilter === 'completed' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                       >
                         Terminées
                       </Button>
@@ -1853,7 +1858,7 @@ function AdminDashboard() {
                         variant={rideFilter === 'cancelled' ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => setRideFilter('cancelled')}
-                        className={rideFilter === 'cancelled' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                        className={rideFilter === 'cancelled' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                       >
                         Annulées
                       </Button>
@@ -1866,7 +1871,7 @@ function AdminDashboard() {
                           placeholder="Rechercher par nom, prénom, téléphone ou email..."
                           value={rideSearch}
                           onChange={(e) => setRideSearch(e.target.value)}
-                          className="pl-10 bg-white border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                          className="pl-10 bg-white border-gray-300 focus:border-gray-900 focus:ring-primary-500"
                         />
                       </div>
                     </div>
@@ -1896,7 +1901,7 @@ function AdminDashboard() {
                             {/* Informations principales */}
                             <div className="flex-1 space-y-3">
                               <div className="flex items-center gap-3">
-                                <h3 className="text-lg font-bold text-gray-900">
+                                <h3 className="text-lg font-bold text-gray-800">
                                   {ride.rideType === 'city_to_airport' ? 'Ville → Aéroport' : 
                                    ride.rideType === 'airport_to_city' ? 'Aéroport → Ville' : 
                                    'Ville → Ville'}
@@ -1976,7 +1981,7 @@ function AdminDashboard() {
                             <div className="flex lg:flex-col justify-end gap-3">
                               <Button
                                 asChild
-                                className="bg-gray-900 hover:bg-gray-800 text-white"
+                                className="bg-primary-500 hover:bg-primary-600 text-white"
                               >
                                 <Link to={`/admin/rides/${ride.id}`} className="flex items-center gap-2">
                                   <Eye className="w-4 h-4" />
@@ -2031,10 +2036,10 @@ function AdminDashboard() {
               <Card className="mb-6">
                 <CardHeader>
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-2xl font-bold text-gray-900">Gestion des Véhicules</CardTitle>
+                    <CardTitle className="text-2xl font-bold text-gray-800">Gestion des Véhicules</CardTitle>
                     <Button
                       onClick={() => setShowVehicleModal(true)}
-                      className="bg-gray-900 text-white hover:bg-gray-800"
+                      className="bg-primary-500 text-white hover:bg-primary-600"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Nouveau véhicule
@@ -2050,7 +2055,7 @@ function AdminDashboard() {
                         setVehicleDriverFilter('all');
                         setVehicleStatusFilter('all');
                       }}
-                      className={vehicleDriverFilter === 'all' && vehicleStatusFilter === 'all' ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}
+                      className={vehicleDriverFilter === 'all' && vehicleStatusFilter === 'all' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
                     >
                       Tous les véhicules
                     </Button>
@@ -2075,7 +2080,7 @@ function AdminDashboard() {
                       placeholder="Filtrer par ID chauffeur..."
                       value={vehicleDriverFilter === 'all' ? '' : vehicleDriverFilter}
                       onChange={(e) => setVehicleDriverFilter(e.target.value || 'all')}
-                      className="w-64 bg-white border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                      className="w-64 bg-white border-gray-300 focus:border-gray-900 focus:ring-primary-500"
                     />
                   </div>
                 </CardContent>
@@ -2109,7 +2114,7 @@ function AdminDashboard() {
                             {/* Informations principales */}
                             <div className="flex-1 space-y-3">
                               <div className="flex items-center gap-3 flex-wrap">
-                                <h3 className="text-lg font-bold text-gray-900">
+                                <h3 className="text-lg font-bold text-gray-800">
                                   {vehicle.brand} {vehicle.model}
                                 </h3>
                                 <Badge
@@ -2224,44 +2229,47 @@ function AdminDashboard() {
         )}
       </div>
 
-      {/* Barre de navigation en bas - Style WhatsApp */}
-      <nav className="bottom-nav">
-        <button 
-          className={`nav-item ${selectedTab === 'overview' ? 'active' : ''}`}
-          onClick={() => setSelectedTab('overview')}
-        >
-          <LayoutDashboard className="nav-icon" />
-          <span className="nav-label">Statuts</span>
-        </button>
-        <button 
-          className={`nav-item ${selectedTab === 'drivers' ? 'active' : ''}`}
-          onClick={() => setSelectedTab('drivers')}
-        >
-          <Users className="nav-icon" />
-          <span className="nav-label">Chauffeurs</span>
-        </button>
-        <button 
-          className={`nav-item ${selectedTab === 'rides' ? 'active' : ''}`}
-          onClick={() => setSelectedTab('rides')}
-        >
-          <Car className="nav-icon" />
-          <span className="nav-label">Courses</span>
-        </button>
-        <button 
-          className={`nav-item ${selectedTab === 'pricing' ? 'active' : ''}`}
-          onClick={() => setSelectedTab('pricing')}
-        >
-          <DollarSign className="nav-icon" />
-          <span className="nav-label">Tarifs</span>
-        </button>
-        <button 
-          className={`nav-item ${selectedTab === 'vehicles' ? 'active' : ''}`}
-          onClick={() => setSelectedTab('vehicles')}
-        >
-          <Truck className="nav-icon" />
-          <span className="nav-label">Véhicules</span>
-        </button>
-      </nav>
+      {/* Barre de navigation en bas - fixe en bas de l'écran (Portal) */}
+      {createPortal(
+        <nav className="bottom-nav bottom-nav-fixed" aria-label="Navigation principale">
+          <button 
+            className={`nav-item ${selectedTab === 'overview' ? 'active' : ''}`}
+            onClick={() => setSelectedTab('overview')}
+          >
+            <LayoutDashboard className="nav-icon" />
+            <span className="nav-label">Statuts</span>
+          </button>
+          <button 
+            className={`nav-item ${selectedTab === 'drivers' ? 'active' : ''}`}
+            onClick={() => setSelectedTab('drivers')}
+          >
+            <Users className="nav-icon" />
+            <span className="nav-label">Chauffeurs</span>
+          </button>
+          <button 
+            className={`nav-item ${selectedTab === 'rides' ? 'active' : ''}`}
+            onClick={() => setSelectedTab('rides')}
+          >
+            <Car className="nav-icon" />
+            <span className="nav-label">Courses</span>
+          </button>
+          <button 
+            className={`nav-item ${selectedTab === 'pricing' ? 'active' : ''}`}
+            onClick={() => setSelectedTab('pricing')}
+          >
+            <DollarSign className="nav-icon" />
+            <span className="nav-label">Tarifs</span>
+          </button>
+          <button 
+            className={`nav-item ${selectedTab === 'vehicles' ? 'active' : ''}`}
+            onClick={() => setSelectedTab('vehicles')}
+          >
+            <Truck className="nav-icon" />
+            <span className="nav-label">Véhicules</span>
+          </button>
+        </nav>,
+        document.body
+      )}
     </div>
   );
 }

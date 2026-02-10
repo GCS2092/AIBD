@@ -1,6 +1,6 @@
 .edit-profile-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-page-bg);
   padding: 40px 20px;
   padding-bottom: 100px; /* Espace pour la barre de navigation en bas */
   display: flex;
@@ -9,22 +9,23 @@
 }
 
 .edit-profile-container {
-  background: white;
-  border-radius: 16px;
-  padding: 40px;
+  background: var(--color-surface-elevated);
+  border-radius: 12px;
+  padding: 2.5rem;
   max-width: 600px;
   width: 100%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
 }
 
 .edit-profile-container h1 {
   margin: 0 0 10px 0;
-  color: #333;
+  color: #333333;
   font-size: 28px;
 }
 
 .info-text {
-  color: #666;
+  color: #333333;
   margin-bottom: 30px;
   font-size: 0.95rem;
 }
@@ -49,7 +50,7 @@
 
 .form-group input {
   padding: 12px;
-  border: 2px solid #ddd;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 1rem;
   font-family: inherit;
@@ -58,7 +59,7 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #7265e3;
 }
 
 .form-group input.error {
@@ -107,7 +108,7 @@
 }
 
 .btn-submit {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #7265e3;
   color: white;
 }
 

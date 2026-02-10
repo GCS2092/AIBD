@@ -1,18 +1,27 @@
 import apiClient from './api';
 import { API_ENDPOINTS } from '../config/api';
 
+export type TripType = 'aller_retour' | 'aller_simple' | 'retour_simple';
+
 export interface CreateRideDto {
   clientFirstName: string;
   clientLastName: string;
   clientPhone: string;
-  clientEmail?: string; // Email optionnel
+  clientEmail?: string;
   pickupAddress: string;
   dropoffAddress: string;
   scheduledAt: string;
-  rideType: 'airport_to_city' | 'city_to_airport' | 'city_to_city';
+  tripType?: TripType;
+  rideType?: 'airport_to_city' | 'city_to_airport' | 'dakar_to_airport' | 'airport_to_dakar';
   flightNumber?: string;
-  numberOfPassengers: number;
-  numberOfBags: number;
+  pickupCountry?: string;
+  pickupCity?: string;
+  pickupQuartier?: string;
+  dropoffCountry?: string;
+  dropoffCity?: string;
+  dropoffQuartier?: string;
+  numberOfPassengers?: number;
+  numberOfBags?: number;
   specialRequests?: string;
 }
 
@@ -21,14 +30,21 @@ export interface Ride {
   clientFirstName: string;
   clientLastName: string;
   clientPhone: string;
-  clientEmail?: string; // Email optionnel
+  clientEmail?: string;
   pickupAddress: string;
   dropoffAddress: string;
   scheduledAt: string;
   rideType: string;
+  tripType?: TripType;
+  pickupCountry?: string;
+  pickupCity?: string;
+  pickupQuartier?: string;
+  dropoffCountry?: string;
+  dropoffCity?: string;
+  dropoffQuartier?: string;
   flightNumber?: string;
-  numberOfPassengers: number;
-  numberOfBags: number;
+  numberOfPassengers?: number;
+  numberOfBags?: number;
   price: number;
   status: 'pending' | 'assigned' | 'accepted' | 'driver_on_way' | 'picked_up' | 'in_progress' | 'completed' | 'cancelled';
   driverId?: string;
@@ -36,7 +52,7 @@ export interface Ride {
   acceptedAt?: string;
   startedAt?: string;
   completedAt?: string;
-  accessCode?: string; // Code d'accès unique
+  accessCode?: string;
   driverLocation?: {
     lat: number;
     lng: number;
@@ -50,7 +66,6 @@ export interface Ride {
     lat: number;
     lng: number;
   };
-  // Informations du chauffeur (quand assigné)
   driver?: {
     id: string;
     user: {
@@ -115,8 +130,25 @@ export const rideService = {
     if (firstName) params.firstName = firstName;
     if (lastName) params.lastName = lastName;
     if (accessCode) params.accessCode = accessCode;
-    
     const response = await apiClient.get(API_ENDPOINTS.USER_RIDES, { params });
+    return response.data;
+  },
+
+  getRideByAccessCode: async (accessCode: string, phone: string): Promise<Ride> => {
+    const response = await apiClient.get(API_ENDPOINTS.RIDE_BY_CODE, {
+      params: { accessCode: accessCode.trim(), phone: phone.trim() },
+    });
+    return response.data;
+  },
+
+  updateRideByAccessCode: async (
+    accessCode: string,
+    phone: string,
+    data: Partial<CreateRideDto> & { scheduledAt?: string }
+  ): Promise<Ride> => {
+    const response = await apiClient.patch(API_ENDPOINTS.RIDE_BY_CODE, data, {
+      params: { accessCode: accessCode.trim(), phone: phone.trim() },
+    });
     return response.data;
   },
 };

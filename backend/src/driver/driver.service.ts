@@ -222,6 +222,7 @@ export class DriverService {
   async acceptRide(userId: string, rideId: string) {
     const driver = await this.driverRepository.findOne({
       where: { userId },
+      relations: ['user'],
     });
 
     if (!driver) {
@@ -339,7 +340,7 @@ export class DriverService {
         this.websocketGateway.emitToClient(clientUser.id, 'ride:accepted', {
           rideId: ride.id,
           status: ride.status,
-          driverName: `${driver.user?.firstName} ${driver.user?.lastName}`,
+          driverName: driver.user?.firstName && driver.user?.lastName ? `${driver.user.firstName} ${driver.user.lastName}`.trim() : 'Le chauffeur',
         });
       }
 
@@ -362,7 +363,7 @@ export class DriverService {
             admin.id,
             InternalNotificationType.RIDE_ACCEPTED,
             'Course acceptée',
-            `La course ${ride.id} a été acceptée par le chauffeur ${driver.user?.firstName} ${driver.user?.lastName}`,
+            `La course ${ride.id} a été acceptée par le chauffeur ${driver.user?.firstName && driver.user?.lastName ? `${driver.user.firstName} ${driver.user.lastName}`.trim() : 'assigné'}`,
             ride.id,
             { driverId: driver.id },
           )
@@ -378,6 +379,7 @@ export class DriverService {
   async refuseRide(userId: string, rideId: string, reason?: string) {
     const driver = await this.driverRepository.findOne({
       where: { userId },
+      relations: ['user'],
     });
 
     if (!driver) {
@@ -443,7 +445,7 @@ export class DriverService {
             admin.id,
             InternalNotificationType.RIDE_REFUSED,
             'Course refusée',
-            `La course ${ride.id} a été refusée par le chauffeur ${driver.user?.firstName} ${driver.user?.lastName}`,
+            `La course ${ride.id} a été refusée par le chauffeur ${driver.user?.firstName && driver.user?.lastName ? `${driver.user.firstName} ${driver.user.lastName}`.trim() : 'assigné'}`,
             ride.id,
             { driverId: driver.id },
           )

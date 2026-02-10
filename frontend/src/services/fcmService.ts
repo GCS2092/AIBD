@@ -1,4 +1,6 @@
 import { requestNotificationPermission, onMessageListener } from '../config/firebase';
+import apiClient from './api';
+import { API_ENDPOINTS } from '../config/api';
 
 /**
  * Service pour gérer les notifications push Firebase Cloud Messaging
@@ -7,39 +9,42 @@ class FCMService {
   private token: string | null = null;
 
   /**
-   * Initialiser FCM et demander la permission
+   * Initialiser FCM et demander la permission (à appeler quand l'utilisateur est connecté).
+   * @returns { token, registered } - token si obtenu, registered true si l'enregistrement backend a réussi
    */
-  async initialize(): Promise<string | null> {
+  async initialize(): Promise<{ token: string | null; registered: boolean }> {
     try {
       const token = await requestNotificationPermission();
-      if (token) {
-        this.token = token;
-        // Envoyer le token au backend pour l'associer à l'utilisateur
-        await this.registerToken(token);
-        // Écouter les messages
-        this.setupMessageListener();
+      if (!token) {
+        return { token: null, registered: false };
       }
-      return token;
+      this.token = token;
+      const registered = await this.registerToken(token);
+      this.setupMessageListener();
+      return { token, registered };
     } catch (error) {
       console.error('Erreur lors de l\'initialisation FCM:', error);
-      return null;
+      return { token: null, registered: false };
     }
   }
 
   /**
-   * Enregistrer le token FCM auprès du backend
+   * Enregistrer le token FCM auprès du backend (utilise le token JWT en cours).
+   * @returns true si l'enregistrement a réussi, false sinon
    */
-  private async registerToken(token: string): Promise<void> {
+  private async registerToken(token: string): Promise<boolean> {
     try {
-      // TODO: Créer un endpoint dans le backend pour enregistrer le token
-      // Exemple: await fetch('/api/notifications/register-token', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ token })
-      // });
-      console.log('Token FCM à enregistrer:', token);
+      const deviceLabel = typeof navigator !== 'undefined' && navigator.userAgent
+        ? navigator.userAgent.slice(0, 500)
+        : undefined;
+      await apiClient.post(API_ENDPOINTS.NOTIFICATIONS_REGISTER_FCM, {
+        token,
+        ...(deviceLabel ? { deviceLabel } : {}),
+      });
+      return true;
     } catch (error) {
-      console.error('Erreur lors de l\'enregistrement du token:', error);
+      console.warn('Enregistrement du token FCM (backend):', error);
+      return false;
     }
   }
 

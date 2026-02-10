@@ -1,6 +1,6 @@
 .tracking-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-page-bg);
   padding: 20px;
 }
 
@@ -18,31 +18,29 @@
 }
 
 .tracking-header h1 {
-  color: white;
+  color: var(--color-text);
   font-size: 2rem;
   margin: 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .btn-back {
   padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: var(--color-surface);
+  color: var(--color-text);
   text-decoration: none;
   border-radius: 8px;
   font-weight: 600;
-  border: 2px solid white;
+  border: 1px solid var(--color-border);
   transition: all 0.2s;
-  backdrop-filter: blur(10px);
 }
 
 .btn-back:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--color-surface-elevated);
   transform: translateY(-2px);
 }
 
 .ride-status-card {
-  background: white;
+  background: var(--color-surface-elevated);
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
@@ -92,7 +90,7 @@
 
 .ride-info-card,
 .map-card {
-  background: white;
+  background: var(--color-surface-elevated);
   padding: 25px;
   border-radius: 12px;
   margin-bottom: 20px;
@@ -103,7 +101,7 @@
 .map-card h2 {
   margin-top: 0;
   margin-bottom: 20px;
-  color: #333;
+  color: #333333;
   font-size: 1.5rem;
 }
 
@@ -126,7 +124,7 @@
 
 .info-item strong {
   display: block;
-  color: #333;
+  color: #333333;
   margin-bottom: 5px;
   font-size: 0.9rem;
   text-transform: uppercase;
@@ -135,7 +133,7 @@
 
 .info-item p {
   margin: 0;
-  color: #666;
+  color: #333333;
   font-size: 1rem;
 }
 
@@ -149,7 +147,7 @@
 .eta-value {
   font-size: 1.5rem !important;
   font-weight: 700 !important;
-  color: #667eea !important;
+  color: var(--color-primary) !important;
 }
 
 .map-container {
@@ -162,7 +160,7 @@
 .waiting-message,
 .completed-message,
 .cancelled-message {
-  background: white;
+  background: var(--color-surface-elevated);
   padding: 30px;
   border-radius: 12px;
   text-align: center;
@@ -171,20 +169,20 @@
 
 .waiting-message p {
   font-size: 1.2rem;
-  color: #666;
+  color: #333333;
   margin: 0;
 }
 
 .completed-message h3,
 .cancelled-message h3 {
-  color: #333;
+  color: #333333;
   margin-top: 0;
   font-size: 1.8rem;
 }
 
 .completed-message p,
 .cancelled-message p {
-  color: #666;
+  color: #333333;
   font-size: 1.1rem;
   margin-bottom: 20px;
 }
@@ -203,7 +201,7 @@
 }
 
 .btn-primary {
-  background: #667eea;
+  background: var(--color-primary);
   color: white;
 }
 

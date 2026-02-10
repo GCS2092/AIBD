@@ -6,10 +6,11 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ride, RideStatus, RideType } from '../entities/ride.entity';
+import { CreateRideDto } from './dto/create-ride.dto';
+import { UpdateRideByCodeDto } from './dto/update-ride-by-code.dto';
 import { Driver, DriverStatus } from '../entities/driver.entity';
 import { Pricing, PricingType } from '../entities/pricing.entity';
 import { RideAssignment, RideAssignmentStatus } from '../entities/ride-assignment.entity';
-import { CreateRideDto } from './dto/create-ride.dto';
 import { NotificationService } from '../notifications/notification.service';
 import { InternalNotificationsService } from '../notifications/internal-notifications.service';
 import { ConfigSystemService } from '../config-system/config-system.service';
@@ -47,93 +48,78 @@ export class RideService {
   ) {}
 
   async createRide(createDto: CreateRideDto) {
-    // Générer un code d'accès unique (8 caractères alphanumériques)
+    if (!createDto.tripType && !createDto.rideType) {
+      throw new BadRequestException('Indiquez le type de course (tripType ou rideType)');
+    }
+
     const accessCode = await this.generateAccessCode();
-    
-    // Géocoder les adresses pour obtenir les coordonnées GPS
     let pickupLocation: { lat: number; lng: number } | null = null;
     let dropoffLocation: { lat: number; lng: number } | null = null;
-    
+
     try {
-      // Géocoder l'adresse de départ
       pickupLocation = await this.geocodingService.geocodeAddress(createDto.pickupAddress);
     } catch (error) {
       console.error('Erreur lors du géocodage de l\'adresse de départ:', error);
-      // Continuer même si le géocodage échoue
     }
-    
     try {
-      // Géocoder l'adresse de destination
       dropoffLocation = await this.geocodingService.geocodeAddress(createDto.dropoffAddress);
     } catch (error) {
       console.error('Erreur lors du géocodage de l\'adresse de destination:', error);
-      // Continuer même si le géocodage échoue
     }
-    
-    // Trouver le tarif approprié
+
     const scheduledDate = new Date(createDto.scheduledAt);
     const hour = scheduledDate.getHours();
-    const dayOfWeek = scheduledDate.getDay();
+    let rideType: RideType = createDto.rideType ?? RideType.DAKAR_TO_AIRPORT;
+    let tripType: string | undefined = createDto.tripType;
+    let pricing: Pricing | null = null;
 
-    // Déterminer le type de tarif
-    let pricingType = PricingType.STANDARD;
-    if (hour >= 22 || hour < 6) {
-      pricingType = PricingType.NIGHT;
-    } else if ((hour >= 7 && hour <= 9) || (hour >= 17 && hour <= 19)) {
-      pricingType = PricingType.PEAK_HOURS;
-    }
-
-    // Trouver le tarif
-    const pricing = await this.pricingRepository.findOne({
-      where: {
-        rideType: createDto.rideType,
-        type: pricingType,
-        isActive: true,
-      },
-    });
-
-    if (!pricing) {
-      // Utiliser le tarif standard si pas de tarif spécial
-      const standardPricing = await this.pricingRepository.findOne({
+    if (createDto.tripType) {
+      rideType = createDto.tripType === 'retour_simple' ? RideType.AIRPORT_TO_DAKAR : RideType.DAKAR_TO_AIRPORT;
+      pricing = await this.pricingRepository.findOne({
         where: {
-          rideType: createDto.rideType,
+          tripType: createDto.tripType,
           type: PricingType.STANDARD,
           isActive: true,
         },
       });
-
-      if (!standardPricing) {
+      if (!pricing) {
+        throw new BadRequestException('Aucun tarif disponible pour ce type de course');
+      }
+    } else {
+      let pricingType = PricingType.STANDARD;
+      if (hour >= 22 || hour < 6) pricingType = PricingType.NIGHT;
+      else if ((hour >= 7 && hour <= 9) || (hour >= 17 && hour <= 19)) pricingType = PricingType.PEAK_HOURS;
+      pricing = await this.pricingRepository.findOne({
+        where: { rideType: createDto.rideType, type: pricingType, isActive: true },
+      });
+      if (!pricing) {
+        pricing = await this.pricingRepository.findOne({
+          where: { rideType: createDto.rideType, type: PricingType.STANDARD, isActive: true },
+        });
+      }
+      if (!pricing) {
         throw new BadRequestException('Aucun tarif disponible pour ce trajet');
       }
-
-      const ride = this.rideRepository.create({
-        ...createDto,
-        scheduledAt: scheduledDate,
-        price: parseFloat(standardPricing.price.toString()),
-        pricingId: standardPricing.id,
-        status: RideStatus.PENDING,
-        accessCode: accessCode,
-        pickupLocation: pickupLocation || undefined,
-        dropoffLocation: dropoffLocation || undefined,
-      });
-
-      const savedRide = await this.rideRepository.save(ride) as Ride;
-
-      // Attribuer automatiquement un chauffeur
-      await this.assignDriver(savedRide.id);
-
-      return savedRide;
     }
 
+    const price = parseFloat(pricing.price.toString());
     const ride = this.rideRepository.create({
       ...createDto,
+      rideType,
+      tripType: tripType ?? undefined,
       scheduledAt: scheduledDate,
-      price: parseFloat(pricing.price.toString()),
+      price,
       pricingId: pricing.id,
       status: RideStatus.PENDING,
-      accessCode: accessCode,
+      accessCode,
       pickupLocation: pickupLocation || undefined,
       dropoffLocation: dropoffLocation || undefined,
+      pickupCountry: createDto.pickupCountry,
+      pickupCity: createDto.pickupCity,
+      pickupQuartier: createDto.pickupQuartier,
+      dropoffCountry: createDto.dropoffCountry,
+      dropoffCity: createDto.dropoffCity,
+      dropoffQuartier: createDto.dropoffQuartier,
     });
 
     const savedRide = await this.rideRepository.save(ride) as Ride;
@@ -501,6 +487,100 @@ export class RideService {
     }
 
     return ride;
+  }
+
+  async getRideByAccessCode(accessCode: string, phone: string): Promise<Ride> {
+    if (!accessCode?.trim() || !phone?.trim()) {
+      throw new BadRequestException('Code d\'accès et téléphone requis');
+    }
+    const ride = await this.rideRepository.findOne({
+      where: { accessCode: accessCode.trim().toUpperCase() },
+      relations: ['driver', 'driver.user', 'driver.vehicles', 'pricing'],
+    });
+    if (!ride) {
+      throw new NotFoundException('Réservation non trouvée pour ce code');
+    }
+    ride.setEncryptionService(this.encryptionService);
+    // Normalisation : sans espaces, format international
+    let normalizedPhone = phone.trim().replace(/\s/g, '');
+    const digitsOnly = normalizedPhone.replace(/\D/g, '');
+    if (digitsOnly.length === 9 && (digitsOnly.startsWith('7') || digitsOnly.startsWith('6'))) {
+      normalizedPhone = '+221' + digitsOnly;
+    } else if (digitsOnly.length >= 9 && !normalizedPhone.startsWith('+')) {
+      normalizedPhone = '+' + digitsOnly;
+    } else if (digitsOnly.length >= 12 && normalizedPhone.startsWith('+')) {
+      normalizedPhone = '+' + digitsOnly;
+    }
+    const phoneHash = this.hashForSearch(normalizedPhone);
+    const hashMatches = ride.clientPhoneHash === phoneHash;
+    if (!hashMatches) {
+      // Fallback pour les anciennes réservations : comparer avec le téléphone déchiffré
+      let decryptedMatch = false;
+      try {
+        const rawStored = ride.clientPhone;
+        if (rawStored && typeof rawStored === 'string' && rawStored.includes(':')) {
+          const decrypted = this.encryptionService.decrypt(rawStored);
+          const storedNormalized = decrypted.replace(/\s/g, '').trim();
+          const inputNorm = normalizedPhone.replace(/\D/g, '');
+          const storedNorm = storedNormalized.replace(/\D/g, '');
+          decryptedMatch = storedNorm === inputNorm || storedNorm.endsWith(inputNorm.slice(-9)) || inputNorm.endsWith(storedNorm.slice(-9));
+        }
+      } catch (_) {}
+      if (!decryptedMatch) {
+        throw new BadRequestException('Téléphone ne correspond pas à cette réservation. Vérifiez le numéro utilisé lors de la réservation.');
+      }
+    }
+    if (ride.driver?.user) {
+      ride.driver.user.setEncryptionService(this.encryptionService);
+    }
+    return ride;
+  }
+
+  async updateRideByAccessCode(accessCode: string, phone: string, dto: UpdateRideByCodeDto): Promise<Ride> {
+    const ride = await this.getRideByAccessCode(accessCode, phone);
+    if (ride.status !== RideStatus.PENDING && ride.status !== RideStatus.ASSIGNED) {
+      throw new BadRequestException('Seules les réservations en attente ou assignées peuvent être modifiées');
+    }
+    const updatable: Partial<Ride> = {};
+    if (dto.clientFirstName !== undefined) updatable.clientFirstName = dto.clientFirstName;
+    if (dto.clientLastName !== undefined) updatable.clientLastName = dto.clientLastName;
+    if (dto.clientPhone !== undefined) updatable.clientPhone = dto.clientPhone;
+    if (dto.clientEmail !== undefined) updatable.clientEmail = dto.clientEmail;
+    if (dto.pickupAddress !== undefined) updatable.pickupAddress = dto.pickupAddress;
+    if (dto.dropoffAddress !== undefined) updatable.dropoffAddress = dto.dropoffAddress;
+    if (dto.pickupCountry !== undefined) updatable.pickupCountry = dto.pickupCountry;
+    if (dto.pickupCity !== undefined) updatable.pickupCity = dto.pickupCity;
+    if (dto.pickupQuartier !== undefined) updatable.pickupQuartier = dto.pickupQuartier;
+    if (dto.dropoffCountry !== undefined) updatable.dropoffCountry = dto.dropoffCountry;
+    if (dto.dropoffCity !== undefined) updatable.dropoffCity = dto.dropoffCity;
+    if (dto.dropoffQuartier !== undefined) updatable.dropoffQuartier = dto.dropoffQuartier;
+    if (dto.flightNumber !== undefined) updatable.flightNumber = dto.flightNumber;
+    if (dto.scheduledAt !== undefined) updatable.scheduledAt = new Date(dto.scheduledAt);
+    if (dto.tripType !== undefined) {
+      updatable.tripType = dto.tripType;
+      updatable.rideType = dto.tripType === 'retour_simple' ? RideType.AIRPORT_TO_DAKAR : RideType.DAKAR_TO_AIRPORT;
+      const pricing = await this.pricingRepository.findOne({
+        where: { tripType: dto.tripType, type: PricingType.STANDARD, isActive: true },
+      });
+      if (pricing) {
+        updatable.price = parseFloat(pricing.price.toString());
+        updatable.pricingId = pricing.id;
+      }
+    } else if (dto.rideType !== undefined) {
+      updatable.rideType = dto.rideType;
+      const pricing = await this.pricingRepository.findOne({
+        where: { rideType: dto.rideType, type: PricingType.STANDARD, isActive: true },
+      });
+      if (pricing) {
+        updatable.price = parseFloat(pricing.price.toString());
+        updatable.pricingId = pricing.id;
+      }
+    }
+    Object.assign(ride, updatable);
+    const saved = await this.rideRepository.save(ride) as Ride;
+    saved.setEncryptionService(this.encryptionService);
+    if (saved.driver?.user) saved.driver.user.setEncryptionService(this.encryptionService);
+    return saved;
   }
 }
 

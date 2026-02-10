@@ -4,6 +4,34 @@
   box-sizing: border-box;
 }
 
+/* Palette sobre - tons assourdis, pas très clairs */
+:root {
+  --color-primary: #5c52a0;
+  --color-primary-hover: #4a4185;
+  --color-primary-light: rgba(92, 82, 160, 0.14);
+  --color-primary-border: rgba(92, 82, 160, 0.28);
+  --color-success: #15803d;
+  --color-success-bg: #86efac;
+  --color-success-light: rgba(21, 128, 61, 0.12);
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-border: #c8ccd4;
+  --color-surface: #eef0f4;
+  --color-surface-elevated: #f2f3f6;
+  --color-page-bg: #e2e4e9;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+}
+
 html {
   font-size: 16px;
 }
@@ -14,8 +42,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  line-height: 1.6;
-  color: #333;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-page-bg);
+  letter-spacing: -0.01em;
 }
 
 #root {

@@ -42,6 +42,7 @@ export const API_ENDPOINTS = {
   
   // Rides
   RIDES: '/rides',
+  RIDE_BY_CODE: '/rides/by-code',
   RIDE_STATUS: (id: string) => `/rides/${id}/status`,
   CANCEL_RIDE: (id: string) => `/rides/${id}/cancel`,
   USER_RIDES: '/rides/my-rides',
@@ -81,5 +82,6 @@ export const API_ENDPOINTS = {
   NOTIFICATIONS: '/notifications',
   NOTIFICATIONS_READ: (id: string) => `/notifications/${id}/read`,
   NOTIFICATIONS_UNREAD_COUNT: '/notifications/unread/count',
+  NOTIFICATIONS_REGISTER_FCM: '/notifications/fcm/register',
 } as const;
 

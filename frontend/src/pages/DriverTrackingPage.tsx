@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, Navigation, Calendar, Clock, RefreshCw, ArrowLeft, Radio, Car, Users, Luggage } from 'lucide-react';
+import { MapPin, Navigation, Calendar, Clock, RefreshCw, ArrowLeft, Radio, Car, Users, Luggage, ExternalLink } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { driverService } from '../services/driverService';
 import { authService } from '../services/authService';
+import { gpsService } from '../services/gpsService';
 import MapComponent from '../components/MapComponent';
 import DriverHeader from '../components/DriverHeader';
 import DriverBottomNav from '../components/DriverBottomNav';
@@ -73,6 +74,26 @@ function DriverTrackingPage() {
       return () => clearInterval(interval);
     }
   }, [ride, refetch]);
+
+  // Envoyer la position GPS au backend toutes les 10 s quand la course est active
+  useEffect(() => {
+    if (!rideId || !ride || !['accepted', 'in_progress', 'driver_on_way', 'picked_up'].includes(ride.status)) return;
+    if (!navigator.geolocation) return;
+
+    const sendPosition = () => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          gpsService.updateDriverLocation(rideId, pos.coords.latitude, pos.coords.longitude).catch(() => {});
+        },
+        () => {},
+        { enableHighAccuracy: true, maximumAge: 15000, timeout: 10000 }
+      );
+    };
+
+    sendPosition();
+    const interval = setInterval(sendPosition, 10000);
+    return () => clearInterval(interval);
+  }, [rideId, ride?.status]);
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
@@ -481,6 +502,43 @@ function DriverTrackingPage() {
                       <Clock className="w-4 h-4" />
                       Activez le suivi GPS pour voir votre position en temps réel
                     </p>
+                  </div>
+                )}
+                {(ride.pickupLocation || ride.dropoffLocation) && (
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {ride.pickupLocation && (
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${ride.pickupLocation.lat},${ride.pickupLocation.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#4285F4] text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-md"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Départ (Maps)
+                      </a>
+                    )}
+                    {ride.dropoffLocation && (
+                      <>
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${ride.dropoffLocation.lat},${ride.dropoffLocation.lng}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34A853] text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-md"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Arrivée (Maps)
+                        </a>
+                        <a
+                          href={`https://waze.com/ul?ll=${ride.dropoffLocation.lat},${ride.dropoffLocation.lng}&navigate=yes`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#33CCFF] text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-md"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Waze
+                        </a>
+                      </>
+                    )}
                   </div>
                 )}
               </CardContent>

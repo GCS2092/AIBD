@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { websocketService } from './services/websocketService';
 import { authService } from './services/authService';
+import { fcmService } from './services/fcmService';
 import './i18n/config';
 import './App.css';
 
@@ -16,6 +17,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import DriverDashboard from './pages/DriverDashboard';
 import NotificationsPage from './pages/NotificationsPage';
 import RideDetailPage from './pages/RideDetailPage';
+import EditRideByCodePage from './pages/EditRideByCodePage';
 import DriverTrackingPage from './pages/DriverTrackingPage';
 import EditDriverPage from './pages/EditDriverPage';
 import EditDriverProfilePage from './pages/EditDriverProfilePage';
@@ -33,12 +35,13 @@ const queryClient = new QueryClient({
 
 function App() {
   useEffect(() => {
-    // Connecter WebSocket si l'utilisateur est authentifié
     if (authService.isAuthenticated()) {
       websocketService.connect();
+      if (fcmService.isSupported()) {
+        fcmService.initialize();
+      }
     }
 
-    // Nettoyer à la déconnexion
     return () => {
       websocketService.disconnect();
     };
@@ -51,6 +54,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/book" element={<BookingPage />} />
+          <Route path="/edit-ride" element={<EditRideByCodePage />} />
           <Route path="/track/:rideId" element={<TrackingPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />

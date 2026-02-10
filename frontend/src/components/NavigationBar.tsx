@@ -65,8 +65,14 @@ function NavigationBar() {
     return () => clearInterval(interval);
   }, []);
 
-  // Afficher uniquement pour les clients ou non authentifiés sur la page d'accueil
-  const showClientNav = (!isAuthenticated || isClient) && (location.pathname === '/' || location.pathname === '/book' || location.pathname === '/history');
+  // Afficher la barre du bas (Accueil, Réserver, Modifier, Historique) sur toutes les pages client, y compris le suivi
+  const showClientNav = (!isAuthenticated || isClient) && (
+    location.pathname === '/' ||
+    location.pathname === '/book' ||
+    location.pathname === '/edit-ride' ||
+    location.pathname === '/history' ||
+    location.pathname.startsWith('/track')
+  );
 
   // Récupérer le code d'accès depuis localStorage et l'afficher immédiatement
   useEffect(() => {
@@ -146,50 +152,43 @@ function NavigationBar() {
   const { data: ridesData } = useQuery({
     queryKey: ['nav-active-rides', storedPhone, storedAccessCode],
     queryFn: async () => {
-      if (!storedPhone || !storedAccessCode) return null;
+      if (!storedPhone || !storedAccessCode) return storedAccessCode;
       try {
         const result = await rideService.getMyRides(
           1,
-          10,
+          50,
           storedPhone,
           undefined,
           undefined,
           undefined,
           storedAccessCode
         );
-        // Afficher le code si la course existe (même terminée, pour les courses récentes)
-        // Garder le code affiché pour les courses des 30 derniers jours
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
-        const recentRides = result.data.filter((ride: any) => {
-          const rideDate = new Date(ride.scheduledAt || ride.createdAt);
-          return rideDate >= thirtyDaysAgo;
-        });
-        
-        return recentRides.length > 0 ? storedAccessCode : null;
+        // Ne retirer le code que si la course correspondante est terminée ou annulée
+        const rideWithCode = (result.data || []).find((r: any) => r.accessCode === storedAccessCode);
+        if (rideWithCode && (rideWithCode.status === 'completed' || rideWithCode.status === 'cancelled')) {
+          return null; // signaler qu'on peut retirer le code
+        }
+        return storedAccessCode; // garder le code tant que la course n'est pas terminée
       } catch {
-        return null;
+        return storedAccessCode; // en cas d'erreur, garder le code
       }
     },
     enabled: !!storedPhone && !!storedAccessCode && showClientNav,
-    refetchInterval: 30000, // Vérifier toutes les 30 secondes
+    refetchInterval: 30000,
   });
 
-  // Retirer le code seulement si vraiment aucune course récente (même terminée)
+  // Retirer le code uniquement quand la course est marquée terminée ou annulée
   useEffect(() => {
     if (ridesData === null && storedAccessCode) {
-      // Vérifier une dernière fois avant de retirer (pour éviter de retirer trop tôt)
       const checkCode = localStorage.getItem('activeAccessCode');
       if (checkCode === storedAccessCode) {
-        // Attendre un peu avant de retirer pour être sûr
         const timeout = setTimeout(() => {
           const finalCheck = localStorage.getItem('activeAccessCode');
           if (finalCheck === storedAccessCode) {
             setActiveAccessCode(null);
             localStorage.removeItem('activeAccessCode');
           }
-        }, 10000); // Attendre 10 secondes avant de retirer
+        }, 2000);
         return () => clearTimeout(timeout);
       }
     }
@@ -252,7 +251,7 @@ function NavigationBar() {
           <div className="nav-container-bottom">
             <Link 
               to="/" 
-              className={`nav-link-bottom ${isActive('/') && !isActive('/book') && !isActive('/history') ? 'active' : ''}`}
+              className={`nav-link-bottom ${isActive('/') && !isActive('/book') && !isActive('/edit-ride') && !isActive('/history') ? 'active' : ''}`}
             >
               <Home className="w-5 h-5" />
               <span>Accueil</span>
@@ -263,6 +262,13 @@ function NavigationBar() {
             >
               <BookOpen className="w-5 h-5" />
               <span>Réserver</span>
+            </Link>
+            <Link 
+              to="/edit-ride" 
+              className={`nav-link-bottom ${isActive('/edit-ride') ? 'active' : ''}`}
+            >
+              <Key className="w-5 h-5" />
+              <span>Modifier</span>
             </Link>
             <Link 
               to="/history" 

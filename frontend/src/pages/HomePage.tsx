@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { 
   Search, 
@@ -34,6 +34,7 @@ import './HomePage.css';
 
 function HomePage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useState<{
     phone?: string;
     accessCode?: string;
@@ -44,6 +45,7 @@ function HomePage() {
   const [phoneError, setPhoneError] = useState<string>('');
   const [accessCodeError, setAccessCodeError] = useState<string>('');
   const [showAccessCodeForm, setShowAccessCodeForm] = useState<boolean>(false);
+  const [showSearchModal, setShowSearchModal] = useState<boolean>(false);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
 
@@ -107,15 +109,17 @@ function HomePage() {
       )
   );
 
-  // Mettre à jour le code d'accès actif dans localStorage si des courses actives existent
+  // Garder le code tant que la course n'est pas terminée ; le retirer seulement quand la course est terminée ou annulée
   useEffect(() => {
     if (activeRidesList.length > 0 && searchParams.accessCode) {
       localStorage.setItem('activeAccessCode', searchParams.accessCode);
-    } else if (activeRidesList.length === 0) {
-      // Plus de courses actives, retirer le code
-      localStorage.removeItem('activeAccessCode');
+    } else if (rides.length > 0 && searchParams.accessCode) {
+      const rideWithCode = rides.find((r: Ride) => r.accessCode === searchParams.accessCode);
+      if (rideWithCode && (rideWithCode.status === 'completed' || rideWithCode.status === 'cancelled')) {
+        localStorage.removeItem('activeAccessCode');
+      }
     }
-  }, [activeRidesList.length, searchParams.accessCode]);
+  }, [rides, activeRidesList.length, searchParams.accessCode]);
 
   const handlePhoneSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,6 +160,7 @@ function HomePage() {
     
     setSearchParams(prev => ({ ...prev, accessCode: accessCode.toUpperCase().trim() }));
     setAccessCodeError('');
+    setShowSearchModal(false);
   };
 
   const getStatusLabel = (status: string) => {
@@ -183,260 +188,71 @@ function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
-      {/* Background decorative elements */}
+    <div className="home-page min-h-screen relative overflow-hidden">
+      {/* Légère décoration de fond */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gray-700/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[var(--color-primary)] opacity-[0.06] rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[var(--color-primary)] opacity-[0.04] rounded-full blur-3xl" />
       </div>
 
       <NavigationBar />
       
-      {/* Hero Section */}
+      {/* Hero */}
       <motion.header 
-        initial={{ opacity: 0, y: -30 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative text-center py-8 sm:py-12 px-4 sm:px-6"
+        transition={{ duration: 0.5 }}
+        className="relative text-center py-12 sm:py-16 px-5 sm:px-8"
       >
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 mb-6 bg-white/10 backdrop-blur-lg rounded-2xl border-2 border-white/20 shadow-2xl"
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 mb-8 rounded-2xl bg-[var(--color-primary-light)] border border-[var(--color-primary-border)] shadow-sm"
         >
-          <Plane className="w-10 h-10 md:w-12 md:h-12 text-white" />
+          <Plane className="w-8 h-8 md:w-10 md:h-10 text-[var(--color-primary)]" strokeWidth={2} />
         </motion.div>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-3 sm:mb-4 drop-shadow-2xl tracking-tight text-white px-2">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 tracking-tight text-[var(--color-text)] px-2">
           AIBD
         </h1>
-        <p className="text-lg sm:text-xl md:text-2xl opacity-90 font-light text-gray-300 px-4">
+        <p className="text-base sm:text-lg md:text-xl font-medium text-[var(--color-text-muted)] px-4">
           Transport vers l'aéroport de Dakar
         </p>
-        <div className="flex items-center justify-center gap-2 mt-4 flex-wrap px-4">
-          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-          <span className="text-xs sm:text-sm opacity-80 text-gray-300 text-center">Service professionnel et fiable</span>
-          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+        <div className="flex items-center justify-center gap-2 mt-5 flex-wrap px-4">
+          <Sparkles className="w-4 h-4 text-[var(--color-primary)] opacity-80" />
+          <span className="text-xs sm:text-sm text-[var(--color-text-muted)] text-center">Service professionnel et fiable</span>
+          <Sparkles className="w-4 h-4 text-[var(--color-primary)] opacity-80" />
         </div>
       </motion.header>
 
-      <main className="relative max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-20 sm:pb-24">
-        {/* Formulaire de recherche */}
-        {!hasSearchParams && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mb-16 sm:mb-20"
-          >
-            <Card className="bg-white border-gray-200 shadow-2xl max-w-2xl mx-auto">
-              <CardHeader className="text-center pb-4">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-900 rounded-full mb-4">
-                  {!showAccessCodeForm ? <Search className="w-8 h-8 text-white" /> : <Key className="w-8 h-8 text-white" />}
-                </div>
-                <CardTitle className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 px-2">
-                  {!showAccessCodeForm ? 'Rechercher mes courses' : 'Code d\'accès requis'}
-                </CardTitle>
-                <CardDescription className="text-sm sm:text-base text-gray-600 px-2">
-                  {!showAccessCodeForm 
-                    ? 'Entrez votre numéro de téléphone pour accéder à toutes vos réservations'
-                    : 'Entrez le code d\'accès unique que vous avez reçu lors de votre réservation'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {!showAccessCodeForm ? (
-                  <form onSubmit={handlePhoneSubmit} className="space-y-6">
-                  <div className="space-y-3">
-                    <div className={`flex items-center rounded-xl border-2 transition-all duration-200 shadow-sm ${
-                      phoneError 
-                        ? 'border-red-400 bg-red-50 focus-within:border-red-500 focus-within:ring-2 focus-within:ring-red-500/20' 
-                        : 'border-gray-300 focus-within:border-gray-900 focus-within:ring-4 focus-within:ring-gray-900/20 focus-within:shadow-lg'
-                    }`}>
-                      <div className="flex items-center px-3 sm:px-5 py-3 sm:py-4 bg-gray-900 text-white font-bold border-r-2 border-gray-700 rounded-l-xl">
-                        <Phone className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
-                        <span className="text-base sm:text-lg">{phonePrefix}</span>
-                      </div>
-                      <Input
-                        type="tel"
-                        value={phoneNumber}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '');
-                          if (value.length <= 9) {
-                            setPhoneNumber(value);
-                            setPhoneError('');
-                          }
-                        }}
-                        placeholder="771234567"
-                        maxLength={9}
-                        className="border-0 bg-transparent text-gray-900 placeholder:text-gray-400 focus-visible:ring-0 text-base sm:text-xl font-semibold py-3 sm:py-4"
-                      />
-                    </div>
-                    
-                    {phoneError && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200"
-                      >
-                        <X className="w-4 h-4 flex-shrink-0" />
-                        <span>{phoneError}</span>
-                      </motion.div>
-                    )}
-                    
-                    <div className="flex gap-2 sm:gap-3 justify-center flex-wrap">
-                      <Button
-                        type="button"
-                        variant={phonePrefix === '+221' ? 'default' : 'outline'}
-                        size="lg"
-                        onClick={() => {
-                          setPhonePrefix('+221');
-                          setPhoneError('');
-                        }}
-                        className={`font-semibold transition-all text-sm sm:text-base px-3 sm:px-5 ${
-                          phonePrefix === '+221' 
-                            ? 'bg-green-600 text-white shadow-lg hover:bg-green-700 border-2 border-green-700' 
-                            : 'bg-gray-100 text-gray-700 border-2 border-gray-300 hover:bg-gray-200 hover:border-green-400'
-                        }`}
-                      >
-                        <span className="text-2xl sm:text-3xl mr-2" style={{ filter: phonePrefix === '+221' ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' : 'none' }}>🇸🇳</span>
-                        +221
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={phonePrefix === '+242' ? 'default' : 'outline'}
-                        size="lg"
-                        onClick={() => {
-                          setPhonePrefix('+242');
-                          setPhoneError('');
-                        }}
-                        className={`font-semibold transition-all text-sm sm:text-base px-3 sm:px-5 ${
-                          phonePrefix === '+242' 
-                            ? 'bg-yellow-500 text-white shadow-lg hover:bg-yellow-600 border-2 border-yellow-600' 
-                            : 'bg-gray-100 text-gray-700 border-2 border-gray-300 hover:bg-gray-200 hover:border-yellow-400'
-                        }`}
-                      >
-                        <span className="text-2xl sm:text-3xl mr-2" style={{ filter: phonePrefix === '+242' ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' : 'none' }}>🇨🇬</span>
-                        +242
-                      </Button>
-                    </div>
-                    
-                    <p className="text-xs text-center text-gray-500">
-                      Format: {phonePrefix}XXXXXXXXX (9 chiffres)
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    type="submit" 
-                    size="lg" 
-                    className="w-full bg-gray-900 text-white hover:bg-gray-800 text-base sm:text-lg font-semibold py-4 sm:py-6 shadow-xl hover:shadow-2xl transition-all"
-                  >
-                    <Search className="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="hidden sm:inline">Rechercher mes courses</span>
-                    <span className="sm:hidden">Rechercher</span>
-                    <ArrowRight className="ml-2 sm:ml-3 w-4 h-4 sm:w-5 sm:h-5" />
-                  </Button>
-                </form>
-                ) : (
-                  <form onSubmit={handleAccessCodeSubmit} className="space-y-6">
-                    <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-4">
-                      <div className="flex items-start gap-3">
-                        <Shield className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <div className="text-sm text-blue-900">
-                          <p className="font-semibold mb-1">🔐 Sécurité de vos données</p>
-                          <p className="text-xs">Le code d'accès protège vos informations personnelles. Vous l'avez reçu lors de votre réservation. Faites une capture d'écran et conservez-le précieusement.</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <Label htmlFor="accessCode" className="text-gray-900 font-semibold flex items-center gap-2">
-                        <Key className="w-4 h-4" />
-                        Code d'accès (8 caractères)
-                      </Label>
-                      <Input
-                        id="accessCode"
-                        type="text"
-                        value={accessCode}
-                        onChange={(e) => {
-                          const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
-                          setAccessCode(value);
-                          setAccessCodeError('');
-                        }}
-                        placeholder="Ex: A1B2C3D4"
-                        maxLength={8}
-                        className={`bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 focus:shadow-md hover:border-gray-400 text-center text-2xl font-bold tracking-widest ${accessCodeError ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}`}
-                      />
-                      {accessCodeError && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200"
-                        >
-                          <X className="w-4 h-4 flex-shrink-0" />
-                          <span>{accessCodeError}</span>
-                        </motion.div>
-                      )}
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="lg"
-                        onClick={() => {
-                          setShowAccessCodeForm(false);
-                          setAccessCode('');
-                          setAccessCodeError('');
-                        }}
-                        className="flex-1 bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
-                      >
-                        <ArrowRight className="mr-2 w-4 h-4 rotate-180" />
-                        Retour
-                      </Button>
-                      <Button 
-                        type="submit" 
-                        size="lg" 
-                        className="flex-1 bg-gray-900 text-white hover:bg-gray-800 text-base sm:text-lg font-semibold py-4 sm:py-6 shadow-xl hover:shadow-2xl transition-all"
-                      >
-                        <Key className="mr-2 sm:mr-3 w-4 h-4 sm:w-5 sm:h-5" />
-                        Vérifier
-                        <ArrowRight className="ml-2 sm:ml-3 w-4 h-4 sm:w-5 sm:h-5" />
-                      </Button>
-                    </div>
-                  </form>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
+      <main className="relative w-full flex-1 px-4 sm:px-5 md:px-6 lg:px-8 pb-24 sm:pb-28">
         {/* Courses actives */}
             {hasSearchParams && (
           <motion.section
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-12"
+            className="mb-14 sm:mb-16"
           >
             {/* En-tête de section avec informations de recherche */}
-            <div className="mb-8 sm:mb-10">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6 mb-6">
+            <div className="mb-10 sm:mb-12">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 sm:gap-8 mb-8">
                 <div className="flex-1">
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 text-white">
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 text-[var(--color-text)]">
                     Mes Courses Actives
                   </h2>
-                  <p className="text-sm sm:text-base text-gray-300">
+                  <p className="text-sm sm:text-base text-[var(--color-text-muted)]">
                     Suivez l'état de vos réservations en temps réel
                   </p>
                 </div>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-                  <div className="flex items-center gap-3 px-4 sm:px-5 py-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 min-w-0">
-                    <div className="p-2 bg-gray-800 rounded-lg flex-shrink-0">
-                      <Phone className="w-5 h-5 text-white" />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+                  <div className="flex items-center gap-4 px-5 sm:px-6 py-4 bg-[var(--color-surface-elevated)] rounded-xl border border-[var(--color-border)] min-w-0">
+                    <div className="p-2 bg-[var(--color-primary-light)] rounded-lg flex-shrink-0">
+                      <Phone className="w-5 h-5 text-[var(--color-primary)]" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-gray-400 mb-1">Recherche</p>
-                      <p className="text-sm font-semibold text-white truncate">{searchParams.phone}</p>
+                      <p className="text-xs text-[var(--color-text-muted)] mb-1">Recherche</p>
+                      <p className="text-sm font-semibold text-[var(--color-text)] truncate">{searchParams.phone}</p>
                     </div>
                   </div>
                   <Button
@@ -449,7 +265,7 @@ function HomePage() {
                       setShowAccessCodeForm(false);
                       localStorage.removeItem('clientPhone');
                     }}
-                    className="bg-white/10 text-white border-white/30 hover:bg-white/20 backdrop-blur-sm whitespace-nowrap"
+                    className="bg-[var(--color-surface-elevated)] text-[var(--color-text)] border-[var(--color-border)] hover:bg-[var(--color-surface)] whitespace-nowrap"
                   >
                     <RefreshCw className="mr-2 w-5 h-5" />
                     <span className="hidden sm:inline">Nouvelle recherche</span>
@@ -457,25 +273,23 @@ function HomePage() {
                   </Button>
                 </div>
               </div>
-              
-              {/* Séparateur visuel */}
-              <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+              <div className="h-px bg-[var(--color-border)]" />
             </div>
 
             {isLoading ? (
-              <div className="text-center py-16">
+              <div className="text-center py-20">
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                   className="inline-block mb-4"
                 >
-                  <RefreshCw className="w-12 h-12 text-white/60" />
+                  <RefreshCw className="w-12 h-12 text-[var(--color-text-muted)]" />
                 </motion.div>
-                <p className="text-lg text-gray-300">Chargement de vos courses...</p>
+                <p className="text-lg text-[var(--color-text-muted)]">Chargement de vos courses...</p>
               </div>
             ) : activeRidesList.length > 0 ? (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8 mb-10 sm:mb-12">
                   {activeRidesList.map((ride: Ride, index: number) => (
                     <motion.div
                       key={ride.id}
@@ -483,8 +297,8 @@ function HomePage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: index * 0.1 }}
                     >
-                      <Card className="bg-white shadow-xl hover:shadow-2xl transition-all duration-300 border-0 overflow-hidden group">
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-gray-900 to-gray-700"></div>
+                      <Card className="bg-[var(--color-surface-elevated)] shadow-md hover:shadow-lg transition-all duration-300 border border-[var(--color-border)] overflow-hidden group">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--color-primary)]" />
                         <CardHeader className="pb-3">
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-2">
@@ -549,7 +363,7 @@ function HomePage() {
                         <CardFooter className="flex gap-2 pt-0">
                           <Button
                             asChild
-                            className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold shadow-lg"
+                            className="flex-1 bg-primary-500 hover:bg-primary-600 text-white font-semibold shadow-lg"
                           >
                             <Link to={`/track/${ride.id}`} className="flex items-center justify-center">
                               <MapPin className="mr-2 w-4 h-4" />
@@ -564,7 +378,7 @@ function HomePage() {
                                 if (confirm('Êtes-vous sûr de vouloir annuler cette course ?')) {
                                   try {
                                     await rideService.cancelRide(ride.id, 'Annulée par le client', 'client');
-                                    window.location.reload();
+                                    await queryClient.invalidateQueries({ queryKey: ['my-rides'] });
                                   } catch (error) {
                                     alert('Erreur lors de l\'annulation');
                                   }
@@ -594,10 +408,10 @@ function HomePage() {
                     </div>
                   )}
                   <div className="text-center">
-                    <p className="text-sm sm:text-base text-white/80">
-                      Affichage de <strong className="text-white">{activeRidesList.length}</strong> course(s) active(s) 
+                    <p className="text-sm sm:text-base text-[var(--color-text-muted)]">
+                      Affichage de <strong className="text-[var(--color-text)]">{activeRidesList.length}</strong> course(s) active(s) 
                       {ridesData?.total && ridesData.total > 0 && (
-                        <> sur <strong className="text-white">{ridesData.total}</strong> course(s) totale(s)</>
+                        <> sur <strong className="text-[var(--color-text)]">{ridesData.total}</strong> course(s) totale(s)</>
                       )}
                     </p>
                   </div>
@@ -615,7 +429,7 @@ function HomePage() {
                   <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-md mx-auto">
                     Aucune course active trouvée pour ce numéro de téléphone.
                   </p>
-                  <Button asChild size="lg" className="bg-gray-900 hover:bg-gray-800 text-white font-semibold shadow-lg">
+                  <Button asChild size="lg" className="bg-primary-500 hover:bg-primary-600 text-white font-semibold shadow-lg">
                     <Link to="/book" className="flex items-center justify-center">
                       <BookOpen className="mr-2 w-5 h-5" />
                       Réserver une course
@@ -630,122 +444,175 @@ function HomePage() {
         {/* Actions principales */}
         {!hasSearchParams && (
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mb-16 sm:mb-20"
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="relative mb-14 sm:mb-16"
           >
-            <div className="text-center mb-8 sm:mb-12">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+            <div className="text-center mb-8">
+              <h2 className="text-lg sm:text-xl font-bold text-[var(--color-text)] mb-2">
                 Que souhaitez-vous faire ?
               </h2>
-              <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
-                Réservez une nouvelle course ou consultez votre historique
+              <p className="text-sm text-[var(--color-text-muted)]">
+                Réserver ou consulter l'historique
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto mb-16 sm:mb-20">
-            <motion.div
-              whileHover={{ scale: 1.02, y: -5 }}
-              transition={{ duration: 0.2 }}
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 w-full mb-5">
+              <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full bg-[var(--color-primary)] hover:opacity-90 text-white text-base font-semibold py-6 h-auto shadow-md hover:shadow-lg transition-all group border-0"
+                >
+                  <Link to="/book" className="flex items-center justify-center gap-2">
+                    <BookOpen className="w-5 h-5" />
+                    <span>{t('booking.title')}</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="w-full bg-[var(--color-surface-elevated)] text-[var(--color-text)] border-[var(--color-border)] hover:bg-[var(--color-surface)] hover:border-[var(--color-primary-border)] text-base font-semibold py-6 h-auto transition-all group"
+                >
+                  <Link to="/history" className="flex items-center justify-center gap-2">
+                    <History className="w-5 h-5 text-[var(--color-primary)]" />
+                    <span>Historique</span>
+                    <ArrowRight className="w-4 h-4 text-[var(--color-text-muted)] group-hover:translate-x-0.5 transition-transform" />
+                  </Link>
+                </Button>
+              </motion.div>
+            </div>
+            <div className="w-full">
               <Button
-                asChild
-                size="lg"
-                className="w-full bg-white text-gray-900 hover:bg-gray-100 text-base sm:text-xl font-bold py-6 sm:py-8 h-auto shadow-2xl hover:shadow-3xl transition-all group border-2 border-gray-900"
-              >
-                <Link to="/book" className="flex items-center justify-center">
-                  <div className="p-2 sm:p-3 bg-gray-900 rounded-xl mr-2 sm:mr-4 group-hover:bg-gray-800 transition-colors">
-                    <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                  </div>
-                  <span className="text-sm sm:text-base md:text-xl">{t('booking.title')}</span>
-                  <ArrowRight className="ml-2 sm:ml-4 w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.02, y: -5 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Button
-                asChild
+                type="button"
                 size="lg"
                 variant="outline"
-                className="w-full bg-white/10 backdrop-blur-lg text-white border-2 border-white/30 hover:bg-white/20 text-base sm:text-xl font-bold py-6 sm:py-8 h-auto shadow-xl hover:shadow-2xl transition-all group"
+                onClick={() => setShowSearchModal(true)}
+                className="w-full bg-[var(--color-surface-elevated)] text-[var(--color-text)] border-[var(--color-border)] hover:bg-[var(--color-surface)] hover:border-[var(--color-primary-border)] text-base font-semibold py-6 h-auto"
               >
-                <Link to="/history" className="flex items-center justify-center">
-                  <div className="p-2 sm:p-3 bg-white/20 rounded-xl mr-2 sm:mr-4 group-hover:bg-white/30 transition-colors">
-                    <History className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </div>
-                  <span className="text-sm sm:text-base md:text-xl">Historique</span>
-                  <ArrowRight className="ml-2 sm:ml-4 w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                <Search className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
+                Rechercher mes courses
               </Button>
-            </motion.div>
             </div>
           </motion.div>
         )}
 
-        {/* Features */}
+        {/* Modal Rechercher mes courses */}
+        {showSearchModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowSearchModal(false)}>
+            <Card className="bg-[var(--color-surface-elevated)] border-[var(--color-border)] shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                <div className="space-y-1.5">
+                  <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    {!showAccessCodeForm ? <Search className="w-5 h-5" /> : <Key className="w-5 h-5" />}
+                    {!showAccessCodeForm ? 'Rechercher mes courses' : 'Code d\'accès'}
+                  </CardTitle>
+                  <CardDescription className="text-sm text-gray-600">
+                    {!showAccessCodeForm ? 'Entrez votre numéro pour accéder à vos réservations' : 'Code reçu lors de votre réservation'}
+                  </CardDescription>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setShowSearchModal(false)} className="shrink-0">
+                  <X className="w-5 h-5" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {!showAccessCodeForm ? (
+                  <form onSubmit={handlePhoneSubmit} className="space-y-4">
+                    <div className={`flex items-center rounded-lg border transition-all ${phoneError ? 'border-red-400 bg-red-50' : 'border-gray-300 focus-within:border-primary-500'}`}>
+                      <div className="flex items-center px-3 py-2.5 bg-[var(--color-primary)] text-white text-sm font-medium rounded-l-lg">
+                        <Phone className="w-4 h-4 mr-1" />
+                        {phonePrefix}
+                      </div>
+                      <Input
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 9); setPhoneNumber(v); setPhoneError(''); }}
+                        placeholder="771234567"
+                        maxLength={9}
+                        className="border-0 rounded-r-lg text-base py-2.5 focus-visible:ring-0"
+                      />
+                    </div>
+                    {phoneError && <p className="text-red-600 text-sm">{phoneError}</p>}
+                    <div className="flex gap-2 flex-wrap">
+                      <Button type="button" variant={phonePrefix === '+221' ? 'default' : 'outline'} size="sm" onClick={() => { setPhonePrefix('+221'); setPhoneError(''); }} className={phonePrefix === '+221' ? 'bg-green-600 hover:bg-green-700' : ''}>🇸🇳 +221</Button>
+                      <Button type="button" variant={phonePrefix === '+242' ? 'default' : 'outline'} size="sm" onClick={() => { setPhonePrefix('+242'); setPhoneError(''); }} className={phonePrefix === '+242' ? 'bg-amber-500 hover:bg-amber-600' : ''}>🇨🇬 +242</Button>
+                    </div>
+                    <p className="text-xs text-gray-500">Format: 9 chiffres</p>
+                    <Button type="submit" className="w-full bg-primary-500 hover:bg-primary-600">
+                      <Search className="w-4 h-4 mr-2" />
+                      Rechercher
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleAccessCodeSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="modalAccessCode" className="text-sm font-medium">Code d'accès (8 caractères)</Label>
+                      <Input
+                        id="modalAccessCode"
+                        type="text"
+                        value={accessCode}
+                        onChange={(e) => { const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8); setAccessCode(v); setAccessCodeError(''); }}
+                        placeholder="A1B2C3D4"
+                        maxLength={8}
+                        className={`text-center text-lg font-mono tracking-widest ${accessCodeError ? 'border-red-500' : ''}`}
+                      />
+                      {accessCodeError && <p className="text-red-600 text-sm">{accessCodeError}</p>}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="button" variant="outline" className="flex-1" onClick={() => { setShowAccessCodeForm(false); setAccessCode(''); setAccessCodeError(''); }}>Retour</Button>
+                      <Button type="submit" className="flex-1 bg-primary-500 hover:bg-primary-600">Vérifier</Button>
+                    </div>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Pourquoi choisir AIBD */}
         {!hasSearchParams && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
+          <motion.section
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="mb-8 sm:mb-12"
+            transition={{ duration: 0.4, delay: 0.25 }}
+            className="relative mb-14 sm:mb-16"
           >
-            <div className="text-center mb-8 sm:mb-12">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
-                Pourquoi choisir AIBD ?
-              </h2>
-              <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto">
-                Un service professionnel et fiable pour vos déplacements vers l'aéroport
-              </p>
+            <h2 className="text-base sm:text-lg font-bold text-[var(--color-text)] mb-2 text-center">Pourquoi choisir AIBD ?</h2>
+            <p className="text-xs text-[var(--color-text-muted)] text-center mb-6">Service professionnel vers l'aéroport</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 w-full">
+              <div className="flex items-start gap-4 p-5 rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] hover:border-[var(--color-primary-border)] transition-colors">
+                <div className="shrink-0 w-11 h-11 rounded-lg bg-[var(--color-primary-light)] flex items-center justify-center">
+                  <Car className="w-5 h-5 text-[var(--color-primary)]" strokeWidth={2} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-[var(--color-text)]">Transport fiable</h3>
+                  <p className="text-xs text-[var(--color-text-muted)] leading-snug mt-1">Chauffeurs vérifiés pour votre sécurité</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-5 rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] hover:border-[var(--color-primary-border)] transition-colors">
+                <div className="shrink-0 w-11 h-11 rounded-lg bg-[var(--color-primary-light)] flex items-center justify-center">
+                  <Navigation className="w-5 h-5 text-[var(--color-primary)]" strokeWidth={2} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-[var(--color-text)]">Suivi en temps réel</h3>
+                  <p className="text-xs text-[var(--color-text-muted)] leading-snug mt-1">Suivez votre chauffeur sur la carte</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 p-5 rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)] hover:border-[var(--color-primary-border)] transition-colors">
+                <div className="shrink-0 w-11 h-11 rounded-lg bg-[var(--color-primary-light)] flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-[var(--color-primary)]" strokeWidth={2} />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-[var(--color-text)]">Tarifs transparents</h3>
+                  <p className="text-xs text-[var(--color-text-muted)] leading-snug mt-1">Prix fixes avant réservation</p>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
-            <motion.div
-              whileHover={{ y: -8, scale: 1.02 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="bg-white/10 backdrop-blur-xl border-white/20 hover:bg-white/15 transition-all h-full shadow-xl">
-                <CardContent className="p-6 sm:p-8 text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-2xl mb-4 sm:mb-6">
-                    <Car className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-white">Transport fiable</h3>
-                  <p className="text-sm sm:text-base text-gray-300 leading-relaxed">Chauffeurs vérifiés et professionnels pour votre sécurité</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-            <motion.div
-              whileHover={{ y: -8, scale: 1.02 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="bg-white/10 backdrop-blur-xl border-white/20 hover:bg-white/15 transition-all h-full shadow-xl">
-                <CardContent className="p-6 sm:p-8 text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-2xl mb-4 sm:mb-6">
-                    <Navigation className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-white">Suivi en temps réel</h3>
-                  <p className="text-sm sm:text-base text-gray-300 leading-relaxed">Suivez votre chauffeur en direct sur la carte</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-            <motion.div
-              whileHover={{ y: -8, scale: 1.02 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="bg-white/10 backdrop-blur-xl border-white/20 hover:bg-white/15 transition-all h-full shadow-xl">
-                <CardContent className="p-6 sm:p-8 text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-white/20 rounded-2xl mb-4 sm:mb-6">
-                    <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 text-white">Tarifs transparents</h3>
-                  <p className="text-sm sm:text-base text-gray-300 leading-relaxed">Prix clairs et fixes avant réservation</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-            </div>
-          </motion.div>
+          </motion.section>
         )}
       </main>
 

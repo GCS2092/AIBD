@@ -183,27 +183,27 @@ function NotificationsPage() {
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative text-center py-8 sm:py-12 px-4 sm:px-6"
+        className="relative text-center py-6 sm:py-12 px-3 sm:px-6"
       >
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 mb-6 bg-white/10 backdrop-blur-lg rounded-2xl border-2 border-white/20 shadow-2xl"
+          className="inline-flex items-center justify-center w-14 h-14 sm:w-20 sm:h-20 md:w-24 md:h-24 mb-4 sm:mb-6 bg-white/10 backdrop-blur-lg rounded-2xl border-2 border-white/20 shadow-2xl"
         >
-          <Bell className="w-10 h-10 md:w-12 md:h-12 text-white" />
+          <Bell className="w-7 h-7 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white" />
         </motion.div>
-        <div className="flex items-center justify-center gap-4 mb-4">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mb-3 sm:mb-4">
           <Button
             variant="outline"
             onClick={handleGoBack}
-            className="bg-white/10 text-white border-white/30 hover:bg-white/20 backdrop-blur-sm"
+            className="bg-white/10 text-white border-white/30 hover:bg-white/20 backdrop-blur-sm text-sm sm:text-base shrink-0"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Retour
           </Button>
         </div>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-3 sm:mb-4 drop-shadow-2xl tracking-tight text-white px-2">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-2 sm:mb-4 drop-shadow-2xl tracking-tight text-white px-2 break-words">
           Notifications
         </h1>
         {unreadCount > 0 && (
@@ -220,7 +220,7 @@ function NotificationsPage() {
         )}
       </motion.header>
 
-      <main className={`relative max-w-4xl mx-auto px-3 sm:px-4 md:px-6 pb-8 sm:pb-12 ${userRole === 'driver' ? 'pb-24 sm:pb-28' : ''}`}>
+      <main className={`relative w-full max-w-4xl mx-auto px-3 sm:px-4 md:px-6 pb-8 sm:pb-12 min-w-0 ${userRole === 'driver' ? 'pb-24 sm:pb-28' : ''}`}>
         {/* Filter Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -228,40 +228,40 @@ function NotificationsPage() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mb-6"
         >
-          <Card className="bg-white border-gray-200 shadow-xl">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Filter className="w-5 h-5 text-gray-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Filtres</h2>
+          <Card className="bg-white border-gray-200 shadow-xl overflow-hidden">
+            <CardContent className="p-3 sm:p-6">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <Filter className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">Filtres</h2>
               </div>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Button
                   variant={filter === 'all' ? 'default' : 'outline'}
                   onClick={() => setFilter('all')}
-                  className={`flex-1 ${filter === 'all' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                  className={`flex-1 min-w-[calc(50%-4px)] sm:min-w-0 ${filter === 'all' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
                 >
-                  <Inbox className="w-4 h-4 mr-2" />
-                  Toutes ({displayNotifications?.length || 0})
+                  <Inbox className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Toutes ({displayNotifications?.length || 0})</span>
                 </Button>
                 <Button
                   variant={filter === 'unread' ? 'default' : 'outline'}
                   onClick={() => setFilter('unread')}
-                  className={`flex-1 ${filter === 'unread' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                  className={`flex-1 min-w-[calc(50%-4px)] sm:min-w-0 ${filter === 'unread' ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
                 >
-                  <Bell className="w-4 h-4 mr-2" />
-                  Non lues ({unreadCount})
+                  <Bell className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Non lues ({unreadCount})</span>
                 </Button>
               </div>
-              <div className="flex gap-3 mt-4">
+              <div className="flex flex-wrap gap-2 sm:gap-3 mt-3 sm:mt-4">
                 {unreadCount > 0 && (
                   <Button
                     variant="outline"
                     onClick={() => markAllAsReadMutation.mutate()}
                     disabled={markAllAsReadMutation.isPending}
-                    className="flex-1 bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
+                    className="flex-1 min-w-[140px] sm:min-w-0 bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100 text-sm sm:text-base"
                   >
-                    <CheckCheck className="w-4 h-4 mr-2" />
-                    {markAllAsReadMutation.isPending ? 'Traitement...' : 'Tout marquer comme lu'}
+                    <CheckCheck className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{markAllAsReadMutation.isPending ? 'Traitement...' : 'Tout marquer comme lu'}</span>
                   </Button>
                 )}
                 {(displayNotifications && displayNotifications.length > 0) && (
@@ -273,10 +273,10 @@ function NotificationsPage() {
                       }
                     }}
                     disabled={deleteAllMutation.isPending}
-                    className={`flex-1 bg-red-50 text-red-700 border-red-300 hover:bg-red-100 ${unreadCount > 0 ? '' : 'w-full'}`}
+                    className={`flex-1 min-w-[120px] sm:min-w-0 bg-red-50 text-red-700 border-red-300 hover:bg-red-100 text-sm sm:text-base ${unreadCount > 0 ? '' : 'w-full'}`}
                   >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    {deleteAllMutation.isPending ? 'Suppression...' : 'Vider toutes'}
+                    <Trash2 className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{deleteAllMutation.isPending ? 'Suppression...' : 'Vider toutes'}</span>
                   </Button>
                 )}
               </div>
@@ -313,55 +313,55 @@ function NotificationsPage() {
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                   <Card
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-xl ${
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-xl overflow-hidden ${
                       notification.read
                         ? 'bg-white border-gray-200'
                         : 'bg-gray-50 border-gray-300 border-l-4 border-l-blue-500'
                     }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
-                    <CardContent className="p-4 sm:p-6">
-                      <div className="flex gap-4">
+                    <CardContent className="p-3 sm:p-6">
+                      <div className="flex gap-3 sm:gap-4">
                         {/* Icon */}
                         <div
-                          className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-white"
+                          className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white"
                           style={{ backgroundColor: getTypeColor(notification.type) }}
                         >
                           {getTypeIcon(notification.type)}
                         </div>
 
                         {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-3 mb-2">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className={`font-semibold text-base sm:text-lg ${
+                        <div className="flex-1 min-w-0 overflow-hidden">
+                          <div className="flex items-start justify-between gap-2 sm:gap-3 mb-1 sm:mb-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <h3 className={`font-semibold text-sm sm:text-base md:text-lg truncate ${
                                   notification.read ? 'text-gray-700' : 'text-gray-900'
                                 }`}>
                                   {notification.title}
                                 </h3>
                                 {!notification.read && (
-                                  <Badge variant="default" className="bg-blue-500 text-white text-xs px-2 py-0">
+                                  <Badge variant="default" className="bg-blue-500 text-white text-xs px-2 py-0 shrink-0">
                                     Nouveau
                                   </Badge>
                                 )}
                               </div>
-                              <p className={`text-sm sm:text-base ${
+                              <p className={`text-sm sm:text-base break-words ${
                                 notification.read ? 'text-gray-600' : 'text-gray-700'
                               }`}>
-                                {notification.message}
+                                {(notification.message ?? '').replace(/\bundefined\s+undefined\b/gi, 'le chauffeur')}
                               </p>
                             </div>
                           </div>
 
                           {/* Footer */}
-                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
-                            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
+                          <div className="flex flex-wrap items-center justify-between gap-2 mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-200">
+                            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 shrink-0">
                               <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                               <span>{formatTimeAgo(notification.createdAt)}</span>
                             </div>
                             {notification.rideId && (
-                              <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600 font-medium">
+                              <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-600 font-medium shrink-0">
                                 <span>Voir la course</span>
                                 <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
                               </div>

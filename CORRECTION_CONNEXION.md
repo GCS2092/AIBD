@@ -56,12 +56,12 @@ Les hashs doivent faire 64 caractères (SHA-256 hex).
 
 ## 📝 Comptes de test
 
-- **Admin 1** : `admin1@aibd.sn` / `password123`
-- **Admin 2** : `admin2@aibd.sn` / `password123`
-- **Admin 3** : `admin3@aibd.sn` / `password123`
-- **Driver 1** : `driver1@aibd.sn` / `password123`
-- **Driver 2** : `driver2@aibd.sn` / `password123`
-- **Driver 3** : `driver3@aibd.sn` / `password123`
+- **Admin 1** : `admin1@aibd.sn` / `password`
+- **Admin 2** : `admin2@aibd.sn` / `password`
+- **Admin 3** : `admin3@aibd.sn` / `password`
+- **Driver 1** : `driver1@aibd.sn` / `password`
+- **Driver 2** : `driver2@aibd.sn` / `password`
+- **Driver 3** : `driver3@aibd.sn` / `password`
 
 ## ⚠️ Si ça ne fonctionne toujours pas
 

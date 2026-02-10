@@ -29,6 +29,7 @@ function HistoryPage() {
   const [lastName, setLastName] = useState<string>('');
   const [accessCode, setAccessCode] = useState<string>('');
   const [accessCodeError, setAccessCodeError] = useState<string>('');
+  const [searchError, setSearchError] = useState<string>('');
   const [showAccessCodeForm, setShowAccessCodeForm] = useState<boolean>(false);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
@@ -102,7 +103,7 @@ function HistoryPage() {
 
   const hasSearchParams = !!(searchParams.phone || searchParams.email || searchParams.firstName || searchParams.lastName) && !!searchParams.accessCode;
 
-  const { data: ridesData, isLoading } = useQuery({
+  const { data: ridesData, isLoading, isError, error } = useQuery({
     queryKey: ['my-rides', searchParams, page],
     queryFn: () => rideService.getMyRides(
       page,
@@ -121,6 +122,7 @@ function HistoryPage() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSearchError('');
     const params: any = {};
     
     if (phoneNumber.trim()) {
@@ -138,7 +140,7 @@ function HistoryPage() {
       setSearchParams(params);
       setShowAccessCodeForm(true);
     } else {
-      alert('Veuillez remplir au moins un champ de recherche');
+      setSearchError('Veuillez remplir au moins un champ de recherche (téléphone, email, prénom ou nom).');
     }
   };
 
@@ -235,7 +237,7 @@ function HistoryPage() {
                       <select
                         value={phonePrefix}
                         onChange={(e) => setPhonePrefix(e.target.value)}
-                        className="w-32 h-10 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 transition-all duration-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 focus:shadow-md focus:outline-none hover:border-gray-400"
+                        className="w-32 h-10 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-gray-900 transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:shadow-md focus:outline-none hover:border-gray-400"
                       >
                         <option value="+221">🇸🇳 +221</option>
                         <option value="+242">🇨🇬 +242</option>
@@ -248,10 +250,11 @@ function HistoryPage() {
                           if (value.length <= 9) {
                             setPhoneNumber(value);
                           }
+                          setSearchError('');
                         }}
                         placeholder="771234567"
                         maxLength={9}
-                        className="flex-1 bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 focus:shadow-md hover:border-gray-400"
+                        className="flex-1 bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:shadow-md hover:border-gray-400"
                       />
                     </div>
                   </div>
@@ -266,7 +269,7 @@ function HistoryPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="votre@email.com (optionnel)"
-                      className="bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 focus:shadow-md hover:border-gray-400"
+                      className="bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:shadow-md hover:border-gray-400"
                     />
                   </div>
 
@@ -281,7 +284,7 @@ function HistoryPage() {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         placeholder="Prénom"
-                        className="bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 focus:shadow-md hover:border-gray-400"
+                        className="bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:shadow-md hover:border-gray-400"
                       />
                     </div>
                     <div className="space-y-2">
@@ -294,10 +297,17 @@ function HistoryPage() {
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         placeholder="Nom"
-                        className="bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 focus:shadow-md hover:border-gray-400"
+                        className="bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:shadow-md hover:border-gray-400"
                       />
                     </div>
                   </div>
+
+                  {searchError && (
+                    <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
+                      <X className="w-4 h-4 flex-shrink-0" />
+                      <span>{searchError}</span>
+                    </div>
+                  )}
 
                   <Button 
                     type="submit" 
@@ -337,7 +347,7 @@ function HistoryPage() {
                         }}
                         placeholder="Ex: A1B2C3D4"
                         maxLength={8}
-                        className={`bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-gray-900 focus:ring-2 focus:ring-gray-900/20 focus:shadow-md hover:border-gray-400 text-center text-2xl font-bold tracking-widest ${accessCodeError ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}`}
+                        className={`bg-gray-50 border-gray-300 text-gray-900 transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:shadow-md hover:border-gray-400 text-center text-2xl font-bold tracking-widest ${accessCodeError ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}`}
                       />
                       {accessCodeError && (
                         <motion.div
@@ -360,6 +370,7 @@ function HistoryPage() {
                           setShowAccessCodeForm(false);
                           setAccessCode('');
                           setAccessCodeError('');
+                          setSearchError('');
                         }}
                         className="flex-1 bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
                       >
@@ -402,6 +413,8 @@ function HistoryPage() {
                   setFirstName('');
                   setLastName('');
                   setAccessCode('');
+                  setAccessCodeError('');
+                  setSearchError('');
                   setShowAccessCodeForm(false);
                   localStorage.removeItem('clientPhone');
                 }}
@@ -412,7 +425,31 @@ function HistoryPage() {
               </Button>
             </div>
 
-            {isLoading ? (
+            {isError ? (
+              <Card className="bg-white border-red-200 shadow-xl max-w-2xl mx-auto">
+                <CardContent className="px-6 py-8 text-center">
+                  <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-100 text-red-600 mb-4">
+                    <X className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Erreur lors de la recherche</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {(error as any)?.response?.data?.message || (error as Error)?.message || 'Code d\'accès incorrect ou données introuvables. Vérifiez vos informations et réessayez.'}
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchParams({});
+                      setAccessCode('');
+                      setAccessCodeError('');
+                      setShowAccessCodeForm(false);
+                    }}
+                    className="border-gray-300"
+                  >
+                    Nouvelle recherche
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : isLoading ? (
               <div className="text-center py-16">
                 <motion.div
                   animate={{ rotate: 360 }}
@@ -509,7 +546,7 @@ function HistoryPage() {
                             ride.status === 'in_progress') && (
                             <Button
                               asChild
-                              className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold shadow-lg"
+                              className="flex-1 bg-primary-500 hover:bg-primary-600 text-white font-semibold shadow-lg"
                             >
                               <Link to={`/track/${ride.id}`} className="flex items-center justify-center">
                                 <MapPin className="mr-2 w-4 h-4" />
@@ -556,7 +593,7 @@ function HistoryPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-3">Aucune course trouvée</h3>
                   <p className="text-gray-600 mb-6">Aucune course dans l'historique pour ces critères de recherche.</p>
-                  <Button asChild size="lg" className="bg-gray-900 hover:bg-gray-800 text-white font-semibold shadow-lg">
+                  <Button asChild size="lg" className="bg-primary-500 hover:bg-primary-600 text-white font-semibold shadow-lg">
                     <Link to="/book" className="flex items-center">
                       Réserver votre première course
                     </Link>

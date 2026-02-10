@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, Mail, Lock, ArrowLeft, Plane } from 'lucide-react';
 import { authService } from '../services/authService';
+import { fcmService } from '../services/fcmService';
 import NavigationBar from '../components/NavigationBar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,6 +90,10 @@ function LoginPage() {
       console.log('API URL:', import.meta.env.VITE_API_URL || 'http://localhost:3000');
       const response = await authService.login({ email, password });
       console.log('Connexion réussie:', response);
+
+      if (fcmService.isSupported()) {
+        fcmService.initialize();
+      }
       
       // Rediriger selon le rôle
       if (response.user.role === 'admin') {

@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { MapPin, Navigation, Calendar, Clock, RefreshCw, CheckCircle2, XCircle, Plane, ArrowLeft, Radio, Users, Car } from 'lucide-react';
+import { MapPin, Navigation, Calendar, Clock, RefreshCw, CheckCircle2, XCircle, Plane, ArrowLeft, Radio, Users, Car, ExternalLink } from 'lucide-react';
 import { useRideStatus } from '../hooks/useRide';
 import { useETA } from '../hooks/useGPS';
+import { useWebSocket } from '../hooks/useWebSocket';
 import MapComponent from '../components/MapComponent';
 import NavigationBar from '../components/NavigationBar';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,37 @@ function TrackingPage() {
   const { t } = useTranslation();
   const { data: ride, isLoading, refetch } = useRideStatus(rideId || null);
   const { data: etaData } = useETA(rideId || null, !!ride);
+  const { listenToRide } = useWebSocket();
+  const [liveDriverLocation, setLiveDriverLocation] = useState<{ lat: number; lng: number; timestamp?: Date } | null>(null);
+
+  // Mise à jour temps réel de la position du chauffeur via WebSocket
+  useEffect(() => {
+    if (!rideId || !ride) return;
+    const unsubscribe = listenToRide(rideId, (data: any) => {
+      if (data?.driverLocation) setLiveDriverLocation(data.driverLocation);
+    });
+    return unsubscribe;
+  }, [rideId, ride, listenToRide]);
+
+  const driverLocation = liveDriverLocation ?? ride?.driverLocation;
+
+  // Garder le code d'accès en localStorage tant que la course n'est pas terminée ; le retirer quand terminée/annulée
+  useEffect(() => {
+    if (!ride?.accessCode) return;
+    if (ride.status === 'completed' || ride.status === 'cancelled') {
+      try {
+        if (localStorage.getItem('activeAccessCode') === ride.accessCode) {
+          localStorage.removeItem('activeAccessCode');
+          window.dispatchEvent(new CustomEvent('activeAccessCodeUpdated'));
+        }
+      } catch (_) {}
+    } else {
+      try {
+        localStorage.setItem('activeAccessCode', ride.accessCode);
+        window.dispatchEvent(new CustomEvent('activeAccessCodeUpdated'));
+      } catch (_) {}
+    }
+  }, [ride?.id, ride?.accessCode, ride?.status]);
 
   // Rafraîchir automatiquement toutes les 5 secondes si la course est active
   useEffect(() => {
@@ -287,7 +319,7 @@ function TrackingPage() {
         </motion.div>
 
         {/* Carte - Afficher toujours si on a au moins pickup ou dropoff, ou si un chauffeur est assigné */}
-        {(ride.pickupLocation || ride.dropoffLocation || ride.driverLocation || (ride.driver && ride.status !== 'pending')) && (
+        {(ride.pickupLocation || ride.dropoffLocation || driverLocation || (ride.driver && ride.status !== 'pending')) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -301,19 +333,56 @@ function TrackingPage() {
                     <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-gray-900" />
                   </div>
                   <CardTitle className="text-lg sm:text-2xl text-gray-900">
-                    {ride.driverLocation ? 'Position en temps réel' : 'Carte du trajet'}
+                    {driverLocation ? 'Position en temps réel' : 'Carte du trajet'}
                   </CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="px-4 sm:px-6">
                 <div className="rounded-lg overflow-hidden border-2 border-gray-200" style={{ height: '300px' }}>
                   <MapComponent
-                    driverLocation={ride.driverLocation}
+                    driverLocation={driverLocation}
                     pickupLocation={ride.pickupLocation}
                     dropoffLocation={ride.dropoffLocation}
                   />
                 </div>
-                {!ride.driverLocation && isActive && (
+                {(ride.pickupLocation || ride.dropoffLocation) && (
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {ride.pickupLocation && (
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${ride.pickupLocation.lat},${ride.pickupLocation.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#4285F4] text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-md"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Départ (Maps)
+                      </a>
+                    )}
+                    {ride.dropoffLocation && (
+                      <>
+                        <a
+                          href={`https://www.google.com/maps/dir/?api=1&destination=${ride.dropoffLocation.lat},${ride.dropoffLocation.lng}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#34A853] text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-md"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Arrivée (Maps)
+                        </a>
+                        <a
+                          href={`https://waze.com/ul?ll=${ride.dropoffLocation.lat},${ride.dropoffLocation.lng}&navigate=yes`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#33CCFF] text-white font-semibold text-sm hover:opacity-90 transition-opacity shadow-md"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Waze
+                        </a>
+                      </>
+                    )}
+                  </div>
+                )}
+                {!driverLocation && isActive && (
                   <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-sm text-yellow-800 flex items-center gap-2">
                       <Clock className="w-4 h-4" />
@@ -327,7 +396,7 @@ function TrackingPage() {
         )}
 
         {/* Message d'état seulement si aucune localisation n'est disponible */}
-        {!ride.driverLocation && !ride.pickupLocation && !ride.dropoffLocation && ride.status !== 'completed' && ride.status !== 'cancelled' && (
+        {!driverLocation && !ride.pickupLocation && !ride.dropoffLocation && ride.status !== 'completed' && ride.status !== 'cancelled' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

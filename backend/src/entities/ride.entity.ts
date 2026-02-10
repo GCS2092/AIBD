@@ -30,6 +30,12 @@ export enum RideType {
   AIRPORT_TO_DAKAR = 'airport_to_dakar',
 }
 
+export enum TripType {
+  ALLER_RETOUR = 'aller_retour',
+  ALLER_SIMPLE = 'aller_simple',
+  RETOUR_SIMPLE = 'retour_simple',
+}
+
 @Entity('rides')
 export class Ride {
   @PrimaryGeneratedColumn('uuid')
@@ -60,6 +66,27 @@ export class Ride {
 
   @Column({ type: 'varchar', length: 1000 }) // Augmenté pour chiffré
   dropoffAddress: string; // Adresse d'arrivée
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  tripType: string; // 'aller_retour' | 'aller_simple' | 'retour_simple' pour tarification
+
+  @Column({ type: 'varchar', length: 200, nullable: true }) // Augmenté pour chiffré
+  pickupCountry: string;
+
+  @Column({ type: 'varchar', length: 200, nullable: true }) // Augmenté pour chiffré
+  pickupCity: string;
+
+  @Column({ type: 'varchar', length: 200, nullable: true }) // Augmenté pour chiffré
+  pickupQuartier: string;
+
+  @Column({ type: 'varchar', length: 200, nullable: true }) // Augmenté pour chiffré
+  dropoffCountry: string;
+
+  @Column({ type: 'varchar', length: 200, nullable: true }) // Augmenté pour chiffré
+  dropoffCity: string;
+
+  @Column({ type: 'varchar', length: 200, nullable: true }) // Augmenté pour chiffré
+  dropoffQuartier: string;
 
   @Column({
     type: 'enum',
@@ -177,9 +204,9 @@ export class Ride {
       this.clientLastName = this.encryptionService.encrypt(this.clientLastName);
     }
     if (this.clientPhone) {
-      // Calculer le hash AVANT de chiffrer (pour recherche)
-      this.clientPhoneHash = this.encryptionService.hashForSearch(this.clientPhone);
-      // Puis chiffrer
+      // Normaliser le téléphone (sans espaces) pour que la recherche par code corresponde
+      const phoneForHash = this.clientPhone.replace(/\s/g, '').trim();
+      this.clientPhoneHash = this.encryptionService.hashForSearch(phoneForHash);
       this.clientPhone = this.encryptionService.encrypt(this.clientPhone);
     }
     if (this.clientEmail) {
@@ -193,6 +220,24 @@ export class Ride {
     }
     if (this.dropoffAddress) {
       this.dropoffAddress = this.encryptionService.encrypt(this.dropoffAddress);
+    }
+    if (this.pickupCountry) {
+      this.pickupCountry = this.encryptionService.encrypt(this.pickupCountry);
+    }
+    if (this.pickupCity) {
+      this.pickupCity = this.encryptionService.encrypt(this.pickupCity);
+    }
+    if (this.pickupQuartier) {
+      this.pickupQuartier = this.encryptionService.encrypt(this.pickupQuartier);
+    }
+    if (this.dropoffCountry) {
+      this.dropoffCountry = this.encryptionService.encrypt(this.dropoffCountry);
+    }
+    if (this.dropoffCity) {
+      this.dropoffCity = this.encryptionService.encrypt(this.dropoffCity);
+    }
+    if (this.dropoffQuartier) {
+      this.dropoffQuartier = this.encryptionService.encrypt(this.dropoffQuartier);
     }
     if (this.flightNumber) {
       this.flightNumber = this.encryptionService.encrypt(this.flightNumber);
@@ -247,6 +292,48 @@ export class Ride {
         this.dropoffAddress = this.encryptionService.decrypt(this.dropoffAddress);
       } catch (e) {
         console.warn('Erreur déchiffrement dropoffAddress:', e);
+      }
+    }
+    if (this.pickupCountry && typeof this.pickupCountry === 'string' && this.pickupCountry.includes(':')) {
+      try {
+        this.pickupCountry = this.encryptionService.decrypt(this.pickupCountry);
+      } catch (e) {
+        console.warn('Erreur déchiffrement pickupCountry:', e);
+      }
+    }
+    if (this.pickupCity && typeof this.pickupCity === 'string' && this.pickupCity.includes(':')) {
+      try {
+        this.pickupCity = this.encryptionService.decrypt(this.pickupCity);
+      } catch (e) {
+        console.warn('Erreur déchiffrement pickupCity:', e);
+      }
+    }
+    if (this.pickupQuartier && typeof this.pickupQuartier === 'string' && this.pickupQuartier.includes(':')) {
+      try {
+        this.pickupQuartier = this.encryptionService.decrypt(this.pickupQuartier);
+      } catch (e) {
+        console.warn('Erreur déchiffrement pickupQuartier:', e);
+      }
+    }
+    if (this.dropoffCountry && typeof this.dropoffCountry === 'string' && this.dropoffCountry.includes(':')) {
+      try {
+        this.dropoffCountry = this.encryptionService.decrypt(this.dropoffCountry);
+      } catch (e) {
+        console.warn('Erreur déchiffrement dropoffCountry:', e);
+      }
+    }
+    if (this.dropoffCity && typeof this.dropoffCity === 'string' && this.dropoffCity.includes(':')) {
+      try {
+        this.dropoffCity = this.encryptionService.decrypt(this.dropoffCity);
+      } catch (e) {
+        console.warn('Erreur déchiffrement dropoffCity:', e);
+      }
+    }
+    if (this.dropoffQuartier && typeof this.dropoffQuartier === 'string' && this.dropoffQuartier.includes(':')) {
+      try {
+        this.dropoffQuartier = this.encryptionService.decrypt(this.dropoffQuartier);
+      } catch (e) {
+        console.warn('Erreur déchiffrement dropoffQuartier:', e);
       }
     }
     if (this.flightNumber && typeof this.flightNumber === 'string' && this.flightNumber.includes(':')) {

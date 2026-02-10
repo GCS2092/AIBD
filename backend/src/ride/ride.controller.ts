@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Query } from '@nestjs/common';
 import { RideService } from './ride.service';
 import { CreateRideDto } from './dto/create-ride.dto';
+import { UpdateRideByCodeDto } from './dto/update-ride-by-code.dto';
 import { Throttle } from '@nestjs/throttler';
 
 @Controller('rides')
@@ -11,6 +12,20 @@ export class RideController {
   @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requêtes par minute
   async createRide(@Body() createDto: CreateRideDto) {
     return this.rideService.createRide(createDto);
+  }
+
+  @Get('by-code')
+  async getRideByCode(@Query('accessCode') accessCode: string, @Query('phone') phone: string) {
+    return this.rideService.getRideByAccessCode(accessCode || '', phone || '');
+  }
+
+  @Patch('by-code')
+  async updateRideByCode(
+    @Query('accessCode') accessCode: string,
+    @Query('phone') phone: string,
+    @Body() dto: UpdateRideByCodeDto,
+  ) {
+    return this.rideService.updateRideByAccessCode(accessCode || '', phone || '', dto);
   }
 
   @Get('my-rides')

@@ -24,7 +24,9 @@ import {
   Edit,
   Car as CarIcon,
   DollarSign,
-  CheckCircle2
+  CheckCircle2,
+  X,
+  AlertCircle
 } from 'lucide-react';
 import './DriverDashboard.css';
 
@@ -36,6 +38,7 @@ function DriverDashboard() {
   const [ridesPage, setRidesPage] = useState(1);
   const [pageSize] = useState(10);
   const [selectedTab, setSelectedTab] = useState<'overview' | 'available' | 'active' | 'history'>('overview');
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authService.isAuthenticated()) {
@@ -47,6 +50,11 @@ function DriverDashboard() {
   useEffect(() => {
     setRidesPage(1);
   }, [statusFilter]);
+
+  // Effacer le message d'erreur quand on change d'onglet
+  useEffect(() => {
+    setActionError(null);
+  }, [selectedTab]);
 
   const { data: profile } = useQuery({
     queryKey: ['driver-profile'],
@@ -73,34 +81,50 @@ function DriverDashboard() {
   const acceptRideMutation = useMutation({
     mutationFn: (rideId: string) => driverService.acceptRide(rideId),
     onSuccess: () => {
-      // Invalider toutes les queries liées pour rafraîchir automatiquement
+      setActionError(null);
       queryClient.invalidateQueries({ queryKey: ['driver-rides'] });
       queryClient.invalidateQueries({ queryKey: ['driver-available-rides'] });
       queryClient.invalidateQueries({ queryKey: ['driver-profile'] });
+    },
+    onError: (error: any) => {
+      const msg = error?.response?.data?.message || error?.message || 'Impossible d\'accepter la course.';
+      setActionError(msg);
     },
   });
 
   const refuseRideMutation = useMutation({
     mutationFn: (rideId: string) => driverService.refuseRide(rideId),
     onSuccess: () => {
+      setActionError(null);
       queryClient.invalidateQueries({ queryKey: ['driver-rides'] });
       queryClient.invalidateQueries({ queryKey: ['driver-available-rides'] });
+    },
+    onError: (error: any) => {
+      setActionError(error?.response?.data?.message || error?.message || 'Impossible de refuser la course.');
     },
   });
 
   const startRideMutation = useMutation({
     mutationFn: (rideId: string) => driverService.startRide(rideId),
     onSuccess: () => {
+      setActionError(null);
       queryClient.invalidateQueries({ queryKey: ['driver-rides'] });
       queryClient.invalidateQueries({ queryKey: ['driver-profile'] });
+    },
+    onError: (error: any) => {
+      setActionError(error?.response?.data?.message || error?.message || 'Impossible de démarrer la course.');
     },
   });
 
   const completeRideMutation = useMutation({
     mutationFn: (rideId: string) => driverService.completeRide(rideId),
     onSuccess: () => {
+      setActionError(null);
       queryClient.invalidateQueries({ queryKey: ['driver-rides'] });
       queryClient.invalidateQueries({ queryKey: ['driver-profile'] });
+    },
+    onError: (error: any) => {
+      setActionError(error?.response?.data?.message || error?.message || 'Impossible de terminer la course.');
     },
   });
 
@@ -165,6 +189,45 @@ function DriverDashboard() {
       </div>
 
       <div className="dashboard-content">
+        {actionError && (() => {
+          const rideIdMatch = actionError.match(/\(([a-f0-9-]{8}[a-f0-9-]*)\)/i);
+          const suggestedRideId = rideIdMatch ? rideIdMatch[1] : null;
+          const activeRide = activeRides.find(r => r.id === suggestedRideId || r.id?.startsWith(suggestedRideId || ''));
+          return (
+            <div className="driver-action-error-banner" role="alert">
+              <div className="driver-action-error-banner__icon">
+                <AlertCircle className="w-5 h-5" strokeWidth={2} />
+              </div>
+              <div className="driver-action-error-banner__body">
+                <p className="driver-action-error-banner__title">Attention</p>
+                <p className="driver-action-error-banner__message">{actionError}</p>
+                <div className="driver-action-error-banner__actions">
+                  {activeRide && (
+                    <button
+                      type="button"
+                      className="driver-action-error-banner__btn-action"
+                      onClick={() => {
+                        setActionError(null);
+                        navigate(`/driver/track/${activeRide.id}`);
+                      }}
+                    >
+                      <Navigation className="w-4 h-4" />
+                      Voir ma course
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="driver-action-error-banner__btn-close"
+                    onClick={() => setActionError(null)}
+                    aria-label="Fermer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
         {selectedTab === 'overview' && (
           <>
             {/* Statistiques principales */}

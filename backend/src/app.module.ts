@@ -18,6 +18,7 @@ import { InternalNotification } from './entities/internal-notification.entity';
 import { Cancellation } from './entities/cancellation.entity';
 import { Config } from './entities/config.entity';
 import { RideAssignment } from './entities/ride-assignment.entity';
+import { FcmToken } from './entities/fcm-token.entity';
 
 // Modules
 import { AuthModule } from './auth/auth.module';
@@ -63,6 +64,7 @@ import { FirebaseModule } from './firebase/firebase.module';
       InternalNotification,
       Cancellation,
       Config,
+      FcmToken,
     ]),
     EncryptionModule,
     AuthModule,

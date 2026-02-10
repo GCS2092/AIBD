@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ride } from '../entities/ride.entity';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { WebSocketGateway } from '../websocket/websocket.gateway';
 
 @Injectable()
 export class GpsService {
   constructor(
     @InjectRepository(Ride)
     private rideRepository: Repository<Ride>,
+    private websocketGateway: WebSocketGateway,
   ) {}
 
   async updateDriverLocation(rideId: string, locationDto: UpdateLocationDto) {
@@ -28,6 +30,13 @@ export class GpsService {
     };
 
     await this.rideRepository.save(ride);
+
+    // Diffuser en temps réel aux clients qui suivent cette course
+    this.websocketGateway.emitRideUpdate(rideId, {
+      id: ride.id,
+      driverLocation: ride.driverLocation,
+      status: ride.status,
+    });
 
     return {
       message: 'Position mise à jour',

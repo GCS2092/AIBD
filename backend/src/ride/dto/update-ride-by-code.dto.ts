@@ -1,14 +1,10 @@
 import {
   IsString,
-  IsNotEmpty,
-  IsEmail,
   IsOptional,
+  IsEmail,
   Matches,
   IsDateString,
   IsEnum,
-  IsInt,
-  Min,
-  ValidateIf,
   IsIn,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -16,51 +12,46 @@ import { RideType } from '../../entities/ride.entity';
 
 const TRIP_TYPES = ['aller_retour', 'aller_simple', 'retour_simple'] as const;
 
-export class CreateRideDto {
+export class UpdateRideByCodeDto {
   @IsString()
-  @IsNotEmpty()
-  clientFirstName: string;
+  @IsOptional()
+  clientFirstName?: string;
 
   @IsString()
-  @IsNotEmpty()
-  clientLastName: string;
+  @IsOptional()
+  clientLastName?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @Matches(/^\+2(21|42)[0-9]{9}$/, {
     message: 'Le téléphone doit être au format +221XXXXXXXXX (Sénégal) ou +242XXXXXXXXX (Congo)',
   })
-  clientPhone: string;
+  clientPhone?: string;
 
-  @Transform(({ value }) => {
-    if (value === '' || value === null) return undefined;
-    return value;
-  })
-  @ValidateIf((o) => o.clientEmail !== undefined && o.clientEmail !== null && o.clientEmail !== '')
-  @IsEmail({}, { message: 'L\'email doit être valide' })
+  @Transform(({ value }) => (value === '' || value === null ? undefined : value))
   @IsOptional()
+  @IsEmail({}, { message: 'L\'email doit être valide' })
   clientEmail?: string;
 
   @IsString()
-  @IsNotEmpty()
-  pickupAddress: string;
+  @IsOptional()
+  pickupAddress?: string;
 
   @IsString()
-  @IsNotEmpty()
-  dropoffAddress: string;
+  @IsOptional()
+  dropoffAddress?: string;
 
   @IsOptional()
-  @IsIn(TRIP_TYPES, { message: 'tripType doit être aller_retour, aller_simple ou retour_simple' })
+  @IsIn(TRIP_TYPES)
   tripType?: typeof TRIP_TYPES[number];
 
-  @ValidateIf((o) => !o.tripType)
-  @IsEnum(RideType)
   @IsOptional()
+  @IsEnum(RideType)
   rideType?: RideType;
 
   @IsDateString()
-  @IsNotEmpty()
-  scheduledAt: string;
+  @IsOptional()
+  scheduledAt?: string;
 
   @IsString()
   @IsOptional()
@@ -89,19 +80,4 @@ export class CreateRideDto {
   @IsString()
   @IsOptional()
   dropoffQuartier?: string;
-
-  @IsInt()
-  @Min(1)
-  @IsOptional()
-  numberOfPassengers?: number;
-
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  numberOfBags?: number;
-
-  @IsString()
-  @IsOptional()
-  specialRequests?: string;
 }
-

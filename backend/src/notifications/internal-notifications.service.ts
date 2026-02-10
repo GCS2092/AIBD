@@ -2,6 +2,7 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InternalNotification, InternalNotificationType } from '../entities/internal-notification.entity';
+import { FcmToken } from '../entities/fcm-token.entity';
 import { Driver } from '../entities/driver.entity';
 import { Ride, RideStatus } from '../entities/ride.entity';
 import { WebSocketGateway } from '../websocket/websocket.gateway';
@@ -11,6 +12,8 @@ export class InternalNotificationsService {
   constructor(
     @InjectRepository(InternalNotification)
     private notificationRepository: Repository<InternalNotification>,
+    @InjectRepository(FcmToken)
+    private fcmTokenRepository: Repository<FcmToken>,
     @Inject(forwardRef(() => WebSocketGateway))
     private websocketGateway: WebSocketGateway,
   ) {}
@@ -228,6 +231,25 @@ export class InternalNotificationsService {
     return this.notificationRepository.count({
       where: { userId, read: false },
     });
+  }
+
+  // Enregistrer un token FCM pour les notifications push
+  async registerFcmToken(userId: string, token: string, deviceLabel?: string): Promise<{ registered: boolean }> {
+    const existing = await this.fcmTokenRepository.findOne({
+      where: { userId, token },
+    });
+    if (existing) {
+      if (deviceLabel) existing.deviceLabel = deviceLabel;
+      await this.fcmTokenRepository.save(existing);
+      return { registered: true };
+    }
+    const fcmToken = this.fcmTokenRepository.create({
+      userId,
+      token,
+      deviceLabel: deviceLabel || null,
+    });
+    await this.fcmTokenRepository.save(fcmToken);
+    return { registered: true };
   }
 }
 

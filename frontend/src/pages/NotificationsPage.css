@@ -1,10 +1,20 @@
-/* NotificationsPage.css - Design moderne blanc/noir */
+/* NotificationsPage.css - Design moderne et responsive */
 
 .notifications-page {
-  /* Styles globaux gérés par Tailwind dans le composant */
+  box-sizing: border-box;
 }
 
-/* Animations personnalisées si nécessaire */
+/* Conteneur principal : éviter débordement horizontal */
+.notifications-page main {
+  overflow-x: hidden;
+}
+
+/* Cartes de notification : texte qui wrap correctement */
+.notifications-page .break-words {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
 @keyframes pulse-glow {
   0%, 100% {
     opacity: 1;
@@ -14,9 +24,17 @@
   }
 }
 
-/* Responsive adjustments */
+/* Mobile : espacement et lisibilité */
 @media (max-width: 640px) {
-  .notifications-page {
-    /* Ajustements spécifiques pour très petits écrans si nécessaire */
+  .notifications-page header {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* Très petits écrans : boutons filtres en pleine largeur si besoin */
+@media (max-width: 380px) {
+  .notifications-page button span.truncate {
+    max-width: 120px;
   }
 }
