@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Key, Phone, User, Mail, MapPin, Plane, Calendar, Loader2, ArrowRight } from 'lucide-react';
+import { Key, User, Mail, MapPin, Plane, Calendar, Loader2, ArrowRight } from 'lucide-react';
 import { rideService, Ride, TripType } from '../services/rideService';
 import NavigationBar from '../components/NavigationBar';
 import { Button } from '@/components/ui/button';

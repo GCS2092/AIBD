@@ -19,7 +19,7 @@ function TrackingPage() {
   const { data: ride, isLoading, refetch } = useRideStatus(rideId || null);
   const { data: etaData } = useETA(rideId || null, !!ride);
   const { listenToRide } = useWebSocket();
-  const [liveDriverLocation, setLiveDriverLocation] = useState<{ lat: number; lng: number; timestamp?: Date } | null>(null);
+  const [liveDriverLocation, setLiveDriverLocation] = useState<{ lat: number; lng: number; timestamp?: string } | null>(null);
 
   // Mise à jour temps réel de la position du chauffeur via WebSocket
   useEffect(() => {
