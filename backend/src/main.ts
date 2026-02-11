@@ -20,15 +20,18 @@ async function bootstrap() {
     }
   }
 
-  // Enable CORS for frontend (accepter localhost et IPs locales détectées)
-  const allowedOrigins = [
+  // Enable CORS for frontend (accepter localhost, IPs locales, Vercel, Render)
+  const allowedOrigins: (string | RegExp)[] = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
-    ...localIPs.map(ip => `http://${ip}:5173`), // Ajouter toutes les IPs locales détectées
+    ...localIPs.map(ip => `http://${ip}:5173`),
     process.env.FRONTEND_URL,
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
-    process.env.FRONTEND_VERCEL_URL, // URL Vercel personnalisée
-    // Accepter tous les domaines Vercel
+    process.env.FRONTEND_VERCEL_URL,
+    // Origines de production connues (front Vercel)
+    'https://aibd-fsdx.vercel.app',
+    'https://aibd-fsdx-git-main-gcs2092s-projects.vercel.app',
+    // Tous les sous-domaines Vercel (*.vercel.app, *.vercel.com)
     /^https:\/\/.*\.vercel\.app$/,
     /^https:\/\/.*\.vercel\.com$/,
   ].filter(Boolean);
@@ -68,6 +71,7 @@ async function bootstrap() {
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200, // Préflight OPTIONS : certains proxies (ex. Render) attendent 200
   });
 
   // Global validation pipe
