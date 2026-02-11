@@ -1,0 +1,12 @@
+{
+  "name": "aibd-monorepo",
+  "private": true,
+  "description": "Racine du repo pour déploiement Railway : build et start du backend",
+  "scripts": {
+    "build": "cd backend && npm ci && npm run build",
+    "start": "cd backend && npm run start:prod"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
