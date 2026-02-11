@@ -21,7 +21,7 @@ async function bootstrap() {
   }
 
   // Enable CORS for frontend (accepter localhost, IPs locales, Vercel, Render)
-  const allowedOrigins: (string | RegExp)[] = [
+  const allowedOrigins = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
     ...localIPs.map(ip => `http://${ip}:5173`),
@@ -34,7 +34,7 @@ async function bootstrap() {
     // Tous les sous-domaines Vercel (*.vercel.app, *.vercel.com)
     /^https:\/\/.*\.vercel\.app$/,
     /^https:\/\/.*\.vercel\.com$/,
-  ].filter(Boolean);
+  ].filter((x): x is string | RegExp => Boolean(x));
 
   const isProduction = process.env.NODE_ENV === 'production';
   
