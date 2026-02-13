@@ -15,9 +15,11 @@ function getApiUrl(): string {
   const hostname = window.location.hostname;
   const isProduction = hostname.includes('vercel.app') || hostname.includes('vercel.com') || !hostname.includes('localhost');
   
-  // Si on est en production, utiliser l'URL du backend Render
+  // En production (Vercel) : définir VITE_API_URL dans Vercel → Settings → Environment Variables
   if (isProduction) {
-    return 'https://aibd-backend-sb36.onrender.com';
+    if (envApiUrl) return envApiUrl;
+    // Fallback : même domaine (si backend exposé sous /api sur le même projet Vercel)
+    return window.location.origin;
   }
   
   // Si l'hostname est une IP locale (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
