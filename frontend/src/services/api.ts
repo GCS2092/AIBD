@@ -36,12 +36,22 @@ apiClient.interceptors.response.use(
         hostname: window.location.hostname,
       });
       
-      // Afficher un message plus clair
-      const errorMessage = `Impossible de se connecter au serveur. Vérifiez que :
+      const baseUrl = error.config?.baseURL || 'non définie';
+      const isLocalhost = baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
+      const isSupabaseUrl = typeof baseUrl === 'string' && baseUrl.includes('supabase.co');
+      const isVercel = typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('vercel.com'));
+      let errorMessage: string;
+      if (isVercel && isSupabaseUrl) {
+        errorMessage = `VITE_API_URL pointe vers Supabase (${baseUrl}). Il doit pointer vers ton backend NestJS (ex. https://ton-backend.onrender.com), pas vers Supabase. Sur Vercel → Settings → Environment Variables, remplace VITE_API_URL par l’URL publique de ton backend, puis redéploie.`;
+      } else if (isVercel && isLocalhost) {
+        errorMessage = `Impossible de se connecter au backend. L’API pointe vers ${baseUrl} (local). Sur Vercel → Settings → Environment Variables, définir VITE_API_URL avec l’URL publique de ton backend NestJS, puis redéployer.`;
+      } else {
+        errorMessage = `Impossible de se connecter au serveur. Vérifiez que :
 1. Le backend est démarré (http://localhost:3001)
 2. Vous êtes sur le même réseau WiFi
-3. L'URL de l'API est correcte: ${error.config?.baseURL || 'non définie'}
-4. Le firewall Windows autorise les connexions sur le port 3001`;
+3. L’URL de l’API est correcte : ${baseUrl}
+4. Le firewall autorise les connexions sur le port 3001`;
+      }
       
       console.error(errorMessage);
       

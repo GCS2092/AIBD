@@ -22,6 +22,7 @@ import DriverTrackingPage from './pages/DriverTrackingPage';
 import EditDriverPage from './pages/EditDriverPage';
 import EditDriverProfilePage from './pages/EditDriverProfilePage';
 import RegisterVehiclePage from './pages/RegisterVehiclePage';
+import TestConnexionPage from './pages/TestConnexionPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +68,7 @@ function App() {
           <Route path="/admin/notifications" element={<NotificationsPage />} />
           <Route path="/driver/notifications" element={<NotificationsPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/test-connexion" element={<TestConnexionPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

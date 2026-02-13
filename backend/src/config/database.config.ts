@@ -11,17 +11,22 @@ export const getDatabaseConfig = (
   const sslCertPath = configService.get<string>('SSL_ROOT_CERT') || configService.get<string>('DATABASE_SSL_CA');
   const forceInsecure = configService.get<string>('DATABASE_SSL_REJECT_UNAUTHORIZED') === 'false';
 
-  // Supabase / Neon / tout hébergeur qui fournit une URL unique
+  // Supabase / Neon / Render Postgres : URL unique
   if (databaseUrl) {
-    const url = databaseUrl.includes('?') ? databaseUrl : `${databaseUrl}?sslmode=require`;
+    // Ne pas ajouter sslmode dans l'URL pour que notre objet ssl soit bien utilisé (évite self-signed sur Render)
+    let url = databaseUrl.trim();
+    if (!url.includes('sslmode=')) {
+      url = url.includes('?') ? `${url}&sslmode=require` : `${url}?sslmode=require`;
+    }
+    // Render / Supabase : certificats souvent rejetés par Node → accepter (rejectUnauthorized: false)
     let sslConfig: { rejectUnauthorized: boolean; ca?: Buffer } = { rejectUnauthorized: false };
-    if (!forceInsecure && sslCertPath) {
+    if (isProduction && !forceInsecure && sslCertPath) {
       const resolvedPath = path.isAbsolute(sslCertPath) ? sslCertPath : path.resolve(process.cwd(), sslCertPath);
       if (fs.existsSync(resolvedPath)) {
         sslConfig = { rejectUnauthorized: true, ca: fs.readFileSync(resolvedPath) };
       }
     }
-    if (forceInsecure) {
+    if (!isProduction || forceInsecure) {
       sslConfig = { rejectUnauthorized: false };
     }
 

@@ -27,9 +27,10 @@ Une fois le backend déployé, tu obtiens une URL publique (ex. `https://xxx.ver
 
 ### Frontend (Vercel)
 
-- **`VITE_API_URL`** = URL publique de ton backend  
+- **`VITE_API_URL`** = URL publique de ton **backend NestJS** (pas Supabase).  
   Ex. : `https://ton-backend.vercel.app` ou `https://ton-backend.onrender.com`  
-  **À faire** : Vercel → ton projet → **Settings** → **Environment Variables** → ajouter **`VITE_API_URL`** avec l’URL du backend → **Redéployer**.
+  ⚠️ **Ne pas** mettre l’URL Supabase (`https://xxx.supabase.co`) : le frontend appelle le backend ; c’est le backend qui se connecte à Supabase.  
+  **À faire** : Vercel → **Settings** → **Environment Variables** → **`VITE_API_URL`** = URL du backend → **Redéployer**.
 
 ---
 

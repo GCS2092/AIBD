@@ -2,6 +2,10 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import * as os from 'os';
+import * as dns from 'dns';
+
+// Sur Render (et autres hébergeurs), forcer IPv4 pour la connexion DB (évite ENETUNREACH sur IPv6)
+dns.setDefaultResultOrder('ipv4first');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
