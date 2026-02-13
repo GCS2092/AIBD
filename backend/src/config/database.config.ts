@@ -1,9 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import * as dns from 'dns';
-import { promisify } from 'util';
-
-const lookup = promisify(dns.lookup);
+import { promises as dns } from 'dns';
 
 export const getDatabaseConfig = async (
   configService: ConfigService,
