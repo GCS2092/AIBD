@@ -15,10 +15,13 @@ function getApiUrl(): string {
   const hostname = window.location.hostname;
   const isProduction = hostname.includes('vercel.app') || hostname.includes('vercel.com') || !hostname.includes('localhost');
   
-  // En production (Vercel) : définir VITE_API_URL dans Vercel → Settings → Environment Variables
+  // En production (Vercel) : VITE_API_URL est OBLIGATOIRE (URL du backend NestJS)
   if (isProduction) {
     if (envApiUrl) return envApiUrl;
-    // Fallback : même domaine (si backend exposé sous /api sur le même projet Vercel)
+    // Pas d'URL backend : les appels API échoueront (405). Définir VITE_API_URL sur Vercel.
+    if (typeof window !== 'undefined') {
+      console.warn('⚠️ VITE_API_URL non défini : l’API pointe vers cette page. Définir VITE_API_URL sur Vercel (URL du backend).');
+    }
     return window.location.origin;
   }
   

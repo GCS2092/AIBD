@@ -60,6 +60,7 @@ coverage/
 backend/dist/
 backend/node_modules/
 backend/.env
+backend/certs/
 
 # Frontend specific
 frontend/dist/
