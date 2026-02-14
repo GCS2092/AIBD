@@ -54,48 +54,47 @@ export const authService = {
   isAuthenticated: (): boolean => {
     const token = localStorage.getItem('token');
     if (!token) return false;
-    
+    const parts = token.split('.');
+    if (parts.length !== 3 || !parts[1]) {
+      localStorage.removeItem('token');
+      return false;
+    }
     try {
-      // Décoder le JWT token pour vérifier l'expiration
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      // Décoder le JWT token pour vérifier l'expiration (base64url)
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
       const exp = payload.exp;
-      
-      // Vérifier si le token est expiré (exp est en secondes, Date.now() est en millisecondes)
       if (exp && exp * 1000 < Date.now()) {
-        // Token expiré, le supprimer
         localStorage.removeItem('token');
         return false;
       }
-      
       return true;
-    } catch (error) {
-      console.error('Erreur lors de la vérification du token:', error);
-      // En cas d'erreur de décodage, supprimer le token invalide
+    } catch {
       localStorage.removeItem('token');
       return false;
     }
   },
 
   getRole: (): 'admin' | 'driver' | 'client' | null => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    const parts = token.split('.');
+    if (parts.length !== 3 || !parts[1]) return null;
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return null;
-      
-      // Décoder le JWT token (partie payload)
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
       return payload.role || null;
-    } catch (error) {
-      console.error('Erreur lors du décodage du token:', error);
+    } catch {
       return null;
     }
   },
 
   /** ID utilisateur depuis le JWT (pour OneSignal.login / external_id) */
   getUserId: (): string | null => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    const parts = token.split('.');
+    if (parts.length !== 3 || !parts[1]) return null;
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return null;
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
       return payload.sub ?? payload.id ?? null;
     } catch {
       return null;
