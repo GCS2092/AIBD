@@ -8,6 +8,7 @@ import { User, UserRole } from '../entities/user.entity';
 import { ConfigSystemService } from '../config-system/config-system.service';
 import { NotificationService } from '../notifications/notification.service';
 import { InternalNotificationsService } from '../notifications/internal-notifications.service';
+import { OneSignalService } from '../notifications/onesignal.service';
 import { InternalNotificationType } from '../entities/internal-notification.entity';
 import { EncryptionService } from '../encryption/encryption.service';
 import { WebSocketGateway } from '../websocket/websocket.gateway';
@@ -26,6 +27,7 @@ export class RideAssignmentService {
     private configSystemService: ConfigSystemService,
     private notificationService: NotificationService,
     private internalNotificationsService: InternalNotificationsService,
+    private oneSignalService: OneSignalService,
     private encryptionService: EncryptionService,
     @Inject(forwardRef(() => WebSocketGateway))
     private websocketGateway: WebSocketGateway,
@@ -338,7 +340,11 @@ export class RideAssignmentService {
     if (driver.user) {
       await this.notificationService.notifyDriverNewRide(driver.user.phone, ride);
       await this.internalNotificationsService.notifyDriverNewRide(driver.id, ride);
-      
+      await this.oneSignalService.notifyDriverAssigned(
+        driver.user.id,
+        ride.id,
+        ride.pickupAddress || 'Voir détails',
+      );
       this.websocketGateway.emitToDriver(driver.user.id, 'ride:assigned', {
         rideId: ride.id,
         status: ride.status,

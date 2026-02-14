@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotificationService } from './notification.service';
 import { InternalNotificationsService } from './internal-notifications.service';
+import { OneSignalService } from './onesignal.service';
 import { InternalNotificationsController } from './internal-notifications.controller';
 import { Notification } from '../entities/notification.entity';
 import { InternalNotification } from '../entities/internal-notification.entity';
@@ -17,8 +18,8 @@ import { FirebaseModule } from '../firebase/firebase.module';
     FirebaseModule,
   ],
   controllers: [InternalNotificationsController],
-  providers: [NotificationService, InternalNotificationsService],
-  exports: [NotificationService, InternalNotificationsService],
+  providers: [NotificationService, InternalNotificationsService, OneSignalService],
+  exports: [NotificationService, InternalNotificationsService, OneSignalService],
 })
 export class NotificationsModule {}
 

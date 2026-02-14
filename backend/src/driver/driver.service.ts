@@ -9,6 +9,7 @@ import { RideAssignment } from '../entities/ride-assignment.entity';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { ConfigSystemService } from '../config-system/config-system.service';
 import { InternalNotificationsService } from '../notifications/internal-notifications.service';
+import { OneSignalService } from '../notifications/onesignal.service';
 import { EncryptionService } from '../encryption/encryption.service';
 import { RequestProfileUpdateDto } from './dto/request-profile-update.dto';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
@@ -33,6 +34,7 @@ export class DriverService {
     private rideAssignmentRepository: Repository<RideAssignment>,
     private configSystemService: ConfigSystemService,
     private internalNotificationsService: InternalNotificationsService,
+    private oneSignalService: OneSignalService,
     private encryptionService: EncryptionService,
     @Inject(forwardRef(() => WebSocketGateway))
     private websocketGateway: WebSocketGateway,
@@ -351,6 +353,7 @@ export class DriverService {
           ride,
           driver,
         );
+        await this.oneSignalService.notifyClientRideAccepted(clientUser.id, ride.id);
       }
 
       // Notifier les admins

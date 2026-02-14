@@ -13,6 +13,7 @@ import { Pricing, PricingType } from '../entities/pricing.entity';
 import { RideAssignment, RideAssignmentStatus } from '../entities/ride-assignment.entity';
 import { NotificationService } from '../notifications/notification.service';
 import { InternalNotificationsService } from '../notifications/internal-notifications.service';
+import { OneSignalService } from '../notifications/onesignal.service';
 import { ConfigSystemService } from '../config-system/config-system.service';
 import { EncryptionService } from '../encryption/encryption.service';
 import { User, UserRole } from '../entities/user.entity';
@@ -38,6 +39,7 @@ export class RideService {
     private rideAssignmentRepository: Repository<RideAssignment>,
     private notificationService: NotificationService,
     private internalNotificationsService: InternalNotificationsService,
+    private oneSignalService: OneSignalService,
     private configSystemService: ConfigSystemService,
     private encryptionService: EncryptionService,
     @Inject(forwardRef(() => WebSocketGateway))
@@ -135,6 +137,11 @@ export class RideService {
         await this.internalNotificationsService.notifyAdminRideCreated(
           adminUsers.map(admin => admin.id),
           savedRide,
+        );
+        await this.oneSignalService.notifyAdminsNewRide(
+          adminUsers.map(a => a.id),
+          savedRide.id,
+          savedRide.accessCode,
         );
       }
     } catch (error) {

@@ -5,6 +5,7 @@ import OneSignal from 'react-onesignal';
 import { websocketService } from './services/websocketService';
 import { authService } from './services/authService';
 import { fcmService } from './services/fcmService';
+import { useNotificationHandler } from './hooks/useNotificationHandler';
 import './i18n/config';
 import './App.css';
 
@@ -37,6 +38,8 @@ const queryClient = new QueryClient({
 const ONESIGNAL_APP_ID = "9a923f92-cdeb-47d7-85f8-f65dd0768166";
 
 function App() {
+  useNotificationHandler();
+
   // WebSocket et FCM
   useEffect(() => {
     if (authService.isAuthenticated()) {
@@ -81,10 +84,14 @@ function App() {
         const permission = await OneSignal.Notifications.requestPermission();
         console.log('📱 Permission notifications:', permission);
 
-        // Identifier l'utilisateur si connecté
+        // Identifier l'utilisateur et tags (rôle) pour ciblage
         const userId = authService.getUserId();
+        const role = authService.getRole();
         if (userId) {
           await OneSignal.login(userId);
+          if (role) {
+            OneSignal.User.addTags({ role });
+          }
           console.log(`✅ Utilisateur identifié: ${userId}`);
         }
 
