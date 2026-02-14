@@ -13,7 +13,9 @@ import { CreateDriverInviteDto } from './dto/create-driver-invite.dto';
 import { CreateDriverDto } from './dto/create-driver.dto';
 import { CreateUserByAdminDto } from './dto/create-user-by-admin.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
+import { ClearCompletedRidesDto } from './dto/clear-completed-rides.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../entities/user.entity';
@@ -110,6 +112,14 @@ export class AdminController {
     @Param('driverId') driverId: string,
   ) {
     return this.adminService.assignRideToDriver(rideId, driverId);
+  }
+
+  @Post('rides/clear-completed')
+  async clearCompletedRides(
+    @CurrentUser() user: { id: string },
+    @Body() dto: ClearCompletedRidesDto,
+  ) {
+    return this.adminService.clearCompletedRides(user.id, dto.password);
   }
 
   @Get('vehicles')

@@ -1362,6 +1362,8 @@ function AdminDashboard() {
   const [selectedTab, setSelectedTab] = useState<'overview' | 'drivers' | 'rides' | 'pricing' | 'vehicles' | 'users'>('overview');
   const [driverFilter, setDriverFilter] = useState<'all' | 'verified' | 'unverified'>('all');
   const [rideFilter, setRideFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
+  const [showClearCompletedModal, setShowClearCompletedModal] = useState(false);
+  const [clearCompletedPassword, setClearCompletedPassword] = useState('');
   const [rideSearch, setRideSearch] = useState<string>('');
   const [selectedDriverId] = useState<string>('all');
   const [vehicleDriverFilter, setVehicleDriverFilter] = useState<string>('all');
@@ -1548,6 +1550,20 @@ function AdminDashboard() {
       queryClient.invalidateQueries({ queryKey: ['admin-drivers'] });
       queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       queryClient.invalidateQueries({ queryKey: ['admin-vehicles'] });
+    },
+  });
+
+  const clearCompletedRidesMutation = useMutation({
+    mutationFn: (password: string) => adminService.clearCompletedRides(password),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-rides'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      setShowClearCompletedModal(false);
+      setClearCompletedPassword('');
+      alert(`${data.deleted} course(s) terminée(s) supprimée(s).`);
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Erreur (vérifiez votre mot de passe).');
     },
   });
 
@@ -2084,6 +2100,16 @@ function AdminDashboard() {
                       >
                         Annulées
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowClearCompletedModal(true)}
+                        className="ml-2 border-amber-300 text-amber-800 hover:bg-amber-50"
+                        title="Supprimer toutes les courses terminées (avec validation mot de passe)"
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Vider les terminées
+                      </Button>
                     </div>
                     <div className="flex-1">
                       <div className="relative">
@@ -2100,6 +2126,46 @@ function AdminDashboard() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Modal vider les courses terminées */}
+              {showClearCompletedModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => !clearCompletedRidesMutation.isPending && setShowClearCompletedModal(false)}>
+                  <Card className="w-full max-w-md mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <CardTitle className="text-lg">Vider les courses terminées</CardTitle>
+                      <Button variant="ghost" size="icon" onClick={() => !clearCompletedRidesMutation.isPending && setShowClearCompletedModal(false)}><X className="w-4 h-4" /></Button>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-gray-600">
+                        Toutes les courses au statut &quot;Terminée&quot; seront définitivement supprimées. Cette action est irréversible.
+                      </p>
+                      <div className="space-y-2">
+                        <Label htmlFor="clear-completed-password">Mot de passe admin</Label>
+                        <Input
+                          id="clear-completed-password"
+                          type="password"
+                          placeholder="Votre mot de passe"
+                          value={clearCompletedPassword}
+                          onChange={(e) => setClearCompletedPassword(e.target.value)}
+                          className="bg-white"
+                        />
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button variant="outline" onClick={() => setShowClearCompletedModal(false)} disabled={clearCompletedRidesMutation.isPending}>
+                          Annuler
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => clearCompletedRidesMutation.mutate(clearCompletedPassword)}
+                          disabled={!clearCompletedPassword.trim() || clearCompletedRidesMutation.isPending}
+                        >
+                          {clearCompletedRidesMutation.isPending ? 'Suppression...' : 'Supprimer les terminées'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
               {/* Liste des courses */}
               <div className="space-y-4">

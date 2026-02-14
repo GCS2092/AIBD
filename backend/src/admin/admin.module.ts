@@ -7,11 +7,12 @@ import { Driver } from '../entities/driver.entity';
 import { Ride } from '../entities/ride.entity';
 import { Pricing } from '../entities/pricing.entity';
 import { Vehicle } from '../entities/vehicle.entity';
+import { InternalNotification } from '../entities/internal-notification.entity';
 import { EncryptionModule } from '../encryption/encryption.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Driver, Ride, Pricing, Vehicle]),
+    TypeOrmModule.forFeature([User, Driver, Ride, Pricing, Vehicle, InternalNotification]),
     EncryptionModule,
   ],
   controllers: [AdminController],

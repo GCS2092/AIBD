@@ -168,6 +168,11 @@ export const adminService = {
     return response.data;
   },
 
+  clearCompletedRides: async (password: string): Promise<{ deleted: number }> => {
+    const response = await apiClient.post(API_ENDPOINTS.ADMIN_CLEAR_COMPLETED_RIDES, { password });
+    return response.data;
+  },
+
   getAllVehicles: async (page: number = 1, limit: number = 10, driverId?: string): Promise<PaginatedResponse<Vehicle>> => {
     const response = await apiClient.get('/admin/vehicles', {
       params: { page, limit, ...(driverId ? { driverId } : {}) },

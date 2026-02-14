@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,6 +13,7 @@ import { Driver, DriverStatus } from '../entities/driver.entity';
 import { Ride, RideStatus } from '../entities/ride.entity';
 import { Pricing } from '../entities/pricing.entity';
 import { Vehicle } from '../entities/vehicle.entity';
+import { InternalNotification } from '../entities/internal-notification.entity';
 import { CreateDriverInviteDto } from './dto/create-driver-invite.dto';
 import { CreateDriverDto } from './dto/create-driver.dto';
 import { CreateUserByAdminDto } from './dto/create-user-by-admin.dto';
@@ -32,6 +34,8 @@ export class AdminService {
     private pricingRepository: Repository<Pricing>,
     @InjectRepository(Vehicle)
     private vehicleRepository: Repository<Vehicle>,
+    @InjectRepository(InternalNotification)
+    private internalNotificationRepository: Repository<InternalNotification>,
     private encryptionService: EncryptionService,
   ) {}
 
@@ -807,6 +811,42 @@ export class AdminService {
     });
 
     return await this.vehicleRepository.save(vehicle);
+  }
+
+  /**
+   * Supprime toutes les courses au statut "terminée" (COMPLETED).
+   * Nécessite la validation par mot de passe de l'admin.
+   */
+  async clearCompletedRides(adminUserId: string, password: string): Promise<{ deleted: number }> {
+    const admin = await this.userRepository.findOne({
+      where: { id: adminUserId, role: UserRole.ADMIN },
+    });
+    if (!admin) {
+      throw new UnauthorizedException('Utilisateur non trouvé');
+    }
+    const isPasswordValid = await bcrypt.compare(password, admin.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Mot de passe incorrect');
+    }
+    const completedRides = await this.rideRepository.find({
+      where: { status: RideStatus.COMPLETED },
+      select: ['id'],
+    });
+    const completedIds = completedRides.map((r) => r.id);
+    if (completedIds.length === 0) {
+      return { deleted: 0 };
+    }
+    await this.internalNotificationRepository
+      .createQueryBuilder()
+      .update()
+      .set({ rideId: null })
+      .where('rideId IN (:...ids)', { ids: completedIds })
+      .execute();
+    const result = await this.rideRepository.delete({
+      status: RideStatus.COMPLETED,
+    });
+    const deleted = result.affected ?? 0;
+    return { deleted };
   }
 }
 
