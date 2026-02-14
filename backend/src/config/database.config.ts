@@ -46,17 +46,23 @@ export const getDatabaseConfig = async (
       synchronize: false,
       logging: !isProduction,
       ssl: { rejectUnauthorized: false },
-      extra: { ssl: { rejectUnauthorized: false } },
+      extra: {
+        ssl: { rejectUnauthorized: false },
+        max: 5,
+        min: 1,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+      },
     };
   }
 
-  // Fallback : DB_HOST / DB_PORT / etc.
+  // Supabase Transaction Pooler (recommandé) : DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME
   const host = configService.get<string>('DB_HOST');
   if (!host) {
-    throw new Error('Either DATABASE_URL or DB_HOST must be set');
+    throw new Error('Either DATABASE_URL or DB_HOST must be set. For Supabase use Transaction Pooler: DB_HOST=xxx.pooler.supabase.com, DB_PORT=6543, DB_USERNAME=postgres.xxx, DB_PASSWORD=..., DB_NAME=postgres');
   }
 
-  // Résoudre le hostname en IPv4 si nécessaire
+  // Résoudre le hostname en IPv4 si nécessaire (évite ENETUNREACH sur Render)
   let finalHost = host;
   if (host.includes(':') || host.match(/^[0-9a-f:]+$/i)) {
     try {
@@ -69,16 +75,27 @@ export const getDatabaseConfig = async (
     }
   }
 
+  const portRaw = configService.get<string>('DB_PORT') || '6543'; // 6543 = Supabase Transaction Pooler
+  const port = parseInt(portRaw, 10) || 6543;
+  const database = configService.get<string>('DB_NAME') || configService.get<string>('DB_DATABASE') || 'postgres';
+
   return {
     type: 'postgres',
     host: finalHost,
-    port: configService.get<number>('DB_PORT', 5432),
+    port,
     username: configService.get<string>('DB_USERNAME'),
     password: configService.get<string>('DB_PASSWORD'),
-    database: configService.get<string>('DB_NAME') || configService.get<string>('DB_DATABASE'),
+    database,
     ssl: { rejectUnauthorized: false },
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     synchronize: false,
     logging: !isProduction,
+    extra: {
+      ssl: { rejectUnauthorized: false },
+      max: 5,
+      min: 1,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    },
   };
 };
