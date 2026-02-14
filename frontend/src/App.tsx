@@ -37,9 +37,34 @@ const queryClient = new QueryClient({
 
 const ONESIGNAL_APP_ID = "9a923f92-cdeb-47d7-85f8-f65dd0768166";
 
-function App() {
+/** Routes + hook de clic notification (doit être rendu dans BrowserRouter pour useNavigate). */
+function AppRoutes() {
   useNotificationHandler();
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/book" element={<BookingPage />} />
+      <Route path="/edit-ride" element={<EditRideByCodePage />} />
+      <Route path="/track/:rideId" element={<TrackingPage />} />
+      <Route path="/history" element={<HistoryPage />} />
+      <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      <Route path="/admin/rides/:id" element={<RideDetailPage />} />
+      <Route path="/admin/drivers/:id/edit" element={<EditDriverPage />} />
+      <Route path="/driver/dashboard" element={<DriverDashboard />} />
+      <Route path="/driver/track/:rideId" element={<DriverTrackingPage />} />
+      <Route path="/driver/profile/edit" element={<EditDriverProfilePage />} />
+      <Route path="/driver/vehicle/register" element={<RegisterVehiclePage />} />
+      <Route path="/admin/notifications" element={<NotificationsPage />} />
+      <Route path="/driver/notifications" element={<NotificationsPage />} />
+      <Route path="/notifications" element={<NotificationsPage />} />
+      <Route path="/test-connexion" element={<TestConnexionPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
 
+function App() {
   // WebSocket et FCM
   useEffect(() => {
     if (authService.isAuthenticated()) {
@@ -106,26 +131,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/book" element={<BookingPage />} />
-          <Route path="/edit-ride" element={<EditRideByCodePage />} />
-          <Route path="/track/:rideId" element={<TrackingPage />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/rides/:id" element={<RideDetailPage />} />
-          <Route path="/admin/drivers/:id/edit" element={<EditDriverPage />} />
-          <Route path="/driver/dashboard" element={<DriverDashboard />} />
-          <Route path="/driver/track/:rideId" element={<DriverTrackingPage />} />
-          <Route path="/driver/profile/edit" element={<EditDriverProfilePage />} />
-          <Route path="/driver/vehicle/register" element={<RegisterVehiclePage />} />
-          <Route path="/admin/notifications" element={<NotificationsPage />} />
-          <Route path="/driver/notifications" element={<NotificationsPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/test-connexion" element={<TestConnexionPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <AppRoutes />
       </BrowserRouter>
     </QueryClientProvider>
   );
