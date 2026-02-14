@@ -20,7 +20,8 @@ import { EncryptionModule } from '../encryption/encryption.module';
       useFactory: (configService: ConfigService): any => ({
         secret: configService.get<string>('JWT_SECRET') || 'secret',
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
+          // 30j = connexion persistante jusqu'à déconnexion (ou définir JWT_EXPIRES_IN en env)
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '30d',
         },
       }),
       inject: [ConfigService],

@@ -11,7 +11,7 @@ import { pricingService, Pricing, CreatePricingDto } from '../services/pricingSe
 import { fcmService } from '../services/fcmService';
 import apiClient from '../services/api';
 import Pagination from '../components/Pagination';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ import {
   LayoutDashboard, 
   Users, 
   Car, 
-  DollarSign, 
+  Banknote, 
   Truck, 
   Clock, 
   Wifi, 
@@ -49,7 +49,7 @@ import {
   Pause,
   Calendar as CalendarIcon,
   Clock as ClockIcon,
-  DollarSign as DollarSignIcon,
+  Banknote as BanknoteIcon,
   UserCog,
   UserPlus,
 } from 'lucide-react';
@@ -254,7 +254,7 @@ function PricingManagement() {
         ) : filteredPricing.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <DollarSignIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <BanknoteIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600 font-medium">Aucun tarif trouvé</p>
               <p className="text-gray-500 text-sm mt-2">Essayez de modifier vos filtres</p>
             </CardContent>
@@ -302,7 +302,7 @@ function PricingManagement() {
                             <span><strong>Type de trajet:</strong> {pricing.rideType === 'dakar_to_airport' ? 'Dakar → Aéroport' : 'Aéroport → Dakar'}</span>
                           </div>
                           <div className="flex items-center gap-2 text-gray-700">
-                            <DollarSignIcon className="w-4 h-4 text-gray-500" />
+                            <BanknoteIcon className="w-4 h-4 text-gray-500" />
                             <span><strong>Prix:</strong> {parseFloat(pricing.price.toString()).toLocaleString()} FCFA</span>
                           </div>
                           <div className="flex items-center gap-2 text-gray-700">
@@ -996,19 +996,19 @@ function DriverModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-2xl font-bold text-gray-800">Nouveau Chauffeur</CardTitle>
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+    <div className="fixed inset-0 min-h-screen bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto" onClick={onClose}>
+      <Card className="w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto my-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 sm:pb-4">
+          <CardTitle className="text-lg sm:text-2xl font-bold text-gray-800 truncate pr-2">Nouveau Chauffeur</CardTitle>
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 shrink-0">
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-gray-800 font-semibold">Prénom *</Label>
+        <CardContent className="px-3 sm:px-6 pb-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="firstName" className="text-gray-800 font-semibold text-sm sm:text-base">Prénom *</Label>
                 <Input
                   id="firstName"
                   type="text"
@@ -1017,15 +1017,15 @@ function DriverModal({
                     setFormData({ ...formData, firstName: e.target.value });
                     if (errors.firstName) setErrors({ ...errors, firstName: '' });
                   }}
-                  className={errors.firstName ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}
+                  className={`min-h-[44px] sm:min-h-0 ${errors.firstName ? 'border-red-500 focus:border-red-600 focus:ring-red-500/20' : ''}`}
                   placeholder="Ex: Amadou"
                   required
                 />
                 {errors.firstName && <p className="text-sm text-red-600">{errors.firstName}</p>}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-gray-800 font-semibold">Nom *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="lastName" className="text-gray-800 font-semibold text-sm sm:text-base">Nom *</Label>
                 <Input
                   id="lastName"
                   type="text"
@@ -1142,11 +1142,11 @@ function DriverModal({
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-              <Button type="button" variant="outline" onClick={onClose}>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200">
+              <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto min-h-[44px] sm:min-h-0">
                 Annuler
               </Button>
-              <Button type="submit" className="bg-primary-500 hover:bg-primary-600 text-white" disabled={isSaving}>
+              <Button type="submit" className="w-full sm:w-auto bg-primary-500 hover:bg-primary-600 text-white min-h-[44px] sm:min-h-0" disabled={isSaving}>
                 {isSaving ? 'Création...' : 'Créer'}
               </Button>
             </div>
@@ -1213,99 +1213,99 @@ function CreateUserModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle className="text-2xl font-bold text-gray-800">Créer un utilisateur</CardTitle>
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+    <div className="fixed inset-0 min-h-screen bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4 overflow-y-auto" onClick={onClose}>
+      <Card className="w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto my-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 sm:pb-4">
+          <CardTitle className="text-lg sm:text-2xl font-bold text-gray-800 truncate pr-2">Créer un utilisateur</CardTitle>
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0 shrink-0">
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-gray-800 font-semibold">Prénom *</Label>
+        <CardContent className="px-3 sm:px-6 pb-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-gray-800 font-semibold text-sm sm:text-base">Prénom *</Label>
                 <Input
                   value={formData.firstName}
                   onChange={(e) => { setFormData({ ...formData, firstName: e.target.value }); if (errors.firstName) setErrors({ ...errors, firstName: '' }); }}
-                  className={errors.firstName ? 'border-red-500' : ''}
+                  className={`min-h-[44px] sm:min-h-0 ${errors.firstName ? 'border-red-500' : ''}`}
                   placeholder="Prénom"
                 />
                 {errors.firstName && <p className="text-sm text-red-600">{errors.firstName}</p>}
               </div>
-              <div className="space-y-2">
-                <Label className="text-gray-800 font-semibold">Nom *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-gray-800 font-semibold text-sm sm:text-base">Nom *</Label>
                 <Input
                   value={formData.lastName}
                   onChange={(e) => { setFormData({ ...formData, lastName: e.target.value }); if (errors.lastName) setErrors({ ...errors, lastName: '' }); }}
-                  className={errors.lastName ? 'border-red-500' : ''}
+                  className={`min-h-[44px] sm:min-h-0 ${errors.lastName ? 'border-red-500' : ''}`}
                   placeholder="Nom"
                 />
                 {errors.lastName && <p className="text-sm text-red-600">{errors.lastName}</p>}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-gray-800 font-semibold">Email *</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-gray-800 font-semibold text-sm sm:text-base">Email *</Label>
                 <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => { setFormData({ ...formData, email: e.target.value }); if (errors.email) setErrors({ ...errors, email: '' }); }}
-                  className={errors.email ? 'border-red-500' : ''}
+                  className={`min-h-[44px] sm:min-h-0 ${errors.email ? 'border-red-500' : ''}`}
                   placeholder="email@example.com"
                 />
                 {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
               </div>
-              <div className="space-y-2">
-                <Label className="text-gray-800 font-semibold">Téléphone *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-gray-800 font-semibold text-sm sm:text-base">Téléphone *</Label>
                 <Input
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => { setFormData({ ...formData, phone: e.target.value }); if (errors.phone) setErrors({ ...errors, phone: '' }); }}
-                  className={errors.phone ? 'border-red-500' : ''}
+                  className={`min-h-[44px] sm:min-h-0 ${errors.phone ? 'border-red-500' : ''}`}
                   placeholder="+221771234567"
                 />
                 {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-gray-800 font-semibold">Mot de passe *</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-gray-800 font-semibold text-sm sm:text-base">Mot de passe *</Label>
                 <Input
                   type="password"
                   value={formData.password}
                   onChange={(e) => { setFormData({ ...formData, password: e.target.value }); if (errors.password) setErrors({ ...errors, password: '' }); }}
-                  className={errors.password ? 'border-red-500' : ''}
-                  placeholder="Minimum 6 caractères"
+                  className={`min-h-[44px] sm:min-h-0 ${errors.password ? 'border-red-500' : ''}`}
+                  placeholder="Min. 6 caractères"
                 />
                 {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
               </div>
-              <div className="space-y-2">
-                <Label className="text-gray-800 font-semibold">Confirmer le mot de passe *</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-gray-800 font-semibold text-sm sm:text-base">Confirmer *</Label>
                 <Input
                   type="password"
                   value={formData.confirmPassword}
                   onChange={(e) => { setFormData({ ...formData, confirmPassword: e.target.value }); if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' }); }}
-                  className={errors.confirmPassword ? 'border-red-500' : ''}
+                  className={`min-h-[44px] sm:min-h-0 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                   placeholder="Répétez le mot de passe"
                 />
                 {errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword}</p>}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-gray-800 font-semibold">Rôle *</Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label className="text-gray-800 font-semibold text-sm sm:text-base">Rôle *</Label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as 'admin' | 'driver' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                  className="w-full min-h-[44px] sm:min-h-0 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base"
                 >
                   <option value="admin">Admin</option>
                   <option value="driver">Chauffeur</option>
                 </select>
               </div>
-              <div className="space-y-2 flex items-center pt-8">
+              <div className="space-y-1.5 sm:space-y-2 flex items-end pb-1 sm:pt-6 sm:pb-0">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1313,35 +1313,38 @@ function CreateUserModal({
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                     className="w-4 h-4 text-primary-600 rounded border-gray-300"
                   />
-                  <span className="text-gray-800 font-semibold">Compte actif</span>
+                  <span className="text-gray-800 font-semibold text-sm sm:text-base">Compte actif</span>
                 </label>
               </div>
             </div>
             {formData.role === 'driver' && (
               <>
-                <div className="space-y-2">
-                  <Label className="text-gray-800 font-semibold">Numéro de permis *</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-gray-800 font-semibold text-sm sm:text-base">Numéro de permis *</Label>
                   <Input
                     value={formData.licenseNumber}
                     onChange={(e) => { setFormData({ ...formData, licenseNumber: e.target.value }); if (errors.licenseNumber) setErrors({ ...errors, licenseNumber: '' }); }}
-                    className={errors.licenseNumber ? 'border-red-500' : ''}
+                    className={`min-h-[44px] sm:min-h-0 ${errors.licenseNumber ? 'border-red-500' : ''}`}
                     placeholder="Ex: ABC123456"
                   />
                   {errors.licenseNumber && <p className="text-sm text-red-600">{errors.licenseNumber}</p>}
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-gray-800 font-semibold">Zone de service</Label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <Label className="text-gray-800 font-semibold text-sm sm:text-base">Zone de service</Label>
                   <Input
                     value={formData.serviceZone}
                     onChange={(e) => setFormData({ ...formData, serviceZone: e.target.value })}
+                    className="min-h-[44px] sm:min-h-0"
                     placeholder="Ex: Dakar, Plateau"
                   />
                 </div>
               </>
             )}
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-              <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
-              <Button type="submit" className="bg-primary-500 hover:bg-primary-600 text-white" disabled={isSaving}>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200">
+              <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto min-h-[44px] sm:min-h-0">
+                Annuler
+              </Button>
+              <Button type="submit" className="w-full sm:w-auto bg-primary-500 hover:bg-primary-600 text-white min-h-[44px] sm:min-h-0" disabled={isSaving}>
                 {isSaving ? 'Création...' : 'Créer'}
               </Button>
             </div>
@@ -1529,7 +1532,7 @@ function AdminDashboard() {
     };
 
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000); // Toutes les 30 secondes (fallback)
+    const interval = setInterval(fetchUnreadCount, 15000); // Toutes les 15 s pour voir les nouvelles courses sans autorisation navigateur
     return () => clearInterval(interval);
   }, []);
 
@@ -1608,7 +1611,7 @@ function AdminDashboard() {
         <button 
           className="floating-notifications-btn" 
           onClick={() => navigate('/admin/notifications')}
-          title="Notifications"
+          title="Notifications (nouvelles réservations, etc.) — fonctionne sans autorisation du navigateur"
         >
           🔔 {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
         </button>
@@ -1802,7 +1805,7 @@ function AdminDashboard() {
                         </div>
                       </div>
                       <div className="ride-price-stat">
-                        <DollarSign className="price-icon" />
+                        <Banknote className="price-icon" />
                         <strong>{
                           ride.price != null 
                             ? (typeof ride.price === 'number' 
@@ -2171,7 +2174,7 @@ function AdminDashboard() {
                                   <span><strong>Arrivée:</strong> {ride.dropoffAddress}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-700">
-                                  <DollarSign className="w-4 h-4 text-gray-500" />
+                                  <Banknote className="w-4 h-4 text-gray-500" />
                                   <span><strong>Prix:</strong> {
                                     ride.price != null 
                                       ? (typeof ride.price === 'number' 
@@ -2246,13 +2249,13 @@ function AdminDashboard() {
         {selectedTab === 'pricing' && <PricingManagement />}
         {selectedTab === 'users' && (
           <section className="dashboard-section">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <h2 className="section-title-modern">Gestion des utilisateurs</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <h2 className="section-title-modern text-xl sm:text-2xl">Gestion des utilisateurs</h2>
               <Button
                 onClick={() => setShowUserModal(true)}
-                className="bg-primary-500 hover:bg-primary-600 text-white flex items-center gap-2"
+                className="bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center gap-2 w-full sm:w-auto min-h-[44px] sm:min-h-0"
               >
-                <UserPlus className="w-4 h-4" />
+                <UserPlus className="w-4 h-4 shrink-0" />
                 Créer un utilisateur
               </Button>
             </div>
@@ -2264,7 +2267,7 @@ function AdminDashboard() {
               </Card>
             ) : !usersData?.data?.length ? (
               <Card>
-                <CardContent className="py-12 text-center">
+                <CardContent className="py-12 text-center px-4">
                   <UserCog className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 font-medium">Aucun utilisateur</p>
                   <p className="text-gray-500 text-sm mt-2">Créez un admin ou un chauffeur avec le bouton ci-dessus.</p>
@@ -2272,42 +2275,66 @@ function AdminDashboard() {
               </Card>
             ) : (
               <>
-                <Card>
+                {/* Tableau visible à partir de md */}
+                <Card className="hidden md:block">
                   <CardContent className="p-0 overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left min-w-[640px]">
                       <thead>
                         <tr className="border-b border-gray-200 bg-gray-50">
-                          <th className="px-4 py-3 text-gray-800 font-semibold">Nom</th>
-                          <th className="px-4 py-3 text-gray-800 font-semibold">Email</th>
-                          <th className="px-4 py-3 text-gray-800 font-semibold">Téléphone</th>
-                          <th className="px-4 py-3 text-gray-800 font-semibold">Rôle</th>
-                          <th className="px-4 py-3 text-gray-800 font-semibold">Statut</th>
-                          <th className="px-4 py-3 text-gray-800 font-semibold">Créé le</th>
+                          <th className="px-3 sm:px-4 py-3 text-gray-800 font-semibold text-sm">Nom</th>
+                          <th className="px-3 sm:px-4 py-3 text-gray-800 font-semibold text-sm">Email</th>
+                          <th className="px-3 sm:px-4 py-3 text-gray-800 font-semibold text-sm">Téléphone</th>
+                          <th className="px-3 sm:px-4 py-3 text-gray-800 font-semibold text-sm">Rôle</th>
+                          <th className="px-3 sm:px-4 py-3 text-gray-800 font-semibold text-sm">Statut</th>
+                          <th className="px-3 sm:px-4 py-3 text-gray-800 font-semibold text-sm">Créé le</th>
                         </tr>
                       </thead>
                       <tbody>
                         {(usersData?.data || []).map((u: AdminUser) => (
                           <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50">
-                            <td className="px-4 py-3">{u.firstName} {u.lastName}</td>
-                            <td className="px-4 py-3">{u.email}</td>
-                            <td className="px-4 py-3">{u.phone}</td>
-                            <td className="px-4 py-3">
+                            <td className="px-3 sm:px-4 py-3 text-sm">{u.firstName} {u.lastName}</td>
+                            <td className="px-3 sm:px-4 py-3 text-sm break-all">{u.email}</td>
+                            <td className="px-3 sm:px-4 py-3 text-sm">{u.phone}</td>
+                            <td className="px-3 sm:px-4 py-3">
                               <Badge variant="outline" className={u.role === 'admin' ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-blue-100 text-blue-800 border-blue-300'}>
                                 {u.role === 'admin' ? 'Admin' : 'Chauffeur'}
                               </Badge>
                             </td>
-                            <td className="px-4 py-3">
+                            <td className="px-3 sm:px-4 py-3">
                               <Badge variant="outline" className={u.isActive ? 'bg-green-100 text-green-800 border-green-300' : 'bg-red-100 text-red-800 border-red-300'}>
                                 {u.isActive ? 'Actif' : 'Inactif'}
                               </Badge>
                             </td>
-                            <td className="px-4 py-3 text-gray-600 text-sm">{new Date(u.createdAt).toLocaleDateString('fr-FR')}</td>
+                            <td className="px-3 sm:px-4 py-3 text-gray-600 text-sm">{new Date(u.createdAt).toLocaleDateString('fr-FR')}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </CardContent>
                 </Card>
+                {/* Cartes sur mobile (< md) */}
+                <div className="md:hidden space-y-3">
+                  {(usersData?.data || []).map((u: AdminUser) => (
+                    <Card key={u.id} className="overflow-hidden">
+                      <CardContent className="p-4 space-y-2">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <span className="font-semibold text-gray-800">{u.firstName} {u.lastName}</span>
+                          <div className="flex gap-1.5 flex-shrink-0">
+                            <Badge variant="outline" className={u.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}>
+                              {u.role === 'admin' ? 'Admin' : 'Chauffeur'}
+                            </Badge>
+                            <Badge variant="outline" className={u.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                              {u.isActive ? 'Actif' : 'Inactif'}
+                            </Badge>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 break-all">{u.email}</p>
+                        <p className="text-sm text-gray-600">{u.phone}</p>
+                        <p className="text-xs text-gray-500">{new Date(u.createdAt).toLocaleDateString('fr-FR')}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
                 {usersData && usersData.totalPages > 1 && (
                   <div className="mt-4 flex justify-center">
                     <Pagination
@@ -2319,8 +2346,8 @@ function AdminDashboard() {
                     />
                   </div>
                 )}
-                <p className="text-center text-sm text-gray-600 mt-4">
-                  Affichage de {(usersData?.data?.length || 0)} sur {usersData?.total || 0} utilisateur(s)
+                <p className="text-center text-sm text-gray-600 mt-4 px-2">
+                  {(usersData?.data?.length || 0)} / {usersData?.total || 0} utilisateur(s)
                 </p>
               </>
             )}
@@ -2565,7 +2592,7 @@ function AdminDashboard() {
             className={`nav-item ${selectedTab === 'pricing' ? 'active' : ''}`}
             onClick={() => setSelectedTab('pricing')}
           >
-            <DollarSign className="nav-icon" />
+            <Banknote className="nav-icon" />
             <span className="nav-label">Tarifs</span>
           </button>
           <button 

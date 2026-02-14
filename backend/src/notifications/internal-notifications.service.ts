@@ -1,11 +1,12 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { InternalNotification, InternalNotificationType } from '../entities/internal-notification.entity';
 import { FcmToken } from '../entities/fcm-token.entity';
 import { Driver } from '../entities/driver.entity';
 import { Ride, RideStatus } from '../entities/ride.entity';
 import { WebSocketGateway } from '../websocket/websocket.gateway';
+import { NotificationService } from './notification.service';
 
 @Injectable()
 export class InternalNotificationsService {
@@ -16,6 +17,7 @@ export class InternalNotificationsService {
     private fcmTokenRepository: Repository<FcmToken>,
     @Inject(forwardRef(() => WebSocketGateway))
     private websocketGateway: WebSocketGateway,
+    private notificationService: NotificationService,
   ) {}
 
   async createNotification(
@@ -153,18 +155,42 @@ export class InternalNotificationsService {
 
   // Notifications pour les admins
   async notifyAdminRideCreated(adminIds: string[], ride: Ride) {
+    const title = 'Nouvelle course';
+    const message = `Une nouvelle course a été créée par ${ride.clientFirstName} ${ride.clientLastName}.`;
+
     const notifications = adminIds.map(adminId =>
       this.createNotification(
         adminId,
         InternalNotificationType.RIDE_CREATED,
-        'Nouvelle course',
-        `Une nouvelle course a été créée par ${ride.clientFirstName} ${ride.clientLastName}.`,
+        title,
+        message,
         ride.id,
         { clientName: `${ride.clientFirstName} ${ride.clientLastName}` },
       ),
     );
 
-    return Promise.all(notifications);
+    await Promise.all(notifications);
+
+    // Envoyer la notification push (FCM) sur les téléphones des admins pour faire sonner même hors de l'app
+    try {
+      const tokens = await this.fcmTokenRepository.find({
+        where: { userId: In(adminIds) },
+        select: ['token'],
+      });
+      const tokenStrings = tokens.map(t => t.token).filter(Boolean);
+      if (tokenStrings.length > 0) {
+        await this.notificationService.sendPushNotificationToMultiple(
+          tokenStrings,
+          title,
+          message,
+          ride.id,
+        );
+      }
+    } catch (err) {
+      console.error('Erreur envoi push admin (nouvelle course):', err);
+    }
+
+    return;
   }
 
   async notifyAdminDriverVerified(adminIds: string[], driver: Driver) {

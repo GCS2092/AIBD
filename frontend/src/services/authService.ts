@@ -1,4 +1,5 @@
 import apiClient from './api';
+import OneSignal from 'react-onesignal';
 import { API_ENDPOINTS } from '../config/api';
 
 export interface LoginDto {
@@ -25,6 +26,7 @@ export interface AuthResponse {
   };
 }
 
+// Token en localStorage = connexion persistante jusqu'au clic sur "Déconnecter" (ou expiration du JWT)
 export const authService = {
   login: async (data: LoginDto): Promise<AuthResponse> => {
     const response = await apiClient.post(API_ENDPOINTS.LOGIN, data);
@@ -42,6 +44,7 @@ export const authService = {
 
   logout: () => {
     localStorage.removeItem('token');
+    OneSignal.logout().catch(() => {});
   },
 
   getToken: (): string | null => {
@@ -83,6 +86,18 @@ export const authService = {
       return payload.role || null;
     } catch (error) {
       console.error('Erreur lors du décodage du token:', error);
+      return null;
+    }
+  },
+
+  /** ID utilisateur depuis le JWT (pour OneSignal.login / external_id) */
+  getUserId: (): string | null => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub ?? payload.id ?? null;
+    } catch {
       return null;
     }
   },

@@ -23,7 +23,6 @@ import { WebSocketGateway } from '../websocket/websocket.gateway';
 import { Inject, forwardRef } from '@nestjs/common';
 import { RideAssignmentService } from './ride-assignment.service';
 import { GeocodingService } from '../geocoding/geocoding.service';
-
 @Injectable()
 export class RideService {
   constructor(

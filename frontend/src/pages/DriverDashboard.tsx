@@ -23,7 +23,7 @@ import {
   Phone,
   Edit,
   Car as CarIcon,
-  DollarSign,
+  Banknote,
   CheckCircle2,
   X,
   AlertCircle
@@ -405,7 +405,7 @@ function DriverDashboard() {
                       </div>
                     </div>
                     <div className="ride-price-stat">
-                      <DollarSign className="price-icon" />
+                      <Banknote className="price-icon" />
                       <strong>{typeof ride.price === 'number' ? ride.price.toLocaleString() : Number(ride.price || 0).toLocaleString()} FCFA</strong>
                     </div>
                     {ride.acceptedByOther ? (
@@ -492,7 +492,7 @@ function DriverDashboard() {
                           </div>
                         )}
                         <div className="ride-price-stat">
-                          <DollarSign className="price-icon" />
+                          <Banknote className="price-icon" />
                           <strong>{typeof ride.price === 'number' ? ride.price.toLocaleString() : Number(ride.price || 0).toLocaleString()} FCFA</strong>
                         </div>
                         <div className="ride-actions-modern">
@@ -573,7 +573,7 @@ function DriverDashboard() {
                           </div>
                         </div>
                         <div className="ride-price-stat">
-                          <DollarSign className="price-icon" />
+                          <Banknote className="price-icon" />
                           <strong>{typeof ride.price === 'number' ? ride.price.toLocaleString() : Number(ride.price || 0).toLocaleString()} FCFA</strong>
                         </div>
                         <div className="ride-actions-modern">
@@ -656,7 +656,7 @@ function DriverDashboard() {
                       </div>
                     </div>
                     <div className="ride-price-stat">
-                      <DollarSign className="price-icon" />
+                      <Banknote className="price-icon" />
                       <strong>{typeof ride.price === 'number' ? ride.price.toLocaleString() : Number(ride.price || 0).toLocaleString()} FCFA</strong>
                     </div>
                   </div>

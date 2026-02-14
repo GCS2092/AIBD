@@ -210,10 +210,20 @@ export class NotificationService {
         tokens,
         android: {
           priority: 'high' as const,
+          notification: {
+            sound: 'default',
+            channelId: 'ride_notifications',
+          },
         },
         apns: {
           headers: {
             'apns-priority': '10',
+          },
+          payload: {
+            aps: {
+              sound: 'default',
+              contentAvailable: true,
+            },
           },
         },
       };

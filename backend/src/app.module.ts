@@ -35,7 +35,6 @@ import { RefundsModule } from './refunds/refunds.module';
 import { ConfigSystemModule } from './config-system/config-system.module';
 import { WebSocketModule } from './websocket/websocket.module';
 import { FirebaseModule } from './firebase/firebase.module';
-
 @Module({
   imports: [
     ConfigModule.forRoot({

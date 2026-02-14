@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import OneSignal from 'react-onesignal';
 import { websocketService } from './services/websocketService';
 import { authService } from './services/authService';
 import { fcmService } from './services/fcmService';
@@ -34,6 +35,8 @@ const queryClient = new QueryClient({
   },
 });
 
+const ONESIGNAL_APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID as string | undefined;
+
 function App() {
   useEffect(() => {
     if (authService.isAuthenticated()) {
@@ -46,6 +49,23 @@ function App() {
     return () => {
       websocketService.disconnect();
     };
+  }, []);
+
+  // OneSignal: init une seule fois si l’App ID est défini
+  useEffect(() => {
+    if (!ONESIGNAL_APP_ID || typeof window === 'undefined') return;
+
+    const initOneSignal = async () => {
+      await OneSignal.init({
+        appId: ONESIGNAL_APP_ID,
+        serviceWorkerPath: 'OneSignalSDK-v16-ServiceWorker/OneSignalSDKWorker.js',
+        allowLocalhostAsSecureOrigin: true,
+      });
+      const userId = authService.getUserId();
+      if (userId) await OneSignal.login(userId);
+    };
+
+    initOneSignal().catch((err) => console.warn('OneSignal init:', err));
   }, []);
 
   return (

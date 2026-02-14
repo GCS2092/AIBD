@@ -9,7 +9,7 @@ import {
   Car,
   Rocket,
   AlertCircle,
-  DollarSign,
+  Banknote,
   User,
   Check,
   ArrowRight,
@@ -124,8 +124,8 @@ function NotificationsPage() {
       ride_cancelled: <XCircle className="w-5 h-5" />,
       driver_assigned: <User className="w-5 h-5" />,
       driver_verified: <Check className="w-5 h-5" />,
-      payment_received: <DollarSign className="w-5 h-5" />,
-      refund_processed: <DollarSign className="w-5 h-5" />,
+      payment_received: <Banknote className="w-5 h-5" />,
+      refund_processed: <Banknote className="w-5 h-5" />,
       system_alert: <AlertCircle className="w-5 h-5" />,
       info: <Bell className="w-5 h-5" />,
       success: <CheckCircle2 className="w-5 h-5" />,
@@ -206,6 +206,11 @@ function NotificationsPage() {
         <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-2 sm:mb-4 drop-shadow-2xl tracking-tight text-white px-2 break-words">
           Notifications
         </h1>
+        {userRole === 'admin' && (
+          <p className="text-white/90 text-sm sm:text-base px-2 max-w-xl">
+            Les nouvelles réservations et alertes apparaissent ici, sans autorisation du navigateur.
+          </p>
+        )}
         {unreadCount > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
