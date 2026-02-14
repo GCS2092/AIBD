@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useOnboarding } from '../hooks/useOnboarding';
 import { driverService } from '../services/driverService';
 import { authService } from '../services/authService';
 import { notificationService } from '../services/notificationService';
@@ -26,7 +27,8 @@ import {
   Banknote,
   CheckCircle2,
   X,
-  AlertCircle
+  AlertCircle,
+  HelpCircle
 } from 'lucide-react';
 import './DriverDashboard.css';
 
@@ -45,6 +47,11 @@ function DriverDashboard() {
       navigate('/login');
     }
   }, [navigate]);
+
+  const { startOnboarding } = useOnboarding({
+    context: 'driver_dashboard',
+    autoRunDelay: 800,
+  });
 
   // Réinitialiser la page quand le filtre change
   useEffect(() => {
@@ -172,6 +179,15 @@ function DriverDashboard() {
       {/* Boutons flottants */}
       <div className="floating-buttons">
         <button 
+          type="button"
+          className="floating-help-btn"
+          onClick={() => startOnboarding()}
+          title="Voir l'aide"
+          aria-label="Voir l'aide"
+        >
+          <HelpCircle className="floating-btn-icon" />
+        </button>
+        <button 
           className="floating-notifications-btn" 
           onClick={() => navigate('/driver/notifications')}
           title="Notifications"
@@ -188,7 +204,7 @@ function DriverDashboard() {
         </button>
       </div>
 
-      <div className="dashboard-content">
+      <div className="dashboard-content" data-onboarding="driver-welcome">
         {actionError && (() => {
           const rideIdMatch = actionError.match(/\(([a-f0-9-]{8}[a-f0-9-]*)\)/i);
           const suggestedRideId = rideIdMatch ? rideIdMatch[1] : null;

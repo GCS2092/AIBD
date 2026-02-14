@@ -226,6 +226,7 @@ function NavigationBar() {
             <Link 
               to="/login" 
               className="nav-link-login"
+              data-onboarding="home-login"
             >
               <LogIn className="w-4 h-4" />
               <span>Connexion</span>
@@ -259,6 +260,7 @@ function NavigationBar() {
             <Link 
               to="/book" 
               className={`nav-link-bottom ${isActive('/book') ? 'active' : ''}`}
+              data-onboarding="home-reserver"
             >
               <BookOpen className="w-5 h-5" />
               <span>Réserver</span>
@@ -266,6 +268,7 @@ function NavigationBar() {
             <Link 
               to="/edit-ride" 
               className={`nav-link-bottom ${isActive('/edit-ride') ? 'active' : ''}`}
+              data-onboarding="home-edit-ride"
             >
               <Key className="w-5 h-5" />
               <span>Modifier</span>
@@ -273,6 +276,7 @@ function NavigationBar() {
             <Link 
               to="/history" 
               className={`nav-link-bottom ${isActive('/history') ? 'active' : ''}`}
+              data-onboarding="home-historique"
             >
               <History className="w-5 h-5" />
               <span>Historique</span>

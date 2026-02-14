@@ -135,6 +135,7 @@
   z-index: 100;
 }
 
+.floating-help-btn,
 .floating-notifications-btn,
 .floating-logout-btn {
   background: var(--color-surface);
@@ -153,6 +154,7 @@
   position: relative;
 }
 
+.floating-help-btn:hover,
 .floating-notifications-btn:hover,
 .floating-logout-btn:hover {
   background: var(--color-page-bg);
@@ -163,6 +165,11 @@
   color: #dc2626;
   background: rgba(239, 68, 68, 0.08);
   border-color: rgba(239, 68, 68, 0.3);
+}
+
+.floating-help-btn .floating-btn-icon {
+  width: 22px;
+  height: 22px;
 }
 
 .floating-notifications-btn .badge {
@@ -1556,6 +1563,7 @@
     right: 15px;
   }
 
+  .floating-help-btn,
   .floating-notifications-btn,
   .floating-logout-btn {
     width: 48px;

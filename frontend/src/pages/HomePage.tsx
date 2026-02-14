@@ -20,11 +20,13 @@ import {
   ArrowRight,
   History,
   BookOpen,
-  Key
+  Key,
+  HelpCircle
 } from 'lucide-react';
 import { rideService, Ride } from '../services/rideService';
 import Pagination from '../components/Pagination';
 import NavigationBar from '../components/NavigationBar';
+import { useOnboarding } from '../hooks/useOnboarding';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -187,6 +189,11 @@ function HomePage() {
     return variants[status] || 'default';
   };
 
+  const { startOnboarding } = useOnboarding({
+    context: 'visitor_home',
+    autoRunDelay: 800,
+  });
+
   return (
     <div className="home-page min-h-screen relative overflow-hidden">
       {/* Légère décoration de fond */}
@@ -197,8 +204,21 @@ function HomePage() {
 
       <NavigationBar />
       
+      {/* Bouton aide onboarding - relancer le guide */}
+      <button
+        type="button"
+        onClick={() => startOnboarding()}
+        className="fixed top-16 right-4 z-50 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--color-surface-elevated)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)] shadow-sm text-sm"
+        title="Voir l'aide"
+        aria-label="Voir l'aide"
+      >
+        <HelpCircle className="w-4 h-4" />
+        <span className="hidden sm:inline">Aide</span>
+      </button>
+
       {/* Hero */}
       <motion.header 
+        data-onboarding="welcome"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}

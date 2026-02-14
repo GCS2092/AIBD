@@ -38,12 +38,12 @@ COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UU
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname = 'cancellations_cancelledby_enum') THEN
-    CREATE TYPE public.cancellations_cancelledby_enum AS ENUM (
-        'client',
-        'driver',
-        'admin',
-        'system'
-    );
+CREATE TYPE public.cancellations_cancelledby_enum AS ENUM (
+    'client',
+    'driver',
+    'admin',
+    'system'
+);
   END IF;
 END
 $$;
@@ -58,12 +58,12 @@ ALTER TYPE public.cancellations_cancelledby_enum OWNER TO postgres;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname = 'drivers_status_enum') THEN
-    CREATE TYPE public.drivers_status_enum AS ENUM (
-        'available',
-        'on_ride',
-        'unavailable',
-        'on_break'
-    );
+CREATE TYPE public.drivers_status_enum AS ENUM (
+    'available',
+    'on_ride',
+    'unavailable',
+    'on_break'
+);
   END IF;
 END
 $$;
@@ -78,19 +78,19 @@ ALTER TYPE public.drivers_status_enum OWNER TO postgres;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname = 'internal_notifications_type_enum') THEN
-    CREATE TYPE public.internal_notifications_type_enum AS ENUM (
-        'ride_created',
-        'ride_accepted',
-        'ride_refused',
-        'ride_started',
-        'ride_completed',
-        'ride_cancelled',
-        'driver_assigned',
-        'driver_verified',
-        'payment_received',
-        'refund_processed',
-        'system_alert'
-    );
+CREATE TYPE public.internal_notifications_type_enum AS ENUM (
+    'ride_created',
+    'ride_accepted',
+    'ride_refused',
+    'ride_started',
+    'ride_completed',
+    'ride_cancelled',
+    'driver_assigned',
+    'driver_verified',
+    'payment_received',
+    'refund_processed',
+    'system_alert'
+);
   END IF;
 END
 $$;
@@ -105,11 +105,11 @@ ALTER TYPE public.internal_notifications_type_enum OWNER TO postgres;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname = 'notifications_status_enum') THEN
-    CREATE TYPE public.notifications_status_enum AS ENUM (
-        'pending',
-        'sent',
-        'failed'
-    );
+CREATE TYPE public.notifications_status_enum AS ENUM (
+    'pending',
+    'sent',
+    'failed'
+);
   END IF;
 END
 $$;
@@ -124,12 +124,12 @@ ALTER TYPE public.notifications_status_enum OWNER TO postgres;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname = 'notifications_type_enum') THEN
-    CREATE TYPE public.notifications_type_enum AS ENUM (
-        'push',
-        'whatsapp',
-        'sms',
-        'email'
-    );
+CREATE TYPE public.notifications_type_enum AS ENUM (
+    'push',
+    'whatsapp',
+    'sms',
+    'email'
+);
   END IF;
 END
 $$;
@@ -144,12 +144,12 @@ ALTER TYPE public.notifications_type_enum OWNER TO postgres;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname = 'pricing_type_enum') THEN
-    CREATE TYPE public.pricing_type_enum AS ENUM (
-        'standard',
-        'peak_hours',
-        'night',
-        'special'
-    );
+CREATE TYPE public.pricing_type_enum AS ENUM (
+    'standard',
+    'peak_hours',
+    'night',
+    'special'
+);
   END IF;
 END
 $$;
@@ -164,10 +164,10 @@ ALTER TYPE public.pricing_type_enum OWNER TO postgres;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname = 'rides_ridetype_enum') THEN
-    CREATE TYPE public.rides_ridetype_enum AS ENUM (
-        'dakar_to_airport',
-        'airport_to_dakar'
-    );
+CREATE TYPE public.rides_ridetype_enum AS ENUM (
+    'dakar_to_airport',
+    'airport_to_dakar'
+);
   END IF;
 END
 $$;
@@ -182,16 +182,16 @@ ALTER TYPE public.rides_ridetype_enum OWNER TO postgres;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname = 'rides_status_enum') THEN
-    CREATE TYPE public.rides_status_enum AS ENUM (
-        'pending',
-        'assigned',
-        'accepted',
-        'driver_on_way',
-        'picked_up',
-        'in_progress',
-        'completed',
-        'cancelled'
-    );
+CREATE TYPE public.rides_status_enum AS ENUM (
+    'pending',
+    'assigned',
+    'accepted',
+    'driver_on_way',
+    'picked_up',
+    'in_progress',
+    'completed',
+    'cancelled'
+);
   END IF;
 END
 $$;
@@ -206,10 +206,10 @@ ALTER TYPE public.rides_status_enum OWNER TO postgres;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typname = 'users_role_enum') THEN
-    CREATE TYPE public.users_role_enum AS ENUM (
-        'admin',
-        'driver'
-    );
+CREATE TYPE public.users_role_enum AS ENUM (
+    'admin',
+    'driver'
+);
   END IF;
 END
 $$;

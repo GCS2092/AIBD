@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useOnboarding } from '../hooks/useOnboarding';
 import { adminService, AdminUser, CreateUserByAdminDto } from '../services/adminService';
 import { authService } from '../services/authService';
 import { notificationService } from '../services/notificationService';
@@ -52,6 +53,7 @@ import {
   Banknote as BanknoteIcon,
   UserCog,
   UserPlus,
+  HelpCircle,
 } from 'lucide-react';
 import './AdminDashboard.css';
 
@@ -1390,6 +1392,11 @@ function AdminDashboard() {
     }
   }, [navigate]);
 
+  const { startOnboarding } = useOnboarding({
+    context: 'admin_dashboard',
+    autoRunDelay: 800,
+  });
+
   // Réinitialiser la page quand les filtres changent
   useEffect(() => {
     setDriversPage(1);
@@ -1622,8 +1629,17 @@ function AdminDashboard() {
         </div>
       </header>
 
-      {/* Boutons flottants - Notifications et Déconnexion */}
+      {/* Boutons flottants - Aide, Notifications et Déconnexion */}
       <div className="floating-buttons">
+        <button 
+          type="button"
+          className="floating-help-btn"
+          onClick={() => startOnboarding()}
+          title="Voir l'aide"
+          aria-label="Voir l'aide"
+        >
+          <HelpCircle className="floating-btn-icon" />
+        </button>
         <button 
           className="floating-notifications-btn" 
           onClick={() => navigate('/admin/notifications')}
@@ -1640,7 +1656,7 @@ function AdminDashboard() {
         </button>
       </div>
 
-      <div className="dashboard-content">
+      <div className="dashboard-content" data-onboarding="admin-welcome">
         {selectedTab === 'overview' && (
           <>
             {/* Statistiques principales - Grille 3x2 */}
@@ -2634,6 +2650,7 @@ function AdminDashboard() {
       {createPortal(
         <nav className="bottom-nav bottom-nav-fixed" aria-label="Navigation principale">
           <button 
+            data-onboarding="admin-nav-stats"
             className={`nav-item ${selectedTab === 'overview' ? 'active' : ''}`}
             onClick={() => setSelectedTab('overview')}
           >
@@ -2641,6 +2658,7 @@ function AdminDashboard() {
             <span className="nav-label">Statuts</span>
           </button>
           <button 
+            data-onboarding="admin-nav-drivers"
             className={`nav-item ${selectedTab === 'drivers' ? 'active' : ''}`}
             onClick={() => setSelectedTab('drivers')}
           >
@@ -2648,6 +2666,7 @@ function AdminDashboard() {
             <span className="nav-label">Chauffeurs</span>
           </button>
           <button 
+            data-onboarding="admin-nav-rides"
             className={`nav-item ${selectedTab === 'rides' ? 'active' : ''}`}
             onClick={() => setSelectedTab('rides')}
           >
@@ -2655,6 +2674,7 @@ function AdminDashboard() {
             <span className="nav-label">Courses</span>
           </button>
           <button 
+            data-onboarding="admin-nav-pricing"
             className={`nav-item ${selectedTab === 'pricing' ? 'active' : ''}`}
             onClick={() => setSelectedTab('pricing')}
           >
@@ -2662,6 +2682,7 @@ function AdminDashboard() {
             <span className="nav-label">Tarifs</span>
           </button>
           <button 
+            data-onboarding="admin-nav-users"
             className={`nav-item ${selectedTab === 'users' ? 'active' : ''}`}
             onClick={() => setSelectedTab('users')}
           >
@@ -2669,6 +2690,7 @@ function AdminDashboard() {
             <span className="nav-label">Utilisateurs</span>
           </button>
           <button 
+            data-onboarding="admin-nav-vehicles"
             className={`nav-item ${selectedTab === 'vehicles' ? 'active' : ''}`}
             onClick={() => setSelectedTab('vehicles')}
           >

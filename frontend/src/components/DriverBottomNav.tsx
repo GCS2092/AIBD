@@ -42,6 +42,7 @@ export default function DriverBottomNav({ selectedTab, onTabChange }: DriverBott
   return (
     <nav className="bottom-nav">
       <button 
+        data-onboarding="driver-nav-overview"
         className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
         onClick={() => handleTabClick('overview')}
       >
@@ -49,6 +50,7 @@ export default function DriverBottomNav({ selectedTab, onTabChange }: DriverBott
         <span className="nav-label">Statuts</span>
       </button>
       <button 
+        data-onboarding="driver-nav-available"
         className={`nav-item ${activeTab === 'available' ? 'active' : ''}`}
         onClick={() => handleTabClick('available')}
       >
@@ -56,6 +58,7 @@ export default function DriverBottomNav({ selectedTab, onTabChange }: DriverBott
         <span className="nav-label">Disponibles</span>
       </button>
       <button 
+        data-onboarding="driver-nav-active"
         className={`nav-item ${activeTab === 'active' ? 'active' : ''}`}
         onClick={() => handleTabClick('active')}
       >
@@ -63,6 +66,7 @@ export default function DriverBottomNav({ selectedTab, onTabChange }: DriverBott
         <span className="nav-label">En cours</span>
       </button>
       <button 
+        data-onboarding="driver-nav-history"
         className={`nav-item ${activeTab === 'history' ? 'active' : ''}`}
         onClick={() => handleTabClick('history')}
       >

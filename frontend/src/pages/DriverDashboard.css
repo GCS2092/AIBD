@@ -256,6 +256,7 @@
   z-index: 100;
 }
 
+.floating-help-btn,
 .floating-notifications-btn,
 .floating-logout-btn {
   background: white;
@@ -279,6 +280,7 @@
   stroke-width: 2;
 }
 
+.floating-help-btn:hover,
 .floating-notifications-btn:hover,
 .floating-logout-btn:hover {
   background: #f8fafc;

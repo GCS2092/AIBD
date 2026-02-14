@@ -1,0 +1,114 @@
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.onboarding-backdrop {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.65);
+  pointer-events: auto;
+}
+
+.onboarding-backdrop-full {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.onboarding-tooltip {
+  position: fixed;
+  max-width: 320px;
+  min-width: 280px;
+  padding: 1.25rem 1.5rem;
+  background: var(--color-surface-elevated, #fff);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-border, #e5e7eb);
+  z-index: 10000;
+  pointer-events: auto;
+}
+
+.onboarding-tooltip-centered {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.onboarding-tooltip-positioned {
+  /* position set via style */
+}
+
+.onboarding-tooltip-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text, #111827);
+}
+
+.onboarding-tooltip-body {
+  margin: 0 0 1rem 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6b7280);
+}
+
+.onboarding-tooltip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.onboarding-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.onboarding-btn-skip {
+  background: transparent;
+  color: var(--color-text-muted, #6b7280);
+}
+
+.onboarding-btn-skip:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--color-text, #374151);
+}
+
+.onboarding-btn-next {
+  background: var(--color-primary, #16a34a);
+  color: white;
+}
+
+.onboarding-btn-next:hover {
+  opacity: 0.9;
+  filter: brightness(1.05);
+}
+
+.onboarding-dots {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.onboarding-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-border, #e5e7eb);
+  transition: background 0.2s;
+}
+
+.onboarding-dot.active {
+  background: var(--color-primary, #16a34a);
+  transform: scale(1.2);
+}
