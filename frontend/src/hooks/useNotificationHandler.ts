@@ -2,11 +2,6 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OneSignal from 'react-onesignal';
 
-type NotificationClickPayload = {
-  notification?: { additionalData?: Record<string, string>; launchURL?: string };
-  result?: { url?: string };
-};
-
 /**
  * Écoute les clics sur les notifications OneSignal et redirige selon data (rideId, url).
  */
@@ -14,7 +9,7 @@ export function useNotificationHandler() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handler = (event: NotificationClickPayload) => {
+    const handler = (event: { notification?: { additionalData?: object; launchURL?: string }; result?: { url?: string } }) => {
       const data = (event?.notification?.additionalData ?? {}) as Record<string, string>;
       const url = event?.notification?.launchURL ?? event?.result?.url ?? data?.url;
       const rideId = data?.rideId;
