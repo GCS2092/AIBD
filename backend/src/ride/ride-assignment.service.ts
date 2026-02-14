@@ -198,11 +198,10 @@ export class RideAssignmentService {
     ride.lastAssignmentAttempt = new Date();
     await this.rideRepository.save(ride);
 
-    // Notifier chaque chauffeur
+    // Notifier chaque chauffeur (SMS, interne, OneSignal push, WebSocket)
     ride.setEncryptionService(this.encryptionService);
     for (const driver of drivers) {
       if (driver.user) {
-        // Notification externe (WhatsApp/SMS)
         try {
           await this.notificationService.notifyDriverNewRide(
             driver.user.phone,
@@ -211,8 +210,6 @@ export class RideAssignmentService {
         } catch (error) {
           console.error(`Erreur notification externe chauffeur ${driver.id}:`, error);
         }
-
-        // Notification interne
         try {
           await this.internalNotificationsService.notifyDriverNewRide(
             driver.id,
@@ -221,8 +218,15 @@ export class RideAssignmentService {
         } catch (error) {
           console.error(`Erreur notification interne chauffeur ${driver.id}:`, error);
         }
-
-        // WebSocket
+        try {
+          await this.oneSignalService.notifyDriverAssigned(
+            driver.user.id,
+            ride.id,
+            ride.pickupAddress || 'Voir détails',
+          );
+        } catch (error) {
+          console.error(`Erreur OneSignal chauffeur ${driver.id}:`, error);
+        }
         try {
           this.websocketGateway.emitToDriver(driver.user.id, 'ride:offered', {
             rideId: ride.id,

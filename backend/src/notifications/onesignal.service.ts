@@ -27,7 +27,9 @@ export class OneSignalService {
     this.apiKey = this.config.get<string>('ONESIGNAL_REST_API_KEY');
     this.enabled = !!(this.appId && this.apiKey);
     if (!this.enabled) {
-      this.logger.warn('OneSignal: ONESIGNAL_APP_ID ou ONESIGNAL_REST_API_KEY manquant — push désactivés');
+      this.logger.warn('OneSignal: push désactivés (manque ONESIGNAL_APP_ID ou ONESIGNAL_REST_API_KEY sur Render)');
+    } else {
+      this.logger.log('OneSignal: push activés (app_id présent, clé API configurée)');
     }
   }
 
@@ -35,10 +37,16 @@ export class OneSignalService {
    * Envoie une notification push à des utilisateurs ciblés par external_id (user.id).
    */
   async send(payload: OneSignalPushPayload): Promise<boolean> {
-    if (!this.enabled || payload.externalUserIds.length === 0) {
+    if (!this.enabled) {
+      this.logger.debug('OneSignal send ignoré (service désactivé)');
+      return false;
+    }
+    if (payload.externalUserIds.length === 0) {
+      this.logger.warn('OneSignal send ignoré (aucun externalUserId)');
       return false;
     }
     try {
+      this.logger.log(`OneSignal: envoi vers ${payload.externalUserIds.length} user(s) — "${payload.title}"`);
       const body: Record<string, unknown> = {
         app_id: this.appId,
         target_channel: 'push',
@@ -66,7 +74,7 @@ export class OneSignalService {
       }
       return false;
     } catch (err: unknown) {
-      const message = axios.isAxiosError(err) ? err.response?.data ?? err.message : String(err);
+      const message = axios.isAxiosError(err) ? JSON.stringify(err.response?.data ?? err.message) : String(err);
       this.logger.error(`OneSignal send failed: ${message}`);
       return false;
     }
