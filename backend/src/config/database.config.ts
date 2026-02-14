@@ -10,26 +10,32 @@ export const getDatabaseConfig = async (
 
   // Priorité à DATABASE_URL (Supabase, Render Postgres, etc.)
   if (databaseUrl) {
-    // Parser l'URL pour extraire le hostname et forcer IPv4
     const url = new URL(databaseUrl);
     const hostname = url.hostname;
     
-    // Si c'est une adresse IPv6, essayer de résoudre en IPv4
-    let finalHostname = hostname;
-    if (hostname.includes(':') || hostname.match(/^[0-9a-f:]+$/i)) {
-      // C'est une IPv6 ou un hostname qui pourrait résoudre en IPv6
-      try {
-        const addresses = await dns.resolve4(hostname);
-        if (addresses && addresses.length > 0) {
-          finalHostname = addresses[0]; // Utiliser la première IPv4
-        }
-      } catch (e) {
-        // Si résolution IPv4 échoue, garder l'hostname original
-        console.warn(`Could not resolve IPv4 for ${hostname}, using original`);
-      }
+    // Détecter si c'est une IPv6 directe (ne peut pas être convertie en IPv4)
+    const isIPv6 = hostname.match(/^[0-9a-f:]+$/i) && hostname.includes(':');
+    
+    if (isIPv6) {
+      console.error(`❌ DATABASE_URL contient une adresse IPv6 directe (${hostname}).`);
+      console.error(`   Utilisez l'URL pooler de Supabase (Session mode) ou l'Internal Database URL de Render Postgres.`);
+      throw new Error(`DATABASE_URL contains IPv6 address. Use Supabase pooler URL (Session mode) or Render Internal Database URL instead.`);
     }
     
-    // Reconstruire l'URL avec l'IPv4
+    // Si c'est un hostname (pas une IP), essayer de résoudre en IPv4
+    let finalHostname = hostname;
+    try {
+      const addresses = await dns.resolve4(hostname);
+      if (addresses && addresses.length > 0) {
+        finalHostname = addresses[0]; // Utiliser la première IPv4
+        console.log(`✅ Résolution IPv4 pour ${hostname}: ${finalHostname}`);
+      }
+    } catch (e) {
+      // Si résolution IPv4 échoue, garder l'hostname original (peut résoudre en IPv4 au runtime)
+      console.warn(`⚠️ Impossible de résoudre IPv4 pour ${hostname}, utilisation de l'hostname original`);
+    }
+    
+    // Reconstruire l'URL avec l'IPv4 ou l'hostname
     url.hostname = finalHostname;
     const finalUrl = url.toString();
     
