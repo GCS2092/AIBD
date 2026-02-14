@@ -73,6 +73,7 @@ export const API_ENDPOINTS = {
   ADMIN_RIDES: '/admin/rides',
   ADMIN_RIDE: (id: string) => `/admin/rides/${id}`,
   ADMIN_ASSIGN_RIDE: (rideId: string, driverId: string) => `/admin/rides/${rideId}/assign/${driverId}`,
+  ADMIN_USERS: '/admin/users',
   
   // Driver
   DRIVER_PROFILE: '/driver/profile',

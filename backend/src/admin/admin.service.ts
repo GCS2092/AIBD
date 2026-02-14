@@ -14,6 +14,7 @@ import { Pricing } from '../entities/pricing.entity';
 import { Vehicle } from '../entities/vehicle.entity';
 import { CreateDriverInviteDto } from './dto/create-driver-invite.dto';
 import { CreateDriverDto } from './dto/create-driver.dto';
+import { CreateUserByAdminDto } from './dto/create-user-by-admin.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
 import { EncryptionService } from '../encryption/encryption.service';
 import { PaginatedResponse } from '../common/interfaces/paginated-response.interface';
@@ -33,6 +34,90 @@ export class AdminService {
     private vehicleRepository: Repository<Vehicle>,
     private encryptionService: EncryptionService,
   ) {}
+
+  private decryptUserData(user: User): void {
+    if (!this.encryptionService || !user) return;
+    user.setEncryptionService(this.encryptionService);
+    if (user.email && typeof user.email === 'string' && user.email.includes(':')) {
+      try {
+        user.email = this.encryptionService.decrypt(user.email);
+      } catch (e) {
+        console.warn('[Admin] Erreur déchiffrement email user:', e);
+      }
+    }
+    if (user.phone && typeof user.phone === 'string' && user.phone.includes(':')) {
+      try {
+        user.phone = this.encryptionService.decrypt(user.phone);
+      } catch (e) {
+        console.warn('[Admin] Erreur déchiffrement phone user:', e);
+      }
+    }
+  }
+
+  async getAllUsers(page: number = 1, limit: number = 10): Promise<PaginatedResponse<User>> {
+    const skip = (page - 1) * limit;
+    const [users, total] = await this.userRepository.findAndCount({
+      relations: ['driver'],
+      order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
+    });
+    users.forEach((u) => this.decryptUserData(u));
+    const totalPages = Math.ceil(total / limit);
+    return {
+      data: users,
+      total,
+      page,
+      limit,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
+    };
+  }
+
+  async createUser(createDto: CreateUserByAdminDto): Promise<{ user: User; driver?: Driver }> {
+    const emailHash = this.encryptionService.hashForSearch(createDto.email.toLowerCase().trim());
+    const existingUser = await this.userRepository.findOne({ where: { emailHash } });
+    if (existingUser) {
+      throw new BadRequestException('Cet email est déjà utilisé');
+    }
+    const hashedPassword = await bcrypt.hash(createDto.password, 10);
+    const user = this.userRepository.create({
+      firstName: createDto.firstName,
+      lastName: createDto.lastName,
+      email: createDto.email,
+      password: hashedPassword,
+      phone: createDto.phone,
+      role: createDto.role,
+      isActive: createDto.isActive ?? true,
+    });
+    user.setEncryptionService(this.encryptionService);
+    const savedUser = await this.userRepository.save(user);
+    this.decryptUserData(savedUser);
+
+    if (createDto.role === UserRole.DRIVER) {
+      if (!createDto.licenseNumber?.trim()) {
+        throw new BadRequestException('Le numéro de permis est obligatoire pour un chauffeur');
+      }
+      const existingDriver = await this.driverRepository.findOne({
+        where: { licenseNumber: createDto.licenseNumber },
+      });
+      if (existingDriver) {
+        throw new BadRequestException('Ce numéro de permis est déjà utilisé');
+      }
+      const driver = this.driverRepository.create({
+        userId: savedUser.id,
+        licenseNumber: createDto.licenseNumber,
+        serviceZone: createDto.serviceZone ?? undefined,
+        status: DriverStatus.UNAVAILABLE,
+        isVerified: true,
+      });
+      driver.setEncryptionService(this.encryptionService);
+      const savedDriver = await this.driverRepository.save(driver);
+      return { user: savedUser, driver: savedDriver };
+    }
+    return { user: savedUser };
+  }
 
   async createDriverInvite(createDto: CreateDriverInviteDto) {
     // Générer un token unique

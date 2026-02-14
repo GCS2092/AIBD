@@ -11,6 +11,7 @@ import {
 import { AdminService } from './admin.service';
 import { CreateDriverInviteDto } from './dto/create-driver-invite.dto';
 import { CreateDriverDto } from './dto/create-driver.dto';
+import { CreateUserByAdminDto } from './dto/create-user-by-admin.dto';
 import { UpdateDriverDto } from './dto/update-driver.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -23,6 +24,21 @@ import { RideStatus } from '../entities/ride.entity';
 @Roles(UserRole.ADMIN)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
+
+  @Get('users')
+  async getAllUsers(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const pageNum = page ? parseInt(page, 10) : 1;
+    const limitNum = limit ? parseInt(limit, 10) : 10;
+    return this.adminService.getAllUsers(pageNum, limitNum);
+  }
+
+  @Post('users')
+  async createUser(@Body() createDto: CreateUserByAdminDto) {
+    return this.adminService.createUser(createDto);
+  }
 
   @Post('drivers/invite')
   async createDriverInvite(@Body() createDto: CreateDriverInviteDto) {

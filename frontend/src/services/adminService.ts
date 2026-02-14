@@ -93,6 +93,31 @@ export interface PaginatedResponse<T> {
   hasPreviousPage: boolean;
 }
 
+export interface AdminUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  role: 'admin' | 'driver';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  driver?: { id: string };
+}
+
+export interface CreateUserByAdminDto {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: 'admin' | 'driver';
+  isActive?: boolean;
+  licenseNumber?: string;
+  serviceZone?: string;
+}
+
 export const adminService = {
   getDashboardStats: async (): Promise<DashboardStats> => {
     const response = await apiClient.get(API_ENDPOINTS.ADMIN_STATS);
@@ -157,6 +182,18 @@ export const adminService = {
 
   createDriver: async (data: { firstName: string; lastName: string; email: string; phone: string; password: string; licenseNumber: string; serviceZone?: string }): Promise<Driver> => {
     const response = await apiClient.post('/admin/drivers', data);
+    return response.data;
+  },
+
+  getAllUsers: async (page: number = 1, limit: number = 10): Promise<PaginatedResponse<AdminUser>> => {
+    const response = await apiClient.get(API_ENDPOINTS.ADMIN_USERS, {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+
+  createUser: async (data: CreateUserByAdminDto): Promise<{ user: AdminUser; driver?: Driver }> => {
+    const response = await apiClient.post(API_ENDPOINTS.ADMIN_USERS, data);
     return response.data;
   },
 };
