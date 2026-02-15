@@ -636,6 +636,96 @@
   height: 16px;
 }
 
+/* ---------- Barre de filtres unifiée ---------- */
+.filter-bar {
+  background: linear-gradient(135deg, var(--color-surface-elevated) 0%, rgba(255, 255, 255, 0.98) 100%);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.filter-bar__label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.filter-bar__label svg {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+
+.filter-bar__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.filter-bar__group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-bar__group-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-right: 0.25rem;
+  flex-shrink: 0;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-chip:hover {
+  background: var(--color-page-bg);
+  border-color: rgba(114, 101, 227, 0.35);
+  color: var(--color-primary);
+}
+
+.filter-chip.active {
+  background: rgba(114, 101, 227, 0.15);
+  border-color: rgba(114, 101, 227, 0.45);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.filter-chip.filter-chip--success.active {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.45);
+  color: #15803d;
+}
+
+.filter-chip.filter-chip--danger.active {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #b91c1c;
+}
+
 .filters-modern {
   display: flex;
   gap: 12px;
@@ -648,8 +738,8 @@
   gap: 6px;
   padding: 10px 18px;
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  background: var(--color-surface-elevated);
+  border-radius: 9999px;
+  background: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
   font-size: 13px;
@@ -661,11 +751,12 @@
 .filter-btn-modern:hover {
   background: var(--color-page-bg);
   border-color: var(--color-primary-border);
+  color: var(--color-primary);
 }
 
 .filter-btn-modern.active {
-  background: rgba(114, 101, 227, 0.12);
-  border-color: rgba(114, 101, 227, 0.35);
+  background: rgba(114, 101, 227, 0.15);
+  border-color: rgba(114, 101, 227, 0.45);
   color: var(--color-primary);
   font-weight: 600;
 }
@@ -1579,6 +1670,24 @@
 
   .drivers-controls {
     gap: 12px;
+  }
+
+  .filter-bar {
+    padding: 0.75rem 1rem;
+  }
+
+  .filter-bar__row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-bar__group {
+    width: 100%;
+  }
+
+  .filter-chip {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
   }
 
   .filters-modern {

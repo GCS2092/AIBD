@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, Phone, Mail, MapPin, Navigation, Calendar, Car, UserCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, User, Phone, Mail, MapPin, Navigation, Calendar, Car, UserCheck, AlertCircle, RefreshCw, Play, CheckCircle2, XCircle } from 'lucide-react';
 import { adminService, Driver } from '../services/adminService';
 import { authService } from '../services/authService';
 import NavigationBar from '../components/NavigationBar';
@@ -57,6 +57,33 @@ function RideDetailPage() {
     },
   });
 
+  const invalidateRide = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-ride', id] });
+    queryClient.invalidateQueries({ queryKey: ['admin-rides'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+  };
+
+  const acceptMutation = useMutation({
+    mutationFn: () => adminService.acceptRide(id!),
+    onSuccess: () => { invalidateRide(); alert('Course acceptée.'); },
+    onError: (error: any) => { alert(error.response?.data?.message || 'Erreur'); },
+  });
+  const startMutation = useMutation({
+    mutationFn: () => adminService.startRide(id!),
+    onSuccess: () => { invalidateRide(); alert('Course démarrée.'); },
+    onError: (error: any) => { alert(error.response?.data?.message || 'Erreur'); },
+  });
+  const completeMutation = useMutation({
+    mutationFn: () => adminService.completeRide(id!),
+    onSuccess: () => { invalidateRide(); alert('Course terminée.'); },
+    onError: (error: any) => { alert(error.response?.data?.message || 'Erreur'); },
+  });
+  const cancelMutation = useMutation({
+    mutationFn: (reason?: string) => adminService.cancelRide(id!, reason),
+    onSuccess: () => { invalidateRide(); alert('Course annulée.'); },
+    onError: (error: any) => { alert(error.response?.data?.message || 'Erreur'); },
+  });
+
   const drivers = driversData?.data || [];
   const availableDrivers = drivers.filter((d: Driver) => 
     d.isVerified && 
@@ -69,6 +96,8 @@ function RideDetailPage() {
       pending: 'En attente',
       assigned: 'Assignée',
       accepted: 'Acceptée',
+      driver_on_way: 'Chauffeur en route',
+      picked_up: 'Client pris en charge',
       in_progress: 'En cours',
       completed: 'Terminée',
       cancelled: 'Annulée',
@@ -81,6 +110,8 @@ function RideDetailPage() {
       pending: 'warning',
       assigned: 'default',
       accepted: 'default',
+      driver_on_way: 'default',
+      picked_up: 'secondary',
       in_progress: 'secondary',
       completed: 'success',
       cancelled: 'destructive',
@@ -450,6 +481,68 @@ function RideDetailPage() {
             </Card>
           )}
         </motion.div>
+
+        {/* Actions sur la course (comme le chauffeur) */}
+        {ride && !['completed', 'cancelled'].includes(ride.status) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+            className="mt-6"
+          >
+            <Card className="bg-white border-gray-200 shadow-2xl">
+              <CardHeader className="px-4 sm:px-6">
+                <CardTitle className="text-lg sm:text-xl text-gray-900">Actions sur la course</CardTitle>
+                <p className="text-sm text-gray-500 mt-1">Effectuer les mêmes actions que le chauffeur (accepter, démarrer, terminer, annuler).</p>
+              </CardHeader>
+              <CardContent className="px-4 sm:px-6 flex flex-wrap gap-3">
+                {ride.status === 'assigned' && ride.driverId && (
+                  <Button
+                    onClick={() => acceptMutation.mutate()}
+                    disabled={acceptMutation.isPending}
+                    className="bg-gray-900 hover:bg-gray-800 text-white"
+                  >
+                    {acceptMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <UserCheck className="w-4 h-4 mr-2" />}
+                    Accepter pour le chauffeur
+                  </Button>
+                )}
+                {(ride.status === 'accepted' || ride.status === 'driver_on_way') && (
+                  <Button
+                    onClick={() => startMutation.mutate()}
+                    disabled={startMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {startMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Play className="w-4 h-4 mr-2" />}
+                    Démarrer la course
+                  </Button>
+                )}
+                {(ride.status === 'in_progress' || ride.status === 'picked_up') && (
+                  <Button
+                    onClick={() => completeMutation.mutate()}
+                    disabled={completeMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    {completeMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                    Terminer la course
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    const reason = window.prompt('Raison de l\'annulation (optionnel) :');
+                    if (reason === null) return;
+                    if (!confirm('Annuler cette course ?')) return;
+                    cancelMutation.mutate(reason || undefined);
+                  }}
+                  disabled={cancelMutation.isPending}
+                >
+                  {cancelMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <XCircle className="w-4 h-4 mr-2" />}
+                  Annuler la course
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </main>
     </div>
   );

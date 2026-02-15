@@ -114,6 +114,29 @@ export class AdminController {
     return this.adminService.assignRideToDriver(rideId, driverId);
   }
 
+  @Post('rides/:id/accept')
+  async acceptRide(@Param('id') id: string) {
+    return this.adminService.acceptRideAsAdmin(id);
+  }
+
+  @Post('rides/:id/start')
+  async startRide(@Param('id') id: string) {
+    return this.adminService.startRideAsAdmin(id);
+  }
+
+  @Post('rides/:id/complete')
+  async completeRide(@Param('id') id: string) {
+    return this.adminService.completeRideAsAdmin(id);
+  }
+
+  @Post('rides/:id/cancel')
+  async cancelRide(
+    @Param('id') id: string,
+    @Body('reason') reason?: string,
+  ) {
+    return this.adminService.cancelRideAsAdmin(id, reason);
+  }
+
   @Post('rides/clear-completed')
   async clearCompletedRides(
     @CurrentUser() user: { id: string },

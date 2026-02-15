@@ -168,6 +168,26 @@ export const adminService = {
     return response.data;
   },
 
+  acceptRide: async (rideId: string): Promise<Ride> => {
+    const response = await apiClient.post(API_ENDPOINTS.ADMIN_RIDE_ACCEPT(rideId));
+    return response.data;
+  },
+
+  startRide: async (rideId: string): Promise<Ride> => {
+    const response = await apiClient.post(API_ENDPOINTS.ADMIN_RIDE_START(rideId));
+    return response.data;
+  },
+
+  completeRide: async (rideId: string): Promise<Ride> => {
+    const response = await apiClient.post(API_ENDPOINTS.ADMIN_RIDE_COMPLETE(rideId));
+    return response.data;
+  },
+
+  cancelRide: async (rideId: string, reason?: string): Promise<Ride> => {
+    const response = await apiClient.post(API_ENDPOINTS.ADMIN_RIDE_CANCEL(rideId), { reason });
+    return response.data;
+  },
+
   clearCompletedRides: async (password: string): Promise<{ deleted: number }> => {
     const response = await apiClient.post(API_ENDPOINTS.ADMIN_CLEAR_COMPLETED_RIDES, { password });
     return response.data;

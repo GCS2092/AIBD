@@ -463,6 +463,109 @@ export class AdminService {
     return ride;
   }
 
+  /**
+   * Accepter une course (comme le chauffeur) — admin agit au nom du chauffeur assigné.
+   */
+  async acceptRideAsAdmin(rideId: string) {
+    const ride = await this.rideRepository.findOne({
+      where: { id: rideId },
+      relations: ['driver'],
+    });
+    if (!ride) throw new NotFoundException('Course non trouvée');
+    if (!ride.driverId) throw new BadRequestException('Aucun chauffeur assigné à cette course');
+    if (ride.status !== RideStatus.ASSIGNED) {
+      throw new BadRequestException('Seules les courses au statut "Assignée" peuvent être acceptées');
+    }
+    const driver = await this.driverRepository.findOne({ where: { id: ride.driverId } });
+    if (!driver) throw new NotFoundException('Chauffeur non trouvé');
+
+    ride.status = RideStatus.ACCEPTED;
+    ride.acceptedAt = new Date();
+    driver.status = DriverStatus.ON_RIDE;
+    driver.consecutiveRides = (driver.consecutiveRides || 0) + 1;
+    await this.rideRepository.save(ride);
+    await this.driverRepository.save(driver);
+    return this.getRideById(rideId);
+  }
+
+  /**
+   * Démarrer une course (comme le chauffeur).
+   */
+  async startRideAsAdmin(rideId: string) {
+    const ride = await this.rideRepository.findOne({
+      where: { id: rideId },
+      relations: ['driver'],
+    });
+    if (!ride) throw new NotFoundException('Course non trouvée');
+    if (ride.status !== RideStatus.ACCEPTED && ride.status !== RideStatus.DRIVER_ON_WAY) {
+      throw new BadRequestException('La course doit être acceptée ou "chauffeur en route" pour être démarrée');
+    }
+
+    ride.status = RideStatus.IN_PROGRESS;
+    ride.startedAt = new Date();
+    await this.rideRepository.save(ride);
+    return this.getRideById(rideId);
+  }
+
+  /**
+   * Terminer une course (comme le chauffeur).
+   */
+  async completeRideAsAdmin(rideId: string) {
+    const ride = await this.rideRepository.findOne({
+      where: { id: rideId },
+      relations: ['driver'],
+    });
+    if (!ride) throw new NotFoundException('Course non trouvée');
+    if (ride.status !== RideStatus.IN_PROGRESS && ride.status !== RideStatus.PICKED_UP) {
+      throw new BadRequestException('Seules les courses en cours peuvent être terminées');
+    }
+
+    ride.status = RideStatus.COMPLETED;
+    ride.completedAt = new Date();
+
+    if (ride.driverId) {
+      const driver = await this.driverRepository.findOne({ where: { id: ride.driverId } });
+      if (driver) {
+        driver.status = DriverStatus.AVAILABLE;
+        await this.driverRepository.save(driver);
+      }
+    }
+    await this.rideRepository.save(ride);
+    return this.getRideById(rideId);
+  }
+
+  /**
+   * Annuler une course (admin).
+   */
+  async cancelRideAsAdmin(rideId: string, reason?: string) {
+    const ride = await this.rideRepository.findOne({
+      where: { id: rideId },
+      relations: ['driver'],
+    });
+    if (!ride) throw new NotFoundException('Course non trouvée');
+    if (ride.status === RideStatus.COMPLETED) {
+      throw new BadRequestException('Une course terminée ne peut pas être annulée');
+    }
+    if (ride.status === RideStatus.CANCELLED) {
+      throw new BadRequestException('Cette course est déjà annulée');
+    }
+
+    ride.status = RideStatus.CANCELLED;
+    ride.cancelledAt = new Date();
+    if (reason) ride.cancellationReason = reason;
+    ride.cancelledBy = 'admin';
+
+    if (ride.driverId) {
+      const driver = await this.driverRepository.findOne({ where: { id: ride.driverId } });
+      if (driver) {
+        driver.status = DriverStatus.AVAILABLE;
+        await this.driverRepository.save(driver);
+      }
+    }
+    await this.rideRepository.save(ride);
+    return this.getRideById(rideId);
+  }
+
   async updateDriver(id: string, updateDto: UpdateDriverDto) {
     const driver = await this.driverRepository.findOne({
       where: { id },

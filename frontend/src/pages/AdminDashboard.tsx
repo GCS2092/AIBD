@@ -54,6 +54,7 @@ import {
   UserCog,
   UserPlus,
   HelpCircle,
+  SlidersHorizontal,
 } from 'lucide-react';
 import './AdminDashboard.css';
 
@@ -160,87 +161,86 @@ function PricingManagement() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Filtres */}
-            <div className="flex flex-col gap-4 mb-6">
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={pricingFilter === 'all' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPricingFilter('all')}
-                  className={pricingFilter === 'all' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                >
-                  Tous
-                </Button>
-                <Button
-                  variant={pricingFilter === 'dakar_to_airport' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPricingFilter('dakar_to_airport')}
-                  className={pricingFilter === 'dakar_to_airport' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                >
-                  Dakar → Aéroport
-                </Button>
-                <Button
-                  variant={pricingFilter === 'airport_to_dakar' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPricingFilter('airport_to_dakar')}
-                  className={pricingFilter === 'airport_to_dakar' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                >
-                  Aéroport → Dakar
-                </Button>
+            <div className="filter-bar">
+              <div className="filter-bar__label">
+                <SlidersHorizontal className="w-4 h-4" />
+                Filtres des tarifs
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={pricingTypeFilter === 'all' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPricingTypeFilter('all')}
-                  className={pricingTypeFilter === 'all' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                >
-                  Tous les types
-                </Button>
-                <Button
-                  variant={pricingTypeFilter === 'standard' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPricingTypeFilter('standard')}
-                  className={pricingTypeFilter === 'standard' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                >
-                  Standard
-                </Button>
-                <Button
-                  variant={pricingTypeFilter === 'peak_hours' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPricingTypeFilter('peak_hours')}
-                  className={pricingTypeFilter === 'peak_hours' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                >
-                  Heures de pointe
-                </Button>
-                <Button
-                  variant={pricingTypeFilter === 'night' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPricingTypeFilter('night')}
-                  className={pricingTypeFilter === 'night' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                >
-                  Nuit
-                </Button>
-                <Button
-                  variant={pricingTypeFilter === 'special' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setPricingTypeFilter('special')}
-                  className={pricingTypeFilter === 'special' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                >
-                  Spécial
-                </Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="showInactive"
-                  checked={showInactivePricing}
-                  onChange={(e) => setShowInactivePricing(e.target.checked)}
-                  className="w-4 h-4 text-gray-800 border-gray-300 rounded focus:ring-primary-500"
-                />
-                <Label htmlFor="showInactive" className="text-sm text-gray-700 cursor-pointer">
-                  Afficher les tarifs inactifs
-                </Label>
+              <div className="filter-bar__row" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem' }}>
+                <div className="filter-bar__group">
+                  <span className="filter-bar__group-label">Trajet :</span>
+                  <button
+                    type="button"
+                    className={`filter-chip ${pricingFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setPricingFilter('all')}
+                  >
+                    Tous
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-chip ${pricingFilter === 'dakar_to_airport' ? 'active' : ''}`}
+                    onClick={() => setPricingFilter('dakar_to_airport')}
+                  >
+                    Dakar → Aéroport
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-chip ${pricingFilter === 'airport_to_dakar' ? 'active' : ''}`}
+                    onClick={() => setPricingFilter('airport_to_dakar')}
+                  >
+                    Aéroport → Dakar
+                  </button>
+                </div>
+                <div className="filter-bar__group">
+                  <span className="filter-bar__group-label">Type :</span>
+                  <button
+                    type="button"
+                    className={`filter-chip ${pricingTypeFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setPricingTypeFilter('all')}
+                  >
+                    Tous les types
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-chip ${pricingTypeFilter === 'standard' ? 'active' : ''}`}
+                    onClick={() => setPricingTypeFilter('standard')}
+                  >
+                    Standard
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-chip ${pricingTypeFilter === 'peak_hours' ? 'active' : ''}`}
+                    onClick={() => setPricingTypeFilter('peak_hours')}
+                  >
+                    Heures de pointe
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-chip ${pricingTypeFilter === 'night' ? 'active' : ''}`}
+                    onClick={() => setPricingTypeFilter('night')}
+                  >
+                    Nuit
+                  </button>
+                  <button
+                    type="button"
+                    className={`filter-chip ${pricingTypeFilter === 'special' ? 'active' : ''}`}
+                    onClick={() => setPricingTypeFilter('special')}
+                  >
+                    Spécial
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="showInactive"
+                    checked={showInactivePricing}
+                    onChange={(e) => setShowInactivePricing(e.target.checked)}
+                    className="w-4 h-4 text-gray-800 border-gray-300 rounded focus:ring-primary-500"
+                  />
+                  <Label htmlFor="showInactive" className="text-sm text-gray-700 cursor-pointer">
+                    Afficher les tarifs inactifs
+                  </Label>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -1873,47 +1873,54 @@ function AdminDashboard() {
                   Nouveau chauffeur
                 </Button>
               </div>
-              <div className="drivers-controls">
-                <div className="search-box-modern">
-                  <Search className="search-icon" />
-                  <input
-                    type="text"
-                    placeholder="Rechercher un chauffeur..."
-                    value={driverSearch}
-                    onChange={(e) => setDriverSearch(e.target.value)}
-                    className="search-input-modern"
-                  />
-                  {driverSearch && (
-                    <button
-                      className="clear-search-btn"
-                      onClick={() => setDriverSearch('')}
-                      title="Effacer"
-                    >
-                      <X className="clear-icon" />
-                    </button>
-                  )}
+              <div className="filter-bar">
+                <div className="filter-bar__label">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Filtres
                 </div>
-                <div className="filters-modern">
-                  <button 
-                    className={`filter-btn-modern ${driverFilter === 'all' ? 'active' : ''}`}
-                    onClick={() => setDriverFilter('all')}
-                  >
-                    Tous
-                  </button>
-                  <button 
-                    className={`filter-btn-modern ${driverFilter === 'verified' ? 'active' : ''}`}
-                    onClick={() => setDriverFilter('verified')}
-                  >
-                    <ShieldCheck className="filter-icon" />
-                    Vérifiés
-                  </button>
-                  <button 
-                    className={`filter-btn-modern ${driverFilter === 'unverified' ? 'active' : ''}`}
-                    onClick={() => setDriverFilter('unverified')}
-                  >
-                    <Shield className="filter-icon" />
-                    Non vérifiés
-                  </button>
+                <div className="filter-bar__row">
+                  <div className="search-box-modern" style={{ flex: '1 1 240px', maxWidth: '320px' }}>
+                    <Search className="search-icon" />
+                    <input
+                      type="text"
+                      placeholder="Rechercher un chauffeur..."
+                      value={driverSearch}
+                      onChange={(e) => setDriverSearch(e.target.value)}
+                      className="search-input-modern"
+                    />
+                    {driverSearch && (
+                      <button
+                        className="clear-search-btn"
+                        onClick={() => setDriverSearch('')}
+                        title="Effacer"
+                      >
+                        <X className="clear-icon" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="filter-bar__group">
+                    <span className="filter-bar__group-label">Statut :</span>
+                    <button
+                      className={`filter-chip ${driverFilter === 'all' ? 'active' : ''}`}
+                      onClick={() => setDriverFilter('all')}
+                    >
+                      Tous
+                    </button>
+                    <button
+                      className={`filter-chip ${driverFilter === 'verified' ? 'active' : ''}`}
+                      onClick={() => setDriverFilter('verified')}
+                    >
+                      <ShieldCheck className="filter-icon" />
+                      Vérifiés
+                    </button>
+                    <button
+                      className={`filter-chip ${driverFilter === 'unverified' ? 'active' : ''}`}
+                      onClick={() => setDriverFilter('unverified')}
+                    >
+                      <Shield className="filter-icon" />
+                      Non vérifiés
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2081,63 +2088,63 @@ function AdminDashboard() {
                   <CardTitle className="text-2xl font-bold text-gray-800">Gestion des Courses</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {/* Filtres */}
-                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant={rideFilter === 'all' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setRideFilter('all')}
-                        className={rideFilter === 'all' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                      >
-                        Toutes
-                      </Button>
-                      <Button
-                        variant={rideFilter === 'pending' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setRideFilter('pending')}
-                        className={rideFilter === 'pending' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                      >
-                        En attente
-                      </Button>
-                      <Button
-                        variant={rideFilter === 'completed' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setRideFilter('completed')}
-                        className={rideFilter === 'completed' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                      >
-                        Terminées
-                      </Button>
-                      <Button
-                        variant={rideFilter === 'cancelled' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setRideFilter('cancelled')}
-                        className={rideFilter === 'cancelled' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                      >
-                        Annulées
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowClearCompletedModal(true)}
-                        className="ml-2 border-amber-300 text-amber-800 hover:bg-amber-50"
-                        title="Supprimer toutes les courses terminées (avec validation mot de passe)"
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Vider les terminées
-                      </Button>
+                  <div className="filter-bar">
+                    <div className="filter-bar__label">
+                      <SlidersHorizontal className="w-4 h-4" />
+                      Filtres des courses
                     </div>
-                    <div className="flex-1">
-                      <div className="relative">
+                    <div className="filter-bar__row" style={{ alignItems: 'center', gap: '1rem' }}>
+                      <div className="filter-bar__group">
+                        <span className="filter-bar__group-label">Statut :</span>
+                        <button
+                          type="button"
+                          className={`filter-chip ${rideFilter === 'all' ? 'active' : ''}`}
+                          onClick={() => setRideFilter('all')}
+                        >
+                          Toutes
+                        </button>
+                        <button
+                          type="button"
+                          className={`filter-chip ${rideFilter === 'pending' ? 'active' : ''}`}
+                          onClick={() => setRideFilter('pending')}
+                        >
+                          En attente
+                        </button>
+                        <button
+                          type="button"
+                          className={`filter-chip filter-chip--success ${rideFilter === 'completed' ? 'active' : ''}`}
+                          onClick={() => setRideFilter('completed')}
+                        >
+                          Terminées
+                        </button>
+                        <button
+                          type="button"
+                          className={`filter-chip filter-chip--danger ${rideFilter === 'cancelled' ? 'active' : ''}`}
+                          onClick={() => setRideFilter('cancelled')}
+                        >
+                          Annulées
+                        </button>
+                      </div>
+                      <div className="relative" style={{ flex: '1 1 280px', maxWidth: '400px' }}>
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <Input
                           type="text"
                           placeholder="Rechercher par nom, prénom, téléphone ou email..."
                           value={rideSearch}
                           onChange={(e) => setRideSearch(e.target.value)}
-                          className="pl-10 bg-white border-gray-300 focus:border-gray-900 focus:ring-primary-500"
+                          className="pl-10 bg-white border-gray-300 focus:border-gray-900 focus:ring-primary-500 rounded-full h-9"
                         />
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowClearCompletedModal(true)}
+                        className="border-amber-300 text-amber-800 hover:bg-amber-50 rounded-full"
+                        title="Supprimer toutes les courses terminées (avec validation mot de passe)"
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Vider les terminées
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -2457,41 +2464,50 @@ function AdminDashboard() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant={vehicleDriverFilter === 'all' && vehicleStatusFilter === 'all' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        setVehicleDriverFilter('all');
-                        setVehicleStatusFilter('all');
-                      }}
-                      className={vehicleDriverFilter === 'all' && vehicleStatusFilter === 'all' ? 'bg-primary-500 text-white hover:bg-primary-600' : ''}
-                    >
-                      Tous les véhicules
-                    </Button>
-                    <Button
-                      variant={vehicleStatusFilter === 'active' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setVehicleStatusFilter('active')}
-                      className={vehicleStatusFilter === 'active' ? 'bg-green-600 text-white hover:bg-green-700' : ''}
-                    >
-                      Actifs
-                    </Button>
-                    <Button
-                      variant={vehicleStatusFilter === 'inactive' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setVehicleStatusFilter('inactive')}
-                      className={vehicleStatusFilter === 'inactive' ? 'bg-red-600 text-white hover:bg-red-700' : ''}
-                    >
-                      Inactifs
-                    </Button>
-                    <Input
-                      type="text"
-                      placeholder="Filtrer par ID chauffeur..."
-                      value={vehicleDriverFilter === 'all' ? '' : vehicleDriverFilter}
-                      onChange={(e) => setVehicleDriverFilter(e.target.value || 'all')}
-                      className="w-64 bg-white border-gray-300 focus:border-gray-900 focus:ring-primary-500"
-                    />
+                  <div className="filter-bar">
+                    <div className="filter-bar__label">
+                      <SlidersHorizontal className="w-4 h-4" />
+                      Filtres des véhicules
+                    </div>
+                    <div className="filter-bar__row">
+                      <div className="filter-bar__group">
+                        <span className="filter-bar__group-label">Statut :</span>
+                        <button
+                          type="button"
+                          className={`filter-chip ${vehicleDriverFilter === 'all' && vehicleStatusFilter === 'all' ? 'active' : ''}`}
+                          onClick={() => {
+                            setVehicleDriverFilter('all');
+                            setVehicleStatusFilter('all');
+                          }}
+                        >
+                          Tous les véhicules
+                        </button>
+                        <button
+                          type="button"
+                          className={`filter-chip filter-chip--success ${vehicleStatusFilter === 'active' ? 'active' : ''}`}
+                          onClick={() => setVehicleStatusFilter('active')}
+                        >
+                          Actifs
+                        </button>
+                        <button
+                          type="button"
+                          className={`filter-chip filter-chip--danger ${vehicleStatusFilter === 'inactive' ? 'active' : ''}`}
+                          onClick={() => setVehicleStatusFilter('inactive')}
+                        >
+                          Inactifs
+                        </button>
+                      </div>
+                      <div className="filter-bar__group">
+                        <span className="filter-bar__group-label">Chauffeur :</span>
+                        <Input
+                          type="text"
+                          placeholder="ID chauffeur..."
+                          value={vehicleDriverFilter === 'all' ? '' : vehicleDriverFilter}
+                          onChange={(e) => setVehicleDriverFilter(e.target.value || 'all')}
+                          className="w-48 bg-white border-gray-300 focus:border-gray-900 focus:ring-primary-500 rounded-full h-9 text-sm"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

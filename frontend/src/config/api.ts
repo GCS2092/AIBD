@@ -73,6 +73,10 @@ export const API_ENDPOINTS = {
   ADMIN_RIDES: '/admin/rides',
   ADMIN_RIDE: (id: string) => `/admin/rides/${id}`,
   ADMIN_ASSIGN_RIDE: (rideId: string, driverId: string) => `/admin/rides/${rideId}/assign/${driverId}`,
+  ADMIN_RIDE_ACCEPT: (id: string) => `/admin/rides/${id}/accept`,
+  ADMIN_RIDE_START: (id: string) => `/admin/rides/${id}/start`,
+  ADMIN_RIDE_COMPLETE: (id: string) => `/admin/rides/${id}/complete`,
+  ADMIN_RIDE_CANCEL: (id: string) => `/admin/rides/${id}/cancel`,
   ADMIN_CLEAR_COMPLETED_RIDES: '/admin/rides/clear-completed',
   ADMIN_USERS: '/admin/users',
   

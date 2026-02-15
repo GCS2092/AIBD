@@ -28,7 +28,8 @@ import {
   CheckCircle2,
   X,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  SlidersHorizontal
 } from 'lucide-react';
 import './DriverDashboard.css';
 
@@ -622,19 +623,26 @@ function DriverDashboard() {
           <section className="rides-section-modern">
             <h2 className="section-title-modern">Historique des Courses</h2>
             <div className="filter-controls-modern">
+              <span className="filter-bar__label">
+                <SlidersHorizontal className="w-4 h-4" />
+                Statut
+              </span>
               <button
+                type="button"
                 className={`filter-btn-modern ${statusFilter === '' ? 'active' : ''}`}
                 onClick={() => setStatusFilter('')}
               >
                 Toutes
               </button>
               <button
+                type="button"
                 className={`filter-btn-modern ${statusFilter === 'completed' ? 'active' : ''}`}
                 onClick={() => setStatusFilter('completed')}
               >
                 Terminées
               </button>
               <button
+                type="button"
                 className={`filter-btn-modern ${statusFilter === 'cancelled' ? 'active' : ''}`}
                 onClick={() => setStatusFilter('cancelled')}
               >
