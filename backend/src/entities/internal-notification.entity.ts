@@ -48,7 +48,7 @@ export class InternalNotification {
   message: string;
 
   @Column({ type: 'uuid', nullable: true })
-  rideId: string;
+  rideId: string | null;
 
   @ManyToOne(() => Ride, { nullable: true })
   @JoinColumn({ name: 'rideId' })
